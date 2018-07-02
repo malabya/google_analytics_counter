@@ -348,6 +348,11 @@ class GoogleAnalyticsCounterFeed {
 
   /**
    * Execute a query.
+   *
+   * @param string $url
+   * @param array $params
+   * @param array $headers
+   * @param string $method
    */
   protected function request($url, $params = array(), $headers = array(), $method = 'GET') {
     $options = [
@@ -389,6 +394,11 @@ class GoogleAnalyticsCounterFeed {
 
   /**
    * Query Management API - Accounts.
+   *
+   * @param array $params
+   * @param array $cache_options
+   *
+   * @return $this
    */
   public function queryAccounts($params = array(), $cache_options = array()) {
     $this->setQueryPath('management/accounts');
@@ -398,6 +408,11 @@ class GoogleAnalyticsCounterFeed {
 
   /**
    * Query Management API - WebProperties.
+   *
+   * @param array $params
+   * @param array $cache_options
+   *
+   * @return $this
    */
   public function queryWebProperties($params = array(), $cache_options = array()) {
     $params += [

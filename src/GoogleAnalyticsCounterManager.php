@@ -465,14 +465,14 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
     $ga_feed->queryReportFeed($params, $cache_options);
 
-//    DEBUG:
-//    echo '<pre>';
-//    // The returned object.
-//    // print_r($ga_feed);
-//    // Current Google Query.
-//    print_r($ga_feed->results->selfLink);
-//    echo '</pre>';
-//    exit;
+    //    DEBUG:
+    //    echo '<pre>';
+    //    // The returned object.
+    //    // print_r($ga_feed);
+    //    // Current Google Query.
+    //    print_r($ga_feed->results->selfLink);
+    //    echo '</pre>';
+    //    exit;
 
     // Handle errors here too.
     if (!empty($ga_feed->error)) {
@@ -607,7 +607,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Programatically revoke token.
+   * Programatically revoke states.
    */
   public function revoke() {
     $this->state->deleteMultiple([
@@ -806,6 +806,20 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     return $build;
   }
 
+  /**
+   * Sets the Google project name which is used in multiple places.
+   *
+   * @return string
+   */
+  public function setGoogleProjectName() {
+    $config = $this->config;
+    $project_name = !empty($config->get('general_settings.project_name')) ?
+      Url::fromUri('https://console.developers.google.com/apis/api/analytics.googleapis.com/quotas?project=' . $config->get('general_settings.project_name'))
+        ->toString() :
+      Url::fromUri('https://console.developers.google.com/apis/api/analytics.googleapis.com/quotas')
+        ->toString();
 
+    return $project_name;
+  }
 
 }

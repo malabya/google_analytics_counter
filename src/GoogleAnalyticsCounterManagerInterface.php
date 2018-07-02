@@ -148,4 +148,12 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @return mixed
    */
   public function revokeAuthenticationMessage($build);
+
+  /**
+   * Sets the Google project name which is used in multiple places.
+   *
+   * @return string
+   */
+  public function setGoogleProjectName();
+
 }

@@ -8,6 +8,15 @@ google_analytics_counter.settings:
       type: mapping
       label: 'General Settings'
       mapping:
+        client_id:
+          type: string
+          label: 'Client ID created for the app'
+        client_secret:
+          type: string
+          label: 'Client Secret created for the app'
+        redirect_uri:
+          type: string
+          label: 'Used to override the host for the callback uri'
         cron_interval:
           type: integer
           label: 'Minimum time between Google Analytics data fetching'
@@ -44,12 +53,3 @@ google_analytics_counter.settings:
         profile_id_prefill:
           type: string
           label: 'Prefill with a Google Analytics view (profile) id '
-        client_id:
-          type: string
-          label: 'Client ID created for the app'
-        client_secret:
-          type: string
-          label: 'Client Secret created for the app'
-        redirect_uri:
-          type: string
-          label: 'Used to override the host for the callback uri'

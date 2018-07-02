@@ -86,7 +86,7 @@ class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
    */
   public function getCancelUrl() {
     // todo: Send the user back to the form from which he came.
-    return new Url('google_analytics_counter.admin_dashboard_form');
+    return new Url('google_analytics_counter.admin_auth_form');
   }
 
   /**
@@ -101,15 +101,11 @@ class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-
     // Revoke the state values
     $this->manager->revoke();
 
     // Set redirect.
     $form_state->setRedirectUrl($this->getCancelUrl());
-
-    // Print message.
-    $this->manager->notAuthenticatedMessage();
   }
 
 }

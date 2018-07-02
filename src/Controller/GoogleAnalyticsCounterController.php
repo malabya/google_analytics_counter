@@ -137,50 +137,64 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#suffix' => '</p>',
     ];
 
-    $data_last_refreshed = $this->state->get('google_analytics_counter.data_last_refreshed') ? $this->dateFormatter->format($this->state->get('google_analytics_counter.data_last_refreshed'), 'custom', 'M d, Y h:i:sa') : 0;
+    $data_last_refreshed = !empty($this->state->get('google_analytics_counter.data_last_refreshed')) ?
+      $this->dateFormatter->format($this->state->get('google_analytics_counter.data_last_refreshed'), 'custom', 'M d, Y h:i:sa') :
+      '';
+    $data_last_refreshed_message = $data_last_refreshed ? $this->dateFormatter->format($this->state->get('google_analytics_counter.data_last_refreshed'), 'custom', 'M d, Y h:i:sa') : '';
     $build['google_info']['data_last_refreshed'] = [
       '#markup' => $this->t('%data_last_refreshed is when Google last refreshed its data.', ['%data_last_refreshed' => $data_last_refreshed]),
       '#prefix' => '<p>',
       '#suffix' => '</p>',
     ];
 
-    $build['google_info']['dayquota'] = [
-      '#markup' => $this->t('%dayquota_request requests have been made to Google Analytics by this module in the current 24-hour period.', ['%dayquota_request' => number_format($this->state->get('google_analytics_counter.dayquota_request'))]) . '<br />' . $this->t('<strong>Note:</strong> Other modules and apps may be making requests. See <a href="https://console.developers.google.com/apis/dashboard" target="_blank">Google APIs Dashboard</a> for a complete count.'),
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
-    ];
+//    $build['google_info']['dayquota'] = [
+//      '#markup' => $this->t('%dayquota_request requests have been made to Google Analytics by this module in the current 24-hour period.', ['%dayquota_request' => number_format($this->state->get('google_analytics_counter.dayquota_request'))]) . '<br />' . $this->t('<strong>Note:</strong> Other modules and apps may be making requests. See <a href="https://console.developers.google.com/apis/dashboard" target="_blank">Google APIs Dashboard</a> for a complete count.'),
+//      '#prefix' => '<p>',
+//      '#suffix' => '</p>',
+//    ];
 
-    $remaining_requests = $config->get('general_settings.api_dayquota') - $this->state->get('google_analytics_counter.dayquota_request');
-    $remaining_requests < 1 ? $remaining_requests = 0 : $remaining_requests = number_format($remaining_requests);
-    $build['google_info']['remaining_requests'] = [
-      '#markup' => $this->t('%remainingcalls requests to Google Analytics remain available in the current 24-hour period.', ['%remainingcalls' => $remaining_requests]),
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
-    ];
-
-    $this->state->get('google_analytics_counter.dayquota_timestamp') == 0 ? $seconds = 60 * 60 * 24 : $seconds = 60 * 60 * 24 - ($this->time->getRequestTime() - $this->state->get('google_analytics_counter.dayquota_timestamp'));
-    $build['google_info']['period_ends'] = [
-      '#markup' => $this->t('%sec2hms until the current 24-hour period ends.', ['%sec2hms' => $this->manager->sec2hms($seconds)]),
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
-    ];
-
-    $seconds = $this->state->get('google_analytics_counter.chunk_process_time') + $this->state->get('google_analytics_counter.chunk_node_process_time');
-    if ($seconds < 0) {
-      $seconds = 0;
-    }
+    $project_name = $this->manager->setGoogleProjectName();
     $t_args = [
-      '%chunk_to_fetch' => number_format($config->get('general_settings.chunk_to_fetch')),
-      '%sec2hms' => $this->manager->sec2hms($seconds),
-      '%chunk_process_time' => $this->state->get('google_analytics_counter.chunk_process_time') . 's',
-      '%chunk_node_process_time' => $this->state->get('google_analytics_counter.chunk_node_process_time') . 's',
+      ':href' => $project_name,
+      '@href' => 'Analytics API',
     ];
-
-    $build['google_info']['most_recent_retrieval'] = [
-      '#markup' => $this->t('%sec2hms (%chunk_process_time + %chunk_node_process_time) is the time it took for the most recent retrieval from Google Analytics.', $t_args),
+    $build['google_info']['daily_quota'] = [
+      '#markup' => $this->t('Refer to your <a href=:href>@href</a> page to view quotas.', $t_args),
       '#prefix' => '<p>',
       '#suffix' => '</p>',
     ];
+
+//    $remaining_requests = $config->get('general_settings.api_dayquota') - $this->state->get('google_analytics_counter.dayquota_request');
+//    $remaining_requests < 1 ? $remaining_requests = 0 : $remaining_requests = number_format($remaining_requests);
+//    $build['google_info']['remaining_requests'] = [
+//      '#markup' => $this->t('%remainingcalls requests to Google Analytics remain available in the current 24-hour period.', ['%remainingcalls' => $remaining_requests]),
+//      '#prefix' => '<p>',
+//      '#suffix' => '</p>',
+//    ];
+//
+//    $this->state->get('google_analytics_counter.dayquota_timestamp') == 0 ? $seconds = 60 * 60 * 24 : $seconds = 60 * 60 * 24 - ($this->time->getRequestTime() - $this->state->get('google_analytics_counter.dayquota_timestamp'));
+//    $build['google_info']['period_ends'] = [
+//      '#markup' => $this->t('%sec2hms until the current 24-hour period ends.', ['%sec2hms' => $this->manager->sec2hms($seconds)]),
+//      '#prefix' => '<p>',
+//      '#suffix' => '</p>',
+//    ];
+
+//    $seconds = $this->state->get('google_analytics_counter.chunk_process_time') + $this->state->get('google_analytics_counter.chunk_node_process_time');
+//    if ($seconds < 0) {
+//      $seconds = 0;
+//    }
+//    $t_args = [
+//      '%chunk_to_fetch' => number_format($config->get('general_settings.chunk_to_fetch')),
+//      '%sec2hms' => $this->manager->sec2hms($seconds),
+//      '%chunk_process_time' => $this->state->get('google_analytics_counter.chunk_process_time') . 's',
+//      '%chunk_node_process_time' => $this->state->get('google_analytics_counter.chunk_node_process_time') . 's',
+//    ];
+//
+//    $build['google_info']['most_recent_retrieval'] = [
+//      '#markup' => $this->t('%sec2hms (%chunk_process_time + %chunk_node_process_time) is the time it took for the most recent retrieval from Google Analytics.', $t_args),
+//      '#prefix' => '<p>',
+//      '#suffix' => '</p>',
+//    ];
 
     // The Drupal section
     $build['drupal_info'] = [
@@ -323,8 +337,6 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     }
     else {
       $build = [];
-      // Revoke Google authentication.
-      $build = $this->manager->revokeAuthenticationMessage($build);
       $this->manager->notAuthenticatedMessage();
       return $build;
     }
