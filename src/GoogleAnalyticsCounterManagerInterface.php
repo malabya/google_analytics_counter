@@ -132,11 +132,6 @@ interface GoogleAnalyticsCounterManagerInterface {
   public function getTopTwentyResults($table);
 
   /**
-   * Convert seconds to hours, minutes and seconds.
-   */
-  public function sec2hms($sec, $pad_hours = FALSE);
-
-  /**
    * Prints a warning message when not authenticated.
    */
   public function notAuthenticatedMessage();

@@ -24,7 +24,6 @@ function google_analytics_counter_help($route_name, RouteMatchInterface $route_m
  * Implements hook_cron().
  */
 function google_analytics_counter_cron() {
-
   $config = \Drupal::config('google_analytics_counter.settings');
 
   // $interval must be a value in seconds.
@@ -33,7 +32,8 @@ function google_analytics_counter_cron() {
   // Important to set it before the job because if they take long and there is another cron triggered...
   \Drupal::state()->set('google_analytics_counter.cron_next_execution', \Drupal::time()->getRequestTime());
 
-  // We don't want to act every time cron runs, which could be every minute.
+  // On some systems, cron could be every minute. Throttle updating with the
+  // cron_interval on the settings form.
   // To avoid this interval, set cron_interval to 0.
   if (\Drupal::time()->getRequestTime() >= \Drupal::state()->get('system.cron_last') + $interval) {
     /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */

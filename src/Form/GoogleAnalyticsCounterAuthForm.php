@@ -199,6 +199,25 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 15,
     ];
 
+    $project_name = $this->manager->setGoogleProjectName();
+    $t_args = [
+      ':href' => $project_name,
+      '@href' => 'Analytics API',
+    ];
+//    $build['google_info']['daily_quota'] = [
+//      '#markup' => $this->t('Refer to your <a href=:href>@href</a> page to view quotas.', $t_args),
+//      '#prefix' => '<p>',
+//      '#suffix' => '</p>',
+//    ];
+
+    $form['project_name'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Google Project Name'),
+      '#default_value' => $config->get('general_settings.project_name'),
+      '#description' => $this->t('Optionally add your Google Project\'s machine name here. Machine names are written like <em>project-name</em>. This field helps to take you directly to your <a href=:href>@href</a> page to view quotas. To set up your Google Project, See the README.md included with this module.', $t_args),
+      '#weight' => 16,
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -230,6 +249,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
           ->set('general_settings.redirect_uri', $form_state->getValue('redirect_uri'))
           ->set('general_settings.profile_id', $form_state->getValue('profile_id'))
           ->set('general_settings.profile_id_prefill', $form_state->getValue('profile_id_prefill'))
+          ->set('general_settings.project_name', $form_state->getValue('project_name'))
           ->save();
 
         parent::submitForm($form, $form_state);

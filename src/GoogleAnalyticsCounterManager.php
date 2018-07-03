@@ -441,20 +441,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     if ($this->time->getRequestTime() - $dayquota >= 86400) {
       // If last API request was more than a day ago, set monitoring time to now.
       $this->state->set('google_analytics_counter.dayquota_timestamp', $this->time->getRequestTime());
-      $this->state->set('google_analytics_counter.dayquota_request', 0);
-    }
-
-    // Are we over the GA API limit?
-    // See https://developers.google.com/analytics/devguides/reporting/core/v3/limits-quotas
-    $max_daily_requests = $config->get('general_settings.api_dayquota');
-    if ($this->state->get('google_analytics_counter.dayquota_request') > $max_daily_requests) {
-      $t_args = [
-        ':href' => Url::fromRoute('google_analytics_counter.admin_settings_form', [], ['absolute' => TRUE])->toString(),
-        '@href' => 'the Google Analytics Counter settings page',
-        '%max_daily_requests' => $max_daily_requests,
-        '%day_quota' => ($dayquota + 86400 - $this->time->getRequestTime()),
-      ];
-      $this->logger->error('Google Analytics API quota of %max_daily_requests requests has been reached. The system will not fetch data from Google Analytics for the next %day_quota seconds. See <a href=:href>@href</a> for more info.', $t_args);
     }
 
     /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed $ga_feed */
@@ -482,12 +468,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     // Don't write anything to google_analytics_counter if this Google Analytics
     // data comes from cache (would be writing the same again).
     if (!$ga_feed->fromCache) {
-
-      // This was a live request. Timestamp it.
-      $this->state->set('google_analytics_counter.dayquota_timestamp', $this->time->getRequestTime());
-      // Add the request to the dayquota_request.
-      $this->state->set('google_analytics_counter.dayquota_request', $this->state->get('google_analytics_counter.dayquota_request') + 1);
-
       // If NULL then there is no error.
       if (!empty($ga_feed->error)) {
         $t_args = [
@@ -545,9 +525,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
 
     $this->state->set('google_analytics_counter.data_step', $new_step);
-
-    // Record how long this chunk took to process.
-    $this->state->set('google_analytics_counter.chunk_process_time', time() - $chunk_process_begin);
 
     return $ga_feed;
   }
@@ -607,17 +584,14 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Programatically revoke states.
+   * Programmatically revoke states.
    */
   public function revoke() {
     $this->state->deleteMultiple([
       'google_analytics_counter.access_token',
-      'google_analytics_counter.chunk_process_time',
       'google_analytics_counter.cron_next_execution',
       'google_analytics_counter.data_last_refreshed',
       'google_analytics_counter.data_step',
-      'google_analytics_counter.dayquota_request',
-      'google_analytics_counter.dayquota_timestamp',
       'google_analytics_counter.expires_at',
       'google_analytics_counter.most_recent_query',
       'google_analytics_counter.refresh_token',
@@ -736,43 +710,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /****************************************************************************/
   // Message functions.
   /****************************************************************************/
-
-  /**
-   * Convert seconds to hours, minutes and seconds.
-   */
-  public function sec2hms($sec, $pad_hours = FALSE) {
-
-    // Start with a blank string.
-    $hms = "";
-
-    // Do the hours first: there are 3600 seconds in an hour, so if we divide
-    // the total number of seconds by 3600 and throw away the remainder, we're
-    // left with the number of hours in those seconds.
-    $hours = intval(intval($sec) / 3600);
-
-    // Add hours to $hms (with a leading 0 if asked for).
-    $hms .= ($pad_hours)
-      ? str_pad($hours, 2, "0", STR_PAD_LEFT) . "h "
-      : $hours . "h ";
-
-    // Dividing the total seconds by 60 will give us the number of minutes
-    // in total, but we're interested in *minutes past the hour* and to get
-    // this, we have to divide by 60 again and then use the remainder.
-    $minutes = intval(($sec / 60) % 60);
-
-    // Add minutes to $hms (with a leading 0 if needed).
-    $hms .= str_pad($minutes, 2, "0", STR_PAD_LEFT) . "m ";
-
-    // Seconds past the minute are found by dividing the total number of seconds
-    // by 60 and using the remainder.
-    $seconds = intval($sec % 60);
-
-    // Add seconds to $hms (with a leading 0 if needed).
-    $hms .= str_pad($seconds, 2, "0", STR_PAD_LEFT);
-
-    // done!
-    return $hms . 's';
-  }
 
   /**
    * Prints a warning message when not authenticated.

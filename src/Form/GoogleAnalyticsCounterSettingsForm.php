@@ -79,13 +79,17 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('google_analytics_counter.settings');
 
+    $t_args = [
+      ':href' => Url::fromUri('https://developers.google.com/analytics/devguides/reporting/core/v3/limits-quotas')->toString(),
+      '@href' => 'Limits and Quotas on API Requests',
+    ];
     $form['cron_interval'] = [
       '#type' => 'number',
       '#title' => $this->t('Minimum time to wait before fetching Google Analytics data (in minutes)'),
       '#default_value' => $config->get('general_settings.cron_interval'),
       '#min' => 0,
       '#max' => 10000,
-      '#description' => $this->t('Google Analytics data is fetched and processed during cron. If cron runs too frequently, the Google Analytics daily quota may be <a href="https://developers.google.com/analytics/devguides/reporting/core/v3/limits-quotas" target="_blank">exceeded</a>.<br />Set the minimum number of <em>minutes</em> that need to pass before the Google Analytics Counter cron runs. Default: 30 minutes.'),
+      '#description' => $this->t('Google Analytics data is fetched and processed during cron. On the largest systems, cron may run every minute which could result in exceeding Google\'s quota policies. See <a href=:href target="_blank">@href</a> for more information. To bypass the minimum time to wait, set this value to 0.', $t_args),
       '#required' => TRUE,
     ];
 
@@ -95,15 +99,8 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.chunk_to_fetch'),
       '#min' => 1,
       '#max' => 10000,
-      '#description' => $this->t('How many items will be fetched from Google Analytics in one request. The maximum allowed by Google is 10000. Default: 1000 items.'),
+      '#description' => $this->t('The number of items to be fetched from Google Analytics in one request. The maximum allowed by Google is 10000. Default: 1000 items.'),
       '#required' => TRUE,
-    ];
-
-    $form['project_name'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Google Project Name'),
-      '#default_value' => $config->get('general_settings.project_name'),
-      '#description' => $this->t('Optionally add your Google Project\'s machine name here. Machine names are written like <em>project-name</em>. To set up your Google Project, See the README.md included with this module.'),
     ];
 
     $project_name = $this->manager->setGoogleProjectName();
@@ -119,7 +116,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.api_dayquota'),
       '#min' => 1,
       '#max' => 10000,
-      '#description' => $this->t('This is the daily limit of requests <strong>per view (profile)</strong> per day. See <a href=:href target="_blank">@href</a> for information on Google\'s quota policies. Refer to your <a href=:href2 target="_blank">@href2</a> page to view quotas.', $t_args),
+      '#description' => $this->t('This is the daily limit of requests <strong>per view (profile)</strong> per day. Refer to your <a href=:href2 target="_blank">@href2</a> page to view quotas.', $t_args),
       '#required' => TRUE,
     ];
 
@@ -252,7 +249,6 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     $config
       ->set('general_settings.cron_interval', $form_state->getValue('cron_interval'))
       ->set('general_settings.chunk_to_fetch', $form_state->getValue('chunk_to_fetch'))
-      ->set('general_settings.project_name', $form_state->getValue('project_name'))
       ->set('general_settings.api_dayquota', $form_state->getValue('api_dayquota'))
       ->set('general_settings.cache_length', $form_state->getValue('cache_length') * 3600)
       ->set('general_settings.queue_time', $form_state->getValue('queue_time'))

@@ -84,10 +84,11 @@ function google_analytics_counter_uninstall() {
 /**
  * Issue #2978896: Use Google developers page for Google Quotas.
  */
-function google_analytics_counter_update_8001() {
+function google_analytics_counter_update_8002() {
   \Drupal::state()->deleteMultiple([
     'google_analytics_counter.dayquota_request',
     'google_analytics_counter.dayquota_timestamp',
+    'google_analytics_counter.chunk_process_time',
     'google_analytics_counter.chunk_node_process_time',
   ]);
 }
