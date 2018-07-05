@@ -220,14 +220,6 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       ],
     ];
 
-    $form['overwrite_statistics'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Override the counter of the core statistics module'),
-      '#default_value' => $config->get('general_settings.overwrite_statistics'),
-      '#disabled' => !\Drupal::moduleHandler()->moduleExists('statistics'),
-      '#description' => $this->t('Overwriting the total count of cores statistics module is not advised but may be useful in some situations.')
-    ];
-
     if ($this->manager->isAuthenticated() !== TRUE) {
       $this->manager->notAuthenticatedMessage();
     }
@@ -256,7 +248,6 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       ->set('general_settings.advanced_date_checkbox', $form_state->getValue('advanced_date_checkbox'))
       ->set('general_settings.fixed_start_date', $form_state->getValue('advanced_date_checkbox') == 1 ? $form_state->getValue('fixed_start_date') : '')
       ->set('general_settings.fixed_end_date', $form_state->getValue('advanced_date_checkbox') == 1 ? $form_state->getValue('fixed_end_date') : '')
-      ->set('general_settings.overwrite_statistics', $form_state->getValue('overwrite_statistics'))
       ->save();
 
     parent::submitForm($form, $form_state);

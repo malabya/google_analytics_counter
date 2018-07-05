@@ -11,6 +11,5 @@ general_settings:
   advanced_date_checkbox: false
   fixed_start_date: ''
   fixed_end_date: ''
-  overwrite_statistics: false
   profile_id: ''
   profile_id_prefill: ''

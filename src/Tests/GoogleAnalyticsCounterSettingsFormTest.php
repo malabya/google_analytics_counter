@@ -64,12 +64,9 @@ class GoogleAnalyticsCounterSettingsFormTest extends WebTestBase {
    */
   public function testForm() {
     $config = $this->config('google_analytics_counter.settings');
-    $this->assertFalse($config->get('general_settings.overwrite_statistics'), 'Override the counter of the core statistics module is disabled by default.');
 
     // Enable counter on content view.
-    $edit['general_settings.overwrite_statistics'] = 1;
     $this->drupalPostForm('admin/config/system/google-analytics-counter', $edit, t('Save configuration'));
     $config = $this->config('google_analytics_counter.settings');
-    $this->assertTrue($config->get('general_settings.overwrite_statistics'), 'Count content view log is enabled.');
   }
 }

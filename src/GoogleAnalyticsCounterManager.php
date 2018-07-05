@@ -352,7 +352,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   The node id of the node for which to save the data.
    */
   public function updateStorage($nid) {
-
     // Get all the aliases for a given node id.
     $aliases = [];
     $path = '/node/' . $nid;
@@ -380,21 +379,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     else {
       $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
       $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
-    }
-
-    // If we selected to override the storage with the statistics module.
-    if ($this->config->get('general_settings.overwrite_statistics') == true) {
-
-      // It's the front page
-      // Todo: Could be brittle
-      if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
-        $sum_of_pageviews = $this->sumPageviews(['/']);
-        $this->mergeNodeCounter($nid, $sum_of_pageviews);
-      }
-      else {
-        $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
-        $this->mergeNodeCounter($nid, $sum_of_pageviews);
-      }
     }
   }
 
@@ -619,21 +603,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       ->execute();
   }
 
-  /**
-   * Merge the sum of pageviews into statistics module's node_counter.
-
-   * @param $nid
-   * @param $sum_of_pageviews
-   */
-  protected function mergeNodeCounter($nid, $sum_of_pageviews) {
-    $this->connection->merge('node_counter')
-      ->key(['nid' => $nid])
-      ->fields([
-        'totalcount' => $sum_of_pageviews,
-        'timestamp' => $this->time->getRequestTime(),
-      ])
-      ->execute();
-  }
   /**
    * Get the row count of a table, sometimes with conditions.
    *

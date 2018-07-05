@@ -44,9 +44,6 @@ google_analytics_counter.settings:
         fixed_end_date:
           type: string
           label: 'The fixed end date for Google Analytics queries'
-        overwrite_statistics:
-          type: boolean
-          label: 'Override the counter of the core statistics module'
         profile_id:
           type: string
           label: 'The Google Analytics view (profile) to use'
