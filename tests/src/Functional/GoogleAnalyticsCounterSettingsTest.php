@@ -28,16 +28,6 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
   protected $adminUser;
 
   /**
-   * The installation profile to use with this test.
-   *
-   * We need the 'minimal' profile in order to make sure the Tool block is
-   * available.
-   *
-   * @var string
-   */
-  protected $profile = 'minimal';
-
-  /**
    * Verifies that the google analytics counter settings page works.
    *
    * @see MediaSourceTest for good example code.
