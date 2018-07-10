@@ -14,11 +14,6 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
   const ADMIN_SETTINGS_PATH = 'admin/config/system/google-analytics-counter';
 
   /**
-   * Disabled config schema checking temporarily until all errors are resolved.
-   */
-  protected $strictConfigSchema = FALSE;
-
-  /**
    * Modules to enable.
    *
    * @var array
@@ -42,15 +37,10 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
    */
   protected $profile = 'minimal';
 
-
-  public function setUp() {
-    parent::setUp();
-  }
-
   /**
    * Verifies that the google analytics counter settings page works.
    *
-   * @see MediaSourceTest
+   * @see MediaSourceTest for good example code.
    */
   public function testForm() {
     $admin_user = $this->drupalCreateUser(array(
