@@ -43,9 +43,8 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
     $queue_name = 'google_analytics_counter_worker';
     $queue = \Drupal::queue($queue_name);
 
-    for ($i = 1; $i <= 5; $i++) {
-      $queue->createItem(['type' => 'fetch', 'index' => 'boogie' . $i]);
-    }
+    // Enqueue an item for processing.
+    $queue->createItem(array($this->randomMachineName() => $this->randomMachineName()));
 
     $this->drupalGet(self::ADMIN_SETTINGS_PATH);
     $this->assertResponse(200, 'Access granted to settings page.');
