@@ -199,7 +199,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 15,
     ];
 
-    $project_name = $this->manager->setGoogleProjectName();
+    $project_name = $this->manager->googleProjectName();
     $t_args = [
       ':href' => $project_name,
       '@href' => 'Analytics API',

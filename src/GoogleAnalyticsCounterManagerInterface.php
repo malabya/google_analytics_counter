@@ -149,6 +149,6 @@ interface GoogleAnalyticsCounterManagerInterface {
    *
    * @return string
    */
-  public function setGoogleProjectName();
+  public function googleProjectName();
 
 }

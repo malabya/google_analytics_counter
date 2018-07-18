@@ -147,13 +147,13 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#suffix' => '</p>',
     ];
 
-    $project_name = $this->manager->setGoogleProjectName();
+    $project_name = $this->manager->googleProjectName();
     $t_args = [
       ':href' => $project_name,
       '@href' => 'Analytics API',
     ];
     $build['google_info']['daily_quota'] = [
-      '#markup' => $this->t('Refer to your <a href=:href>@href</a> page to view quotas.', $t_args),
+      '#markup' => $this->t('Refer to your <a href=:href target="_blank">@href</a> page to view quotas.', $t_args),
       '#prefix' => '<p>',
       '#suffix' => '</p>',
     ];

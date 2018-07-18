@@ -103,7 +103,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
-    $project_name = $this->manager->setGoogleProjectName();
+    $project_name = $this->manager->googleProjectName();
     $t_args = [
       ':href' => Url::fromUri('https://developers.google.com/analytics/devguides/reporting/core/v3/limits-quotas')->toString(),
       '@href' => 'Limits and Quotas on API Requests',

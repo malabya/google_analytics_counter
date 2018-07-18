@@ -594,6 +594,8 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *
    * @param $nid
    * @param $sum_of_pageviews
+   *
+   * @throws \Exception
    */
   protected function mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews) {
     // Always save the data in our table.
@@ -713,11 +715,11 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Sets the Google project name which is used in multiple places.
+   * Returns the link with the Google project name if it is available.
    *
    * @return string
    */
-  public function setGoogleProjectName() {
+  public function googleProjectName() {
     $config = $this->config;
     $project_name = !empty($config->get('general_settings.project_name')) ?
       Url::fromUri('https://console.developers.google.com/apis/api/analytics.googleapis.com/quotas?project=' . $config->get('general_settings.project_name'))
