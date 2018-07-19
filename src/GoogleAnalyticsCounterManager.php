@@ -271,9 +271,9 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Begin authentication to Google authentication page with the client_id
+   * Begin authentication to Google authentication page with the client_id.
    */
-  public function beginAuthentication() {
+  public function beginGacAuthentication() {
     $gafeed = new GoogleAnalyticsCounterFeed();
     $gafeed->beginAuthentication($this->config->get('general_settings.client_id'), $this->getRedirectUri());
   }
