@@ -4,7 +4,6 @@ namespace Drupal\google_analytics_counter\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
-use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed;
@@ -229,7 +228,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
 
     switch ($form_state->getValue('op')) {
       case (string) $this->t('Authenticate'):
-        $this->manager->beginAuthentication();
+        $this->manager->beginGacAuthentication();
         if (!empty($config->get('general_settings.profile_id_prefill'))) {
           \Drupal::configFactory()
             ->getEditable('google_analytics_counter.settings')

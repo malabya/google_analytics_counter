@@ -6,6 +6,7 @@ use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Path\PathMatcherInterface;
 use Drupal\Core\State\StateInterface;
@@ -67,16 +68,23 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   protected $languageManager;
 
   /**
-   * @var
-   */
-  protected $prefixes;
-
-  /**
    * A logger instance.
    *
    * @var \Psr\Log\LoggerInterface
    */
   protected $logger;
+
+  /**
+   * The Messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
+   * @var
+   */
+  protected $prefixes;
 
   /**
    * The time service.
@@ -98,10 +106,23 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   The path alias manager to find aliased resources.
    * @param \Drupal\Core\Path\PathMatcherInterface $path_matcher
    *   The path matcher.
+   * @param \Drupal\Core\Language\LanguageManagerInterface $language
+   *   The language manager.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, Connection $connection, AliasManagerInterface $alias_manager, PathMatcherInterface $path_matcher, LanguageManagerInterface $language, LoggerInterface $logger) {
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    StateInterface $state,
+    Connection $connection,
+    AliasManagerInterface $alias_manager,
+    PathMatcherInterface $path_matcher,
+    LanguageManagerInterface $language,
+    LoggerInterface $logger,
+    MessengerInterface $messenger
+  ) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->state = $state;
     $this->connection = $connection;
@@ -109,6 +130,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $this->pathMatcher = $path_matcher;
     $this->languageManager = $language;
     $this->logger = $logger;
+    $this->messenger = $messenger;
     $this->time = \Drupal::service('datetime.time');
 
     $this->prefixes = [];
@@ -117,7 +139,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     if ($language_url) {
       $this->prefixes = $language_url['prefixes'];
     }
-
   }
 
   /**
@@ -161,9 +182,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
         return $gac_feed;
       }
       catch (Exception $e) {
-        drupal_set_message($this->t("There was an authentication error. Message: %message",
-          ['%message' => $e->getMessage()]), 'error', FALSE
-        );
+        $this->messenger->addError($this->t('There was an authentication error. Message: %message', ['%message' => $e->getMessage()]));
         return NULL;
       }
     }
@@ -180,16 +199,11 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
           'google_analytics_counter.refresh_token' => $gac_feed->refreshToken,
         ]);
 
-        // ISSUE: Authentication is being lost when 'redirect_uri' is deleted.
-        // WORK-AROUND: Don't delete the redirect_uri.
-        // $this->state->delete('google_analytics_counter.redirect_uri');
+        $this->messenger->addStatus($this->t('You have been successfully authenticated.'));
 
-        drupal_set_message(t('You have been successfully authenticated.'), 'status', FALSE);
       }
       catch (Exception $e) {
-        drupal_set_message($this->t("There was an authentication error. Message: %message",
-          ['%message' => $e->getMessage()]), 'error', FALSE
-        );
+        $this->messenger->addError($this->t('There was an authentication error. Message: %message', ['%message' => $e->getMessage()]));
         return NULL;
       }
     }
@@ -691,7 +705,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
         ->toString(),
       '@href' => 'authenticate here',
     ];
-    drupal_set_message($this->t('Google Analytics have not been authenticated! Google Analytics Counter cannot fetch any new data. Please <a href=:href>@href</a>.', $t_args), 'warning');
+    $this->messenger->addWarning($this->t('Google Analytics have not been authenticated! Google Analytics Counter cannot fetch any new data. Please <a href=:href>@href</a>.', $t_args));
   }
 
   /**
