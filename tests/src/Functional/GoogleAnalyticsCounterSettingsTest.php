@@ -47,13 +47,19 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
     $queue->createItem(array($this->randomMachineName() => $this->randomMachineName()));
 
     $this->drupalGet(self::ADMIN_SETTINGS_PATH);
-    $this->assertResponse(200, 'Access granted to settings page.');
+    $this->assertSession()->statusCodeEquals(200);
 
     // Assert Fields.
-    $settings_fields = $this->getAdminUserSettingsFields();
-    foreach ($settings_fields as $field_name) {
-      $this->assertField($field_name, SafeMarkup::format('@field_name field exists.', ['@field_name' => $field_name]));
-    }
+    $assert_session = $this->assertSession();
+    $assert_session->fieldExists('cron_interval');
+    $assert_session->fieldExists('chunk_to_fetch');
+    $assert_session->fieldExists('api_dayquota');
+    $assert_session->fieldExists('cache_length');
+    $assert_session->fieldExists('queue_time');
+    $assert_session->fieldExists('start_date');
+    $assert_session->fieldExists('advanced_date_checkbox');
+    $assert_session->fieldExists('fixed_start_date');
+    $assert_session->fieldExists('fixed_end_date');
 
     // Cron Settings.
     $edit = [
@@ -63,26 +69,9 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
       'cache_length' => 24,
     ];
 
-    // Enable counter on content view.
+    // Post form. Assert response.
     $this->drupalPostForm(self::ADMIN_SETTINGS_PATH, $edit, t('Save configuration'));
-    $this->assertRaw('The configuration options have been saved.');
-  }
-
-  /**
-   * Returns a list containing the admin settings fields.
-   */
-  protected function getAdminUserSettingsFields() {
-    return [
-      'cron_interval',
-      'chunk_to_fetch',
-      'api_dayquota',
-      'cache_length',
-      'queue_time',
-      'start_date',
-      'advanced_date_checkbox',
-      'fixed_start_date',
-      'fixed_end_date',
-    ];
+    $this->assertSession()->responseContains('The configuration options have been saved.');
   }
 
 }
