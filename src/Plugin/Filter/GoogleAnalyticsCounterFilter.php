@@ -94,18 +94,9 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       // Keep original value.
       $orig_match[] = $match;
 
-      // Remove wrapping [].
-      $match = substr($match, 1, (strlen($match) - 2));
-
-      // Create an array of parameter attributions.
-      $match = explode("|", $match);
-
-      $path = trim(SafeMarkup::checkPlain(@$match[1]));
-
-      // So now we can display the count based on the path.
-      // If no path was defined, the function will detect the
-      // current node's count.
-      // Todo: make pageview totals and pagepaths equal to avoid confusion.
+      // Display the page views. Page views includes page aliases, node/id,
+      // and node/id/ URIs. If no path was defined, the function will detect
+      // the current node's count.
       $matchlink[] = $this->manager->displayGaCount($this->currentPath->getPath());
     }
 
