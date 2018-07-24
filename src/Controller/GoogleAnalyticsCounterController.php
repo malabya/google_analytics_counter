@@ -7,7 +7,7 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterManager;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -48,7 +48,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
   /**
    * Drupal\google_analytics_counter\GoogleAnalyticsCounterManager definition.
    *
-   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManager
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
    */
   protected $manager;
 
@@ -61,10 +61,10 @@ class GoogleAnalyticsCounterController extends ControllerBase {
    *   The state keyvalue collection to use.
    * @param \Drupal\Core\Datetime\DateFormatter $date_formatter
    *   The date formatter service.
-   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManager $manager
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
    *   Google Analytics Counter Manager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, DateFormatter $date_formatter, GoogleAnalyticsCounterManager $manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, DateFormatter $date_formatter, GoogleAnalyticsCounterManagerInterface $manager) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->state = $state;
     $this->dateFormatter = $date_formatter;
@@ -85,8 +85,6 @@ class GoogleAnalyticsCounterController extends ControllerBase {
   }
 
   public function dashboard() {
-    $config = $this->config;
-
     $build = [];
     $build['intro'] = [
       '#markup' => '<h4>' . $this->t('Information on this page is updated during cron runs.') . '</h4>',

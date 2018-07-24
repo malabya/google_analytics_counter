@@ -161,17 +161,16 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   public function newGaFeed() {
     $config = $this->config;
 
+    // If the access token is still valid, return an authenticated GAFeed.
     if ($this->state->get('google_analytics_counter.access_token') && time() < $this->state->get('google_analytics_counter.expires_at')) {
-      // If the access token is still valid, return an authenticated GAFeed.
       return new GoogleAnalyticsCounterFeed($this->state->get('google_analytics_counter.access_token'));
     }
+    // If the site has an access token and refresh token, but the access
+    // token has expired, authenticate the user with the refresh token.
     elseif ($this->state->get('google_analytics_counter.refresh_token')) {
-      // If the site has an access token and refresh token, but the access
-      // token has expired, authenticate the user with the refresh token.
       $client_id = $config->get('general_settings.client_id');
       $client_secret = $config->get('general_settings.client_secret');
       $refresh_token = $this->state->get('google_analytics_counter.refresh_token');
-
       try {
         $gac_feed = new GoogleAnalyticsCounterFeed();
         $gac_feed->refreshToken($client_id, $client_secret, $refresh_token);
@@ -186,9 +185,9 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
         return NULL;
       }
     }
+    // If there is no access token or refresh token and client is returned
+    // to the config page with an access code, complete the authentication.
     elseif (isset($_GET['code'])) {
-      // If there is no access token or refresh token and client is returned
-      // to the config page with an access code, complete the authentication.
       try {
         $gac_feed = new GoogleAnalyticsCounterFeed();
         $gac_feed->finishAuthentication($config->get('general_settings.client_id'), $config->get('general_settings.client_secret'), $this->getRedirectUri());
@@ -337,13 +336,14 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   The index of the chunk to fetch and update.
    *
    * This function is triggered by hook_cron().
+   *
+   * @throws \Exception
    */
   public function updatePathCounts($index = 0) {
     $feed = $this->getChunkedResults($index);
 
     foreach ($feed->results->rows as $value) {
-
-      // Google Analytics pagepaths that are extremely long are meaningless.
+      // Remove Google Analytics pagepaths that are extremely long and meaningless.
       $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
       $this->connection->merge('google_analytics_counter')
         ->key(['pagepath_hash' => md5($page_path)])

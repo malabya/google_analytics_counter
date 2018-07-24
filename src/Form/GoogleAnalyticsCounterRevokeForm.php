@@ -64,21 +64,21 @@ class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function getQuestion() {
-    return t('Are you sure you want to revoke authentication?');
+    return $this->t('Are you sure you want to revoke authentication?');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getConfirmText() {
-    return t('Yes');
+    return $this->t('Yes');
   }
 
   /**
    * {@inheritdoc}
    */
   public function getCancelText() {
-    return t('No');
+    return $this->t('No');
   }
 
   /**

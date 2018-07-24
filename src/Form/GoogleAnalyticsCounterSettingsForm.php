@@ -8,7 +8,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -122,11 +121,11 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
 
     $form['cache_length'] = [
       '#type' => 'number',
-      '#title' => t('Google Analytics query cache (in hours)'),
-      '#description' => t('Limit the minimum time in hours to elapse between getting fresh data for the same query from Google Analytics. Default: 24 hours.'),
+      '#title' => $this->t('Google Analytics query cache (in hours)'),
+      '#description' => $this->t('Limit the time in hours before getting fresh data with the same query to Google Analytics. Minimum: 0 hours. Maximum: 730 hours (approx. one month).'),
       '#default_value' => $config->get('general_settings.cache_length') / 3600,
-      '#min' => 1,
-      '#max' => 10000,
+      '#min' => 0,
+      '#max' => 730,
       '#required' => TRUE,
     ];
 
@@ -193,7 +192,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#type' => 'checkbox',
       '#title' => '<strong>' . $this->t('FIXED DATES') . '</strong>',
       '#default_value' => $config->get('general_settings.advanced_date_checkbox'),
-      '#description' => t('Select if you wish to query Google Analytics with a fixed start date and a fixed end date.'),
+      '#description' => $this->t('Select if you wish to query Google Analytics with a fixed start date and a fixed end date.'),
     ];
 
     $form['start_date_details']['advanced_date']['fixed_start_date'] = [

@@ -70,7 +70,7 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
     ];
 
     // Post form. Assert response.
-    $this->drupalPostForm(self::ADMIN_SETTINGS_PATH, $edit, t('Save configuration'));
+    $this->drupalPostForm(self::ADMIN_SETTINGS_PATH, $edit, $this->t('Save configuration'));
     $this->assertSession()->responseContains('The configuration options have been saved.');
   }
 

@@ -571,26 +571,4 @@ class GoogleAnalyticsCounterFeed {
     unset($this->results->rawTotals);
   }
 
-  /**
-   * Addition replacements.
-   */
-  public function replaceData($type, $value) {
-    switch ($type) {
-      case 'userType':
-        return ($value == 'New Visitor') ? t('New Visitor') : t('Returning Visitor');
-
-      case 'date':
-        return strtotime($value);
-
-      case 'yearMonth':
-        return strtotime($value . '01');
-
-      case 'userGender':
-        return ($value == 'male') ? t('Male') : t('Female');
-
-      default:
-        return $value;
-    }
-  }
-
 }
