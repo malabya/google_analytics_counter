@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @Filter(
  *   id = "google_analytics_counter_filter",
  *   title = @Translation("Google Analytics Counter token"),
- *   description = @Translation("Substitutes a special Google Analytics Counter token [gac|/my-path] which prints the pageview count."),
+ *   description = @Translation("Adds a Google Analytics Counter token which prints the pageview count. Accepted syntaxes: [gac|path/to/page], [gac|node/1234], or [gac|1234]"),
  *   type = Drupal\filter\Plugin\FilterInterface::TYPE_MARKUP_LANGUAGE,
  * )
  */
