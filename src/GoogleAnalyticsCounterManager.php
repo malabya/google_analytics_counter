@@ -482,7 +482,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $this->state->set('google_analytics_counter.total_pageviews', $ga_feed->results->totalsForAllResults['pageviews']);
 
     // The total number of pagePaths for this profile from start_date to end_date
-    $total_paths = $ga_feed->results->totalResults;
     $this->state->set('google_analytics_counter.total_paths', $ga_feed->results->totalResults);
 
     // The most recent query to Google. Helpful for debugging.

@@ -327,7 +327,6 @@ class GoogleAnalyticsCounterFeed {
     $cache = \Drupal::cache()->get($cache_options['cid']);
 
     if (!$cache_options['refresh'] && isset($cache) && !empty($cache->data)) {
-      // $this->response = $cache;.
       $this->results = $cache->data;
       $this->fromCache = TRUE;
     }
@@ -336,7 +335,7 @@ class GoogleAnalyticsCounterFeed {
     }
 
     if (empty($this->error)) {
-      // @todo remove cache,use default cache('default')
+      // @todo remove cache, use default cache('default')
       // Don't save $this->results, because the object will lose steam resource
       // when caching, but it will lose response.
       \Drupal::cache()
