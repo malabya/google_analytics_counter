@@ -441,7 +441,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       $this->state->set('google_analytics_counter.dayquota_timestamp', $this->time->getRequestTime());
     }
 
-    /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed $ga_feed */
     $ga_feed = $this->newGaFeed();
     if (!$ga_feed) {
       throw new \RuntimeException($this->t('The GoogleAnalyticsCounterFeed could not be initialized, is it authenticated?'));
@@ -538,7 +537,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $path = '/'. trim($path, ' /');
 
     // It's the front page
-
     if ($this->pathMatcher->isFrontPage()) {
       $aliases = ['/'];
       $sum_of_pageviews = $this->sumPageviews($aliases);
