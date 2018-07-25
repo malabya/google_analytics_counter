@@ -203,17 +203,12 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       ':href' => $project_name,
       '@href' => 'Analytics API',
     ];
-//    $build['google_info']['daily_quota'] = [
-//      '#markup' => $this->t('Refer to your <a href=:href>@href</a> page to view quotas.', $t_args),
-//      '#prefix' => '<p>',
-//      '#suffix' => '</p>',
-//    ];
 
     $form['project_name'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Google Project Name'),
       '#default_value' => $config->get('general_settings.project_name'),
-      '#description' => $this->t('Optionally add your Google Project\'s machine name here. Machine names are written like <em>project-name</em>. This field helps to take you directly to your <a href=:href>@href</a> page to view quotas. To set up your Google Project, See the README.md included with this module.', $t_args),
+      '#description' => $this->t('Optionally add your Google Project\'s machine name. Machine names are written like <em>project-name</em>. This field helps to take you directly to your <a href=:href>@href</a> page to view quotas. To set up your Google Project, See the README.md included with this module.', $t_args),
       '#weight' => 16,
     ];
 
