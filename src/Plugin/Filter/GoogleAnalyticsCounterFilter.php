@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @Filter(
  *   id = "google_analytics_counter_filter",
  *   title = @Translation("Google Analytics Counter token"),
- *   description = @Translation("Adds a Google Analytics Counter token which prints the pageview count. Accepted syntaxes: [gac|path/to/page], [gac|node/1234], or [gac|1234]"),
+ *   description = @Translation("Adds a Google Analytics Counter token which prints the pageview count. Syntaxes: [gac|path/to/page], [gac|node/1234] [gac|1234], or [gac]."),
  *   type = Drupal\filter\Plugin\FilterInterface::TYPE_MARKUP_LANGUAGE,
  * )
  */
@@ -80,19 +80,22 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
 
   /**
    * Finds [gac|path/to/page] tags and replaces them by actual values.
+   *
+   * @param string $text
+   *
+   * @return mixed
    */
-  private function handleText($string) {
+  private function handleText($text) {
     // [gac|path/to/page].
     $matchlink = '';
-    $orig_match = '';
-    $matches = '';
+    $original_match = '';
     // This allows more than one pipe sign (|) ...
     // does not hurt and leaves room for possible extension.
-    preg_match_all("/(\[)gac[^\]]*(\])/s", $string, $matches);
+    preg_match_all("/(\[)gac[^\]]*(\])/s", $text, $matches);
 
     foreach ($matches[0] as $match) {
-      // Keep original value.
-      $orig_match[] = $match;
+      // Keep original value(s).
+      $original_match[] = $match;
 
       // Display the page views. Page views includes page aliases, node/id,
       // and node/id/ URIs. If no path was defined, the function will detect
@@ -100,8 +103,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       $matchlink[] = $this->manager->displayGaCount($this->currentPath->getPath());
     }
 
-    $string = str_replace($orig_match, $matchlink, $string);
-    return $string;
+    return str_replace($original_match, $matchlink, $text);
   }
 
 }
