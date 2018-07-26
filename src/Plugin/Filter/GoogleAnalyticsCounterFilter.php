@@ -2,6 +2,7 @@
 
 namespace Drupal\google_analytics_counter\Plugin\Filter;
 
+use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Path\CurrentPathStack;
 use Drupal\Core\State\StateInterface;
@@ -31,6 +32,13 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
   protected $currentPath;
 
   /**
+   * An alias manager for looking up the system path and path alias.
+   *
+   * @var \Drupal\Core\Path\AliasManagerInterface
+   */
+  protected $aliasManager;
+
+  /**
    * The state where all the tokens are saved.
    *
    * @var \Drupal\Core\State\StateInterface
@@ -55,14 +63,28 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
    *   The plugin implementation definition.
    * @param \Drupal\Core\Path\CurrentPathStack $current_path
    *   The current path.
+   * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
+   *   An alias manager for looking up the system path.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state of the drupal site.
    * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
    *   Google Analytics Counter Manager object.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, CurrentPathStack $current_path, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
+  public function __construct(
+    array $configuration,
+    $plugin_id,
+    $plugin_definition,
+    CurrentPathStack $current_path,
+    AliasManagerInterface $alias_manager,
+    StateInterface $state,
+    GoogleAnalyticsCounterManagerInterface $manager
+  ) {
+    parent::__construct(
+      $configuration,
+      $plugin_id,
+      $plugin_definition);
     $this->currentPath = $current_path;
+    $this->aliasManager = $alias_manager;
     $this->state = $state;
     $this->manager = $manager;
   }
@@ -76,6 +98,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       $plugin_id,
       $plugin_definition,
       $container->get('path.current'),
+      $container->get('path.alias_manager'),
       $container->get('state'),
       $container->get('google_analytics_counter.manager')
     );
@@ -107,16 +130,34 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       // Keep original value(s).
       $original_match[] = $match;
 
-      // Display the page views. Page views includes page aliases, node/id,
-      // and node/id/ URIs.
+      // Display the page views.
+      // [gac] will detect the current node's count.
       //
       // [gac|all] displays the totalsForAllResults for the given time period,
-      //  assuming cron has been run. Otherwise N/A.
-      if ($match == '[gac|all]') {
-        $matchlink[] = number_format($this->state->get('google_analytics_counter.total_pageviews', 'N/A'));
-      }
-      else {
-        $matchlink[] = $this->manager->displayGaCount($this->currentPath->getPath());
+      // assuming cron has been run. Otherwise will print N/A.
+      //
+      // [gac|1234] displays the page views for node/1234. Currently in development.
+      //
+      // [gac|node/1234] displays the page views for node/1234.
+      //
+      // [gac|path/to/page] displays the pages views for path/to/page.
+
+      switch ($match) {
+        case '[gac]':
+          $matchlink[] = $this->manager->displayGaCount($this->currentPath->getPath());
+          break;
+        case '[gac|all]':
+          $matchlink[] = number_format($this->state->get('google_analytics_counter.total_pageviews', 'N/A'));
+          break;
+
+        default:
+          $path = substr($match, strpos($match, "/") + 1);
+          $path = rtrim($path, ']');
+
+          // Make sure the path starts with a slash
+          $path = '/' . trim($path, ' /');
+          $matchlink[] = $this->manager->displayGaCount($this->aliasManager->getAliasByPath($path));
+          break;
       }
     }
 
