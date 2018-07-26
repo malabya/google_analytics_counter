@@ -18,7 +18,7 @@ The secondary use for this module is to:
 
 - A themable block in Drupal which displays Google Analytics Pageviews.
 - A comprehensive and understandable solution to storing Google Analytics Pageviews in Drupal.
-- Google Analytics Counter data is available in views. (to come)
+- Google Analytics Counter data is available in views. (Drupal 7. Drupal 8 under development.)
 
 ### Installing the Google Analytics Counter Module
 
@@ -30,40 +30,40 @@ The secondary use for this module is to:
 
 3. Set up user permissions. (/admin/people/permissions#module-google_analytics_counter)
 
-4. Go to the settings page. (/admin/config/system/google-analytics-counter)
+4. Go to the authentication page. (/admin/config/system/google-analytics-counter/authentication)
 
-5. Add your Google Project Client ID, Client Secret and Authorized Redirect URI
-   to the Initial Setup section at the bottom of the page. (See "Creating a Project
-   in Google" in the next section of this document for more information).
+5. Add your Google Project Client ID, Client Secret and Authorized redirect URI. 
+   See "Creating a Project in Google" in the next section of this document 
+   for more information on setting up Google Analytics.
 
 6. If you know which view (profile) you will be using you can add its ID to the
    'Prefill a Google View (Profile)' field.
 
-7. Read and change other settings as is your preference.
-   Click Save configuration.
+7. Optionally add your Google Project's machine name. This field helps to take 
+   you directly to your Analytics API page to view Google's quotas.
 
-8. Go to the Authentication page. (/admin/config/system/google-analytics-counter/authentication)
-   Click Set up authentication.
+8. Click Save configuration.
 
-9. Select the google account to which you would like to authenticate.
+9. Click the large button at the top of the page labeled 'Authenticate'.
 
-10. Fill in credentials if requested by Google.
+10. Select the google account to which you would like to authenticate.
+
+11. Fill in credentials if requested by Google.
     Click Allow.
 
-9. If you did not Prefill a Google View (Profile) ID on the Settings form, go back
-   to the settings form (/admin/config/system/google-analytics-counter) and
-   Select a view (profile) from the select list under Google Views (Profiles) IDS.
-   Click Save configuration.
+12. If you did not Prefill a Google View (Profile) ID, select a view (profile) 
+    from the select list under Google Views (Profiles) IDS.
+    Click Save configuration.
 
-10. Go to the Dashboard (/admin/config/system/google-analytics-counter/dashboard)
+13. Go to the Dashboard (/admin/config/system/google-analytics-counter/dashboard)
 
-11. Note: most of the numbers are 0 until you run cron.
+14. Note: most of the numbers are 0 until you run cron.
 
-12. Run cron. Generally speaking, it is a good idea to run cron continuously
+15. Run cron. Generally speaking, it is a good idea to run cron continuously
     with a scheduler like Jenkins to keep pageviews data up to date.
 
-13. Place a Google Analytics Counter block on your site.
-   (/admin/structure/block)
+16. Place a Google Analytics Counter block on your site.
+    (/admin/structure/block)
 
 ### Creating a Project in Google
 
@@ -107,7 +107,7 @@ The secondary use for this module is to:
     on the right side of the Credentials page next to your application name.
 
 13. Copy your client ID client secret, and Authorized redirect URIs in the google
-    analytics settings form Initial Setup (/admin/config/system/google-analytics-counter).
+    analytics authentication form (/admin/config/system/google-analytics-counter/authentication).
 
 ### Project Status
 
