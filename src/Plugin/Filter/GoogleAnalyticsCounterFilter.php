@@ -141,7 +141,6 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       // [gac|node/1234] displays the page views for node/1234.
       //
       // [gac|path/to/page] displays the pages views for path/to/page.
-
       switch ($match) {
         case '[gac]':
           $matchlink[] = $this->manager->displayGaCount($this->currentPath->getPath());
