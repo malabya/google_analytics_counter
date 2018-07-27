@@ -8,7 +8,7 @@ use Drupal\Tests\BrowserTestBase;
 /**
  * Tests the google analytics counter settings form.
  *
- * @group statistics
+ * @group google_analytics_counter
  */
 class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
   const ADMIN_SETTINGS_PATH = 'admin/config/system/google-analytics-counter';

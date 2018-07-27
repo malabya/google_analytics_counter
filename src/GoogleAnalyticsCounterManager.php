@@ -330,73 +330,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Update the path counts.
-   *
-   * @param int $index
-   *   The index of the chunk to fetch and update.
-   *
-   * This function is triggered by hook_cron().
-   *
-   * @throws \Exception
-   */
-  public function updatePathCounts($index = 0) {
-    $feed = $this->getChunkedResults($index);
-
-    foreach ($feed->results->rows as $value) {
-      // Remove Google Analytics pagepaths that are extremely long and meaningless.
-      $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
-      $this->connection->merge('google_analytics_counter')
-        ->key(['pagepath_hash' => md5($page_path)])
-        ->fields([
-          // Escape the path see https://www.drupal.org/node/2381703
-          'pagepath' => $page_path,
-          'pageviews' => SafeMarkup::checkPlain($value['pageviews']),
-        ])
-        ->execute();
-    }
-
-    // Log the results.
-    $this->logger->info($this->t('Saved @count paths from Google Analytics into the database.', ['@count' => count($feed->results->rows)]));
-  }
-
-  /**
-   * Save the pageview count for a given node.
-   *
-   * @param integer $nid
-   *   The node id of the node for which to save the data.
-   */
-  public function updateStorage($nid) {
-    // Get all the aliases for a given node id.
-    $aliases = [];
-    $path = '/node/' . $nid;
-    $aliases[] = $path;
-    foreach ($this->languageManager->getLanguages() as $language) {
-      $alias = $this->aliasManager->getAliasByPath($path, $language->getId());
-      $aliases[] = $alias;
-      if (array_key_exists($language->getId(), $this->prefixes) && $this->prefixes[$language->getId()]) {
-        $aliases[] = '/' . $this->prefixes[$language->getId()] . $path;
-        $aliases[] = '/' . $this->prefixes[$language->getId()] . $alias;
-      }
-    }
-
-    // Add also all versions with a trailing slash.
-    $aliases = array_merge($aliases, array_map(function ($path) {
-      return $path . '/';
-    }, $aliases));
-
-    // It's the front page
-    // Todo: Could be brittle
-    if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
-      $sum_of_pageviews = $this->sumPageviews(['/']);
-      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
-    }
-    else {
-      $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
-      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
-    }
-  }
-
-  /**
    * Request report data.
    *
    * @param array $params
@@ -687,6 +620,73 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
 
     return $rows;
+  }
+
+  /**
+   * Save the pageview count for a given node.
+   *
+   * @param integer $nid
+   *   The node id of the node for which to save the data.
+   */
+  public function updateStorage($nid) {
+    // Get all the aliases for a given node id.
+    $aliases = [];
+    $path = '/node/' . $nid;
+    $aliases[] = $path;
+    foreach ($this->languageManager->getLanguages() as $language) {
+      $alias = $this->aliasManager->getAliasByPath($path, $language->getId());
+      $aliases[] = $alias;
+      if (array_key_exists($language->getId(), $this->prefixes) && $this->prefixes[$language->getId()]) {
+        $aliases[] = '/' . $this->prefixes[$language->getId()] . $path;
+        $aliases[] = '/' . $this->prefixes[$language->getId()] . $alias;
+      }
+    }
+
+    // Add also all versions with a trailing slash.
+    $aliases = array_merge($aliases, array_map(function ($path) {
+      return $path . '/';
+    }, $aliases));
+
+    // It's the front page
+    // Todo: Could be brittle
+    if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
+      $sum_of_pageviews = $this->sumPageviews(['/']);
+      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
+    }
+    else {
+      $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
+      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
+    }
+  }
+
+  /**
+   * Update the path counts.
+   *
+   * @param int $index
+   *   The index of the chunk to fetch and update.
+   *
+   * This function is triggered by hook_cron().
+   *
+   * @throws \Exception
+   */
+  public function updatePathCounts($index = 0) {
+    $feed = $this->getChunkedResults($index);
+
+    foreach ($feed->results->rows as $value) {
+      // Remove Google Analytics pagepaths that are extremely long and meaningless.
+      $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
+      $this->connection->merge('google_analytics_counter')
+        ->key(['pagepath_hash' => md5($page_path)])
+        ->fields([
+          // Escape the path see https://www.drupal.org/node/2381703
+          'pagepath' => $page_path,
+          'pageviews' => SafeMarkup::checkPlain($value['pageviews']),
+        ])
+        ->execute();
+    }
+
+    // Log the results.
+    $this->logger->info($this->t('Saved @count paths from Google Analytics into the database.', ['@count' => count($feed->results->rows)]));
   }
 
   /****************************************************************************/
