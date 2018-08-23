@@ -350,29 +350,17 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   - expire: optional [default=CACHE_TEMPORARY]
    *   - refresh: optional [default=FALSE].
    *
-   * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed
+   * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed|object
    *   A new GoogleAnalyticsCounterFeed object
    */
   public function reportData($params = array(), $cache_options = array()) {
     $config = $this->config;
-
-    // Record how long this chunk took to process.
-    $chunk_process_begin = time();
 
     // The total number of published nodes.
     $query = \Drupal::entityQuery('node');
     $query->condition('status', NodeInterface::PUBLISHED);
     $total_nodes = $query->count()->execute();
     $this->state->set('google_analytics_counter.total_nodes', $total_nodes);
-
-    // Stay under the Google Analytics API quota by counting how many
-    // API retrievals were made in the last 24 hours.
-    // Todo We should take into consideration that the quota is reset at midnight PST (note: time() always returns UTC).
-    $dayquota = $this->state->get('google_analytics_counter.dayquota_timestamp');
-    if ($this->time->getRequestTime() - $dayquota >= 86400) {
-      // If last API request was more than a day ago, set monitoring time to now.
-      $this->state->set('google_analytics_counter.dayquota_timestamp', $this->time->getRequestTime());
-    }
 
     $ga_feed = $this->newGaFeed();
     if (!$ga_feed) {
@@ -542,7 +530,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * @throws \Exception
    */
   protected function mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews) {
-    // Always save the data in our table.
     $this->connection->merge('google_analytics_counter_storage')
       ->key(['nid' => $nid])
       ->fields(['pageview_total' => $sum_of_pageviews])

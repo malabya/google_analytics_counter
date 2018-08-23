@@ -93,3 +93,10 @@ function google_analytics_counter_update_8002() {
   ]);
 }
 
+/**
+ * Issue #2978896: Remove dayquota_timestamp.
+ */
+function google_analytics_counter_update_8003() {
+  \Drupal::state()->delete('google_analytics_counter.dayquota_timestamp');
+}
+
