@@ -51,8 +51,12 @@ The secondary use for this module is to:
 11. Fill in credentials if requested by Google.
     Click Allow.
 
-12. If you did not Prefill a Google View (Profile) ID, select a view (profile) 
-    from the select list under Google Views (Profiles) IDS.
+12. If all goes well, you will be returned to the authentication page. 
+    (/admin/config/system/google-analytics-counter/authentication)
+    If you did not prefill a Google View (Profile) ID, select a view (profile) 
+    from the select list under Google Views (Profiles) IDs. Another way to tell
+    if all has gone well with authentication is if you see your Google Analytics
+    profiles listed in Google Views (Profiles) IDs.
     Click Save configuration.
 
 13. Go to the Dashboard (/admin/config/system/google-analytics-counter/dashboard)
@@ -76,14 +80,15 @@ The secondary use for this module is to:
 3. Go to https://console.developers.google.com/apis/dashboard
    You will most likely be directed to your project, or select your project by
    selecting your project's name in the upper left corner of the browser next to
-   Google APIS.
+   where it says Google APIS.
 
 4. Click Enable APIS and services on the Google APIs dashboard.
    Search for Analytics API.
    Click Analytics API.
    On the proceeding page, click Enable.
 
-5. You will be sent back to the Google APIs page. Click Credentials in the left-hand column.
+5. You will be sent back to the Google APIs page. Click Credentials in the 
+   left-hand column.
 
 6. Click Create credentials. Select OAUTH client ID.
 
@@ -101,13 +106,15 @@ The secondary use for this module is to:
 11. Add a url to the Authorized redirect URIs.
     Example: http://localhost/d8/admin/config/system/google-analytics-counter/authentication
     Click Create.
+    Click Create again.
 
 12. Note your client ID and client secret.
     You may also get your client ID and client secret by clicking the pencil icon
     on the right side of the Credentials page next to your application name.
 
-13. Copy your client ID client secret, and Authorized redirect URIs in the google
-    analytics authentication form (/admin/config/system/google-analytics-counter/authentication).
+13. Copy your client ID client secret, and Authorized redirect URIs from Google
+     and add them to analytics authentication form in the module.
+     (/admin/config/system/google-analytics-counter/authentication).
 
 ### Project Status
 
