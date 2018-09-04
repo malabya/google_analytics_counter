@@ -6,7 +6,6 @@ use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Path\CurrentPathStack;
 use Drupal\Core\State\StateInterface;
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\filter\FilterProcessResult;
 use Drupal\filter\Plugin\FilterBase;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
@@ -116,8 +115,10 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
    * Finds [gac|path/to/page] tags and replaces them by actual values.
    *
    * @param string $text
+   *   String to replace.
    *
    * @return mixed
+   *   Replaced string.
    */
   private function handleText($text) {
     $matchlink = '';
@@ -136,7 +137,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       // [gac|all] displays the totalsForAllResults for the given time period,
       // assuming cron has been run. Otherwise will print N/A.
       //
-      // [gac|1234] displays the page views for node/1234. Currently in development.
+      // [gac|1234] displays the page views for node/1234.
       //
       // [gac|node/1234] displays the page views for node/1234.
       //
@@ -145,6 +146,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
         case '[gac]':
           $matchlink[] = $this->manager->displayGaCount($this->currentPath->getPath());
           break;
+
         case '[gac|all]':
           $matchlink[] = number_format($this->state->get('google_analytics_counter.total_pageviews', 'N/A'));
           break;
@@ -153,7 +155,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
           $path = substr($match, strpos($match, "/") + 1);
           $path = rtrim($path, ']');
 
-          // Make sure the path starts with a slash
+          // Make sure the path starts with a slash.
           $path = '/' . trim($path, ' /');
           $matchlink[] = $this->manager->displayGaCount($this->aliasManager->getAliasByPath($path));
           break;

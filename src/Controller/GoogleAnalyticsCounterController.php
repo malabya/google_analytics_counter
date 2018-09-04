@@ -84,13 +84,16 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function dashboard() {
     $build = [];
     $build['intro'] = [
       '#markup' => '<h4>' . $this->t('Information on this page is updated during cron runs.') . '</h4>',
     ];
 
-    // The Google section
+    // The Google section.
     $build['google_info'] = [
       '#type' => 'details',
       '#title' => $this->t('Information from Google Analytics API'),
@@ -122,7 +125,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       $t_args = ['%most_recent_query' => $this->state->get('google_analytics_counter.most_recent_query')];
     }
 
-    // Google Query
+    // Google Query.
     $build['google_info']['google_query'] = [
       '#type' => 'details',
       '#title' => $this->t('Most recent query to Google'),
@@ -136,7 +139,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     ];
 
     $date_formatted = !empty($this->state->get('google_analytics_counter.data_last_refreshed')) ? $this->dateFormatter->format($this->state->get('google_analytics_counter.data_last_refreshed'), 'custom', 'M d, Y h:i:sa') : '';
-    // Todo: The text part should not be in <em class="placeholder">
+    // Todo: The text part should not be in <em class="placeholder">.
     $data_last_refreshed = !empty($this->state->get('google_analytics_counter.data_last_refreshed')) ? $date_formatted . ' is when Google last refreshed analytics data.' : 'Google\'s last refreshed analytics data is currently unavailable.';
     $t_arg = ['%data_last_refreshed' => $data_last_refreshed];
     $build['google_info']['data_last_refreshed'] = [
@@ -156,7 +159,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#suffix' => '</p>',
     ];
 
-    // The Drupal section
+    // The Drupal section.
     $build['drupal_info'] = [
       '#type' => 'details',
       '#title' => $this->t('Information from this site'),
@@ -202,14 +205,14 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#suffix' => '</p>',
     ];
 
-    // Top Twenty Results
+    // Top Twenty Results.
     $build['drupal_info']['top_twenty_results'] = [
       '#type' => 'details',
       '#title' => $this->t('Top Twenty Results'),
       '#open' => FALSE,
     ];
 
-    // Top Twenty Results for Google Analytics Counter table
+    // Top Twenty Results for Google Analytics Counter table.
     $build['drupal_info']['top_twenty_results']['counter'] = [
       '#type' => 'details',
       '#title' => $this->t('Pagepaths'),
@@ -220,13 +223,13 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     ];
 
     $build['drupal_info']['top_twenty_results']['counter']['summary'] = [
-      '#markup' => $this->t('A pagepath can include paths that don\'t have an NID, like /search.'),
+      '#markup' => $this->t("A pagepath can include paths that don't have an NID, like /search."),
       '#prefix' => '<p>',
       '#suffix' => '</p>',
     ];
 
     $rows = $this->manager->getTopTwentyResults('google_analytics_counter');
-    // Display table
+    // Display table.
     $build['drupal_info']['top_twenty_results']['counter']['table'] = [
       '#type' => 'table',
       '#header' => [
@@ -236,7 +239,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#rows' => $rows,
     ];
 
-    // Top Twenty Results for Google Analytics Counter Storage table
+    // Top Twenty Results for Google Analytics Counter Storage table.
     $build['drupal_info']['top_twenty_results']['storage'] = [
       '#type' => 'details',
       '#title' => $this->t('Pageview Totals'),
@@ -253,7 +256,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     ];
 
     $rows = $this->manager->getTopTwentyResults('google_analytics_counter_storage');
-    // Display table
+    // Display table.
     $build['drupal_info']['top_twenty_results']['storage']['table'] = [
       '#type' => 'table',
       '#header' => [
@@ -264,7 +267,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     ];
 
     $build['drupal_info']['last_cron_run'] = [
-      '#markup' => $this->t('Cron\'s last run: %time ago.', ['%time' => $this->dateFormatter->formatTimeDiffSince($this->state->get('system.cron_last'))]),
+      '#markup' => $this->t("Cron's last run: %time ago.", ['%time' => $this->dateFormatter->formatTimeDiffSince($this->state->get('system.cron_last'))]),
       '#prefix' => '<p>',
       '#suffix' => '</p>',
     ];
@@ -276,7 +279,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       $t_args = [
         ':href' => Url::fromRoute('system.run_cron', [], [
           'absolute' => TRUE,
-          'query' => $destination
+          'query' => $destination,
         ])->toString(),
         '@href' => 'Run cron immediately',
       ];
@@ -301,9 +304,10 @@ class GoogleAnalyticsCounterController extends ControllerBase {
   }
 
   /**
-   * Calculates total pageviews for fixed start and end date or for time ago, like '-1 day'.
+   * Calculates total pageviews for fixed start and end date or for time ago.
    *
    * @return array
+   *   Start & end dates.
    */
   protected function getStartDateEndDate() {
     $config = $this->config;
@@ -321,8 +325,8 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       $t_args = [
         '%start_date' => $this->state->get('system.cron_last') ? $this->dateFormatter
           ->format($this->state->get('system.cron_last') - strtotime(ltrim($config->get('general_settings.start_date'), '-'), 0), 'custom', 'M j, Y') : 'N/A',
-          '%end_date' => $this->state->get('system.cron_last') ? $this->dateFormatter
-        ->format($this->state->get('system.cron_last'), 'custom', 'M j, Y') : 'N/A',
+        '%end_date' => $this->state->get('system.cron_last') ? $this->dateFormatter
+          ->format($this->state->get('system.cron_last'), 'custom', 'M j, Y') : 'N/A',
       ];
       return $t_args;
     }

@@ -2,13 +2,13 @@
 
 namespace Drupal\google_analytics_counter;
 
-
 /**
  * Class GoogleAnalyticsCounterManagerInterface.
  *
  * @package Drupal\google_analytics_counter
  */
 interface GoogleAnalyticsCounterManagerInterface {
+
   /**
    * Check to make sure we are authenticated with google.
    *
@@ -38,6 +38,7 @@ interface GoogleAnalyticsCounterManagerInterface {
    * Get the list of available web properties.
    *
    * @return array
+   *   List of web properties.
    */
   public function getWebPropertiesOptions();
 
@@ -60,17 +61,17 @@ interface GoogleAnalyticsCounterManagerInterface {
   /**
    * Update the path counts.
    *
+   * This function is triggered by hook_cron().
+   *
    * @param int $index
    *   The index of the chunk to fetch and update.
-   *
-   * This function is triggered by hook_cron().
    */
   public function updatePathCounts($index = 0);
 
   /**
    * Save the pageview count for a given node.
    *
-   * @param integer $nid
+   * @param int $nid
    *   The node id of the node for which to save the data.
    */
   public function updateStorage($nid);
@@ -99,14 +100,16 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed
    *   A new GoogleAnalyticsCounterFeed object
    */
-  public function reportData($params = [], $cache_options = []);
+  public function reportData(array $params = [], array $cache_options = []);
 
   /**
    * Get the count of pageviews for a path.
    *
    * @param string $path
-   *   The path to look up
+   *   The path to look up.
+   *
    * @return string
+   *   Count of pageviews.
    */
   public function displayGaCount($path);
 
@@ -119,7 +122,10 @@ interface GoogleAnalyticsCounterManagerInterface {
    * Get the row count of a table, sometimes with conditions.
    *
    * @param string $table
+   *   Table data.
+   *
    * @return mixed
+   *   Row count.
    */
   public function getCount($table);
 
@@ -127,7 +133,10 @@ interface GoogleAnalyticsCounterManagerInterface {
    * Get the the top twenty results for pageviews and pageview_totals.
    *
    * @param string $table
+   *   Table data.
+   *
    * @return mixed
+   *   Results for pageviews.
    */
   public function getTopTwentyResults($table);
 
@@ -139,15 +148,19 @@ interface GoogleAnalyticsCounterManagerInterface {
   /**
    * Revoke Google Authentication Message.
    *
-   * @param $build
+   * @param array $build
+   *   Build data.
+   *
    * @return mixed
+   *   Build array.
    */
-  public function revokeAuthenticationMessage($build);
+  public function revokeAuthenticationMessage(array $build);
 
   /**
    * Sets the Google project name which is used in multiple places.
    *
    * @return string
+   *   Project name
    */
   public function googleProjectName();
 

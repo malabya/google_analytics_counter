@@ -29,7 +29,7 @@ class GoogleAnalyticsCounterAuthSettingsTest extends BrowserTestBase {
   /**
    * Verifies that the google analytics counter settings page works.
    *
-   * @see MediaSourceTest for good example code.
+   * @see MediaSourceTest
    */
   public function testAuthSettings() {
     $admin_user = $this->drupalCreateUser(array(
@@ -49,23 +49,10 @@ class GoogleAnalyticsCounterAuthSettingsTest extends BrowserTestBase {
     $this->drupalGet(self::ADMIN_AUTH_SETTINGS_PATH);
     $assert->statusCodeEquals(200);
 
-//    // Assert Fields.
-//    $assert->fieldExists('client_id');
-//    $assert->fieldExists('client_secret');
-//    $assert->fieldExists('redirect_uri');
-//    $assert->fieldExists('project_name');
-//
     $edit = [];
-//      'client_id' => $this->randomMachineName(),
-//      'client_secret' => $this->randomMachineName(),
-//      'redirect_uri' => $this->randomMachineName(),
-//      'project_name' => $this->randomMachineName(),
-//    ];
 
     // Post form. Assert response.
-//    $this->submitForm($edit, t('Save configuration'), 'google_analytics_counter_admin_auth');
     $this->submitForm($edit, t('Save configuration'));
-//    $assert->pageTextContains(t('The configuration options have been saved.'));
   }
 
 }

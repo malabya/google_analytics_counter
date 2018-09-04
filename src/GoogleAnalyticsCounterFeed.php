@@ -19,40 +19,88 @@ class GoogleAnalyticsCounterFeed {
   const OAUTH2_AUTH_URL = 'https://accounts.google.com/o/oauth2/auth';
   const SCOPE = 'https://www.googleapis.com/auth/analytics.readonly https://www.google.com/analytics/feeds/';
 
-  // Response object.
+  /**
+   * Response object.
+   *
+   * @var object
+   */
   public $response;
 
-  // Formatted array of request results.
+  /**
+   * Formatted array of request results.
+   *
+   * @var array
+   */
   public $results;
 
-  // URL to Google Analytics Core Reporting API.
+  /**
+   * URL to Google Analytics Core Reporting API.
+   *
+   * @var string
+   */
   public $queryPath;
 
-  // Translated error message.
+  /**
+   * Translated error message.
+   *
+   * @var string
+   */
   public $error;
 
-  // Boolean TRUE if data is from the cache tables.
+  /**
+   * Boolean TRUE if data is from the cache tables.
+   *
+   * @var bool
+   */
   public $fromCache = FALSE;
 
-  // OAuth access token.
+  /**
+   * OAuth access token.
+   *
+   * @var string
+   */
   public $accessToken;
 
-  // OAuth refresh token.
+  /**
+   * OAuth refresh token.
+   *
+   * @var string
+   */
   public $refreshToken;
 
-  // OAuth expiration time.
+  /**
+   * OAuth expiration time.
+   *
+   * @var string
+   */
   public $expiresAt;
 
-  // Host and endpoint of Google Analytics API.
+  /**
+   * Host and endpoint of Google Analytics API.
+   *
+   * @var string
+   */
   protected $host = 'www.googleapis.com/analytics/v3';
 
-  // Request header source.
+  /**
+   * Request header source.
+   *
+   * @var string
+   */
   protected $source = 'drupal';
 
-  // Google authorize callback verifier string.
+  /**
+   * Google authorize callback verifier string.
+   *
+   * @var string
+   */
   protected $verifier;
 
-  // OAuth host.
+  /**
+   * OAuth host.
+   *
+   * @var string
+   */
   protected $oAuthHost = 'www.google.com';
 
   /**
@@ -233,7 +281,7 @@ class GoogleAnalyticsCounterFeed {
    * Revoke an OAuth2 access token or refresh token. This method will revoke
    * the current access token, if a token isn't provided.
    *
-   * @param string|NULL $token
+   * @param string|null $token
    *   The token (access token or a refresh token) that should be revoked.
    *
    * @return bool
@@ -349,11 +397,15 @@ class GoogleAnalyticsCounterFeed {
    * Execute a query.
    *
    * @param string $url
+   *   URL value.
    * @param array $params
+   *   Array of parameters.
    * @param array $headers
+   *   Array of headers.
    * @param string $method
+   *   HTTM method.
    */
-  protected function request($url, $params = array(), $headers = array(), $method = 'GET') {
+  protected function request($url, array $params = array(), array $headers = array(), $method = 'GET') {
     $options = [
       'method' => $method,
       'headers' => $headers,
@@ -395,11 +447,13 @@ class GoogleAnalyticsCounterFeed {
    * Query Management API - Accounts.
    *
    * @param array $params
+   *   Array of parameters.
    * @param array $cache_options
+   *   Array of cache options.
    *
    * @return $this
    */
-  public function queryAccounts($params = array(), $cache_options = array()) {
+  public function queryAccounts(array $params = array(), array $cache_options = array()) {
     $this->setQueryPath('management/accounts');
     $this->query($this->queryPath, $params, 'GET', $this->generateAuthHeader(), $cache_options);
     return $this;
@@ -409,11 +463,13 @@ class GoogleAnalyticsCounterFeed {
    * Query Management API - WebProperties.
    *
    * @param array $params
+   *   Array of parameters.
    * @param array $cache_options
+   *   Array of cache options.
    *
    * @return $this
    */
-  public function queryWebProperties($params = array(), $cache_options = array()) {
+  public function queryWebProperties(array $params = array(), array $cache_options = array()) {
     $params += [
       'account-id' => '~all',
     ];
@@ -463,10 +519,13 @@ class GoogleAnalyticsCounterFeed {
    * Query and sanitize report data.
    *
    * @param array $params
+   *   Array of parameters.
    * @param array $cache_options
+   *   Array of cache options.
+   *
    * @return $this
    */
-  public function queryReportFeed($params = array(), $cache_options = array()) {
+  public function queryReportFeed(array $params = array(), array $cache_options = array()) {
 
     // Provide defaults if the developer did not override them.
     $params += [

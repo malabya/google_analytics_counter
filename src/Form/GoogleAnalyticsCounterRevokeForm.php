@@ -24,7 +24,7 @@ class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
   protected $state;
 
   /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface definition.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface.
    *
    * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
    */
@@ -101,7 +101,7 @@ class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Revoke the state values
+    // Revoke the state values.
     $this->manager->revoke();
 
     // Set redirect.

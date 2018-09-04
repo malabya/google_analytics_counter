@@ -5,6 +5,51 @@
  * Update, and uninstall functions for the Google Analytics Counter module.
  */
 
+use Drupal\Core\Url;
+
+/**
+ * Implements hook_requirements().
+ */
+function google_analytics_counter_requirements($phase) {
+  // Only check requirements during the run-time (aka Status Report).
+  if ($phase != 'runtime') {
+    return [];
+  }
+
+  $requirements = [];
+  // Verify that the user has authenticated with Google Analytics.
+  // If not, display a warning on the status page.
+  $config = \Drupal::config('google_analytics_counter.settings');
+  $t_args = [
+    '%profile_id' => $config->get('general_settings.profile_id'),
+    ':href' => Url::fromRoute('google_analytics_counter.admin_auth_form', [], ['absolute' => TRUE])
+      ->toString(),
+    '@href_here' => 'authentication here',
+    '@href' => 'authenticate here',
+  ];
+  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
+  $manager = Drupal::service('google_analytics_counter.manager');
+
+  if ($manager->isAuthenticated() === TRUE) {
+    $requirements['google_analytics_counter_authentication'] = [
+      'title' => t('Google Analytics Counter'),
+      'description' => t('Google Analytics profile ga:%profile_id has been authenticated. You can revoke <a href=:href>@href_here</a>.', $t_args),
+      'severity' => REQUIREMENT_OK,
+      'value' => t('A Google Analytics profile is authenticated: OK'),
+    ];
+  }
+  else {
+    $requirements['google_analytics_counter_authentication'] = [
+      'title' => t('Google Analytics Counter'),
+      'description' => t('Google Analytics Counter cannot fetch any new data. Please <a href=:href>@href</a>.', $t_args),
+      'severity' => REQUIREMENT_ERROR,
+      'value' => t('Google Analytics have not been authenticated!'),
+    ];
+  }
+
+  return $requirements;
+}
+
 /**
  * Implements hook_schema().
  *
@@ -77,7 +122,7 @@ function google_analytics_counter_schema() {
 function google_analytics_counter_uninstall() {
   /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
   $manager = Drupal::service('google_analytics_counter.manager');
-  // Revoke the state values
+  // Revoke the state values.
   $manager->revoke();
 }
 
@@ -99,4 +144,3 @@ function google_analytics_counter_update_8002() {
 function google_analytics_counter_update_8003() {
   \Drupal::state()->delete('google_analytics_counter.dayquota_timestamp');
 }
-

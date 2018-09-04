@@ -11,12 +11,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @see See https://www.drupal.org/forum/support/module-development-and-code-questions/2017-03-20/queue-items-not-processed
  * @see https://drupal.stackexchange.com/questions/206838/documentation-or-tutorial-on-using-batch-or-queue-services-api-programmatically
- *
  */
-abstract class GoogleAnalyticsCounterQueueBase extends QueueWorkerBase implements ContainerFactoryPluginInterface   {
-
-  // Here we don't use the Dependency Injection,
-  // but the __construct() and create() methods are necessary.
+abstract class GoogleAnalyticsCounterQueueBase extends QueueWorkerBase implements ContainerFactoryPluginInterface {
 
   /**
    * {@inheritdoc}
@@ -37,7 +33,7 @@ abstract class GoogleAnalyticsCounterQueueBase extends QueueWorkerBase implement
     if ($data['type'] == 'fetch') {
       \Drupal::service('google_analytics_counter.manager')->updatePathCounts($data['index']);
     }
-    elseif($data['type'] == 'count') {
+    elseif ($data['type'] == 'count') {
       \Drupal::service('google_analytics_counter.manager')->updateStorage($data['nid']);
     }
   }

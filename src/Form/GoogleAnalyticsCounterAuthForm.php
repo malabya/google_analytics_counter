@@ -33,7 +33,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
   protected $state;
 
   /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface definition.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface.
    *
    * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
    */
@@ -46,7 +46,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
    *   The factory for configuration objects.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state keyvalue collection to use.
-   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface Interface$manager
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
    *   Google Analytics Counter Manager object.
    */
   public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager) {
@@ -194,7 +194,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#title' => $this->t('Google Views (Profiles) IDs'),
       '#options' => $options,
       '#default_value' => $config->get('general_settings.profile_id'),
-      '#description' => $this->t('Choose a Google Analytics view (profile). If you are not authenticated, \'Unauthenticated\' is the only available option.'),
+      '#description' => $this->t("Choose a Google Analytics view (profile). If you are not authenticated, 'Unauthenticated' is the only available option."),
       '#weight' => 15,
     ];
 
@@ -208,7 +208,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Google Project Name'),
       '#default_value' => $config->get('general_settings.project_name'),
-      '#description' => $this->t('Optionally add your Google Project\'s machine name. Machine names are written like <em>project-name</em>. This field helps to take you directly to your <a href=:href>@href</a> page to view quotas. To set up your Google Project, See the README.md included with this module.', $t_args),
+      '#description' => $this->t("Optionally add your Google Project's machine name. Machine names are written like <em>project-name</em>. This field helps to take you directly to your <a href=:href>@href</a> page to view quotas. To set up your Google Project, See the README.md included with this module.", $t_args),
       '#weight' => 16,
     ];
 
@@ -249,7 +249,6 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
         parent::submitForm($form, $form_state);
         break;
     }
-
   }
 
 }

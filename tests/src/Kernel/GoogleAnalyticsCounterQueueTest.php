@@ -74,7 +74,6 @@ class GoogleAnalyticsCounterQueueTest extends CronQueueTest {
     // $query->condition('q.name', 'google_analytics_counter_worker');
     // $all = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
     // print_r($all);
-
     // Items should no longer be in the queue.
     // todo: actual should be 0.
     self::assertEquals($queue->numberOfItems(), 1, 'Items are no longer in the queue.');

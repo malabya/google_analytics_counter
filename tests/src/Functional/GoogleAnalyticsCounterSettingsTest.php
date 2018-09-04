@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\google_analytics_counter\Functional;
 
-use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Tests\BrowserTestBase;
 
 /**
@@ -30,7 +29,7 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
   /**
    * Verifies that the google analytics counter settings page works.
    *
-   * @see MediaSourceTest for good example code.
+   * @see MediaSourceTest
    */
   public function testForm() {
     $admin_user = $this->drupalCreateUser(array(

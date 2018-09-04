@@ -25,7 +25,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
   protected $state;
 
   /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface definition.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface.
    *
    * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
    */

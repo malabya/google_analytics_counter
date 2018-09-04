@@ -82,7 +82,9 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   protected $messenger;
 
   /**
-   * @var
+   * Prefixes.
+   *
+   * @var array
    */
   protected $prefixes;
 
@@ -240,6 +242,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * Get the list of available web properties.
    *
    * @return array
+   *   Array of options.
    */
   public function getWebPropertiesOptions() {
     if ($this->isAuthenticated() !== TRUE) {
@@ -270,7 +273,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
     return $options;
   }
-
 
   /**
    * Sets the expiry timestamp for cached queries. Default is 1 day.
@@ -314,7 +316,8 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       'metrics' => ['ga:pageviews'],
       'dimensions' => ['ga:pagePath'],
       'start_date' => !empty($config->get('general_settings.fixed_start_date')) ? strtotime($config->get('general_settings.fixed_start_date')) : strtotime($config->get('general_settings.start_date')),
-      // If fixed dates are not in use, use 'tomorrow' to offset any timezone shift between the hosting and Google servers.
+      // If fixed dates are not in use, use 'tomorrow' to offset any timezone
+      // shift between the hosting and Google servers.
       'end_date' => !empty($config->get('general_settings.fixed_end_date')) ? strtotime($config->get('general_settings.fixed_end_date')) : strtotime('tomorrow'),
       'start_index' => $pointer,
       'max_results' => $config->get('general_settings.chunk_to_fetch'),
@@ -353,7 +356,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed|object
    *   A new GoogleAnalyticsCounterFeed object
    */
-  public function reportData($params = array(), $cache_options = array()) {
+  public function reportData(array $params = array(), array $cache_options = array()) {
     $config = $this->config;
 
     // The total number of published nodes.
@@ -368,15 +371,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
 
     $ga_feed->queryReportFeed($params, $cache_options);
-
-    //    DEBUG:
-    //    echo '<pre>';
-    //    // The returned object.
-    //    // print_r($ga_feed);
-    //    // Current Google Query.
-    //    print_r($ga_feed->results->selfLink);
-    //    echo '</pre>';
-    //    exit;
 
     // Handle errors here too.
     if (!empty($ga_feed->error)) {
@@ -398,10 +392,12 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       }
     }
 
-    // The total number of pageViews for this profile from start_date to end_date
+    // The total number of pageViews for this profile
+    // from start_date to end_date.
     $this->state->set('google_analytics_counter.total_pageviews', $ga_feed->results->totalsForAllResults['pageviews']);
 
-    // The total number of pagePaths for this profile from start_date to end_date
+    // The total number of pagePaths for this profile
+    // from start_date to end_date.
     $this->state->set('google_analytics_counter.total_paths', $ga_feed->results->totalResults);
 
     // The most recent query to Google. Helpful for debugging.
@@ -411,7 +407,8 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $this->state->set('google_analytics_counter.data_last_refreshed', $ga_feed->results->dataLastRefreshed);
 
     // How many results to ask from Google Analytics in one request.
-    // Default of 1000 to fit most systems (for example those with no external cron).
+    // Default of 1000 to fit most systems
+    // (for example those with no external cron).
     $chunk = $config->get('general_settings.chunk_to_fetch');
 
     // In case there are more than $chunk path/counts to retrieve from
@@ -425,13 +422,13 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $pointer += $chunk;
 
     $t_args = [
-      '@size_of' => sizeof($ga_feed->results->rows),
+      '@size_of' => count($ga_feed->results->rows),
       '@first' => ($pointer - $chunk),
-      '@second' => ($pointer - $chunk - 1 + sizeof($ga_feed->results->rows)),
+      '@second' => ($pointer - $chunk - 1 + count($ga_feed->results->rows)),
     ];
     $this->logger->info('Retrieved @size_of items from Google Analytics data for paths @first - @second.', $t_args);
 
-    // OK now increase or zero $step
+    // OK now increase or zero $step.
     if ($pointer <= $ga_feed->results->totalResults) {
       // If there are more results than what we've reached with this chunk,
       // increase step to look further during the next run.
@@ -450,14 +447,16 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * Get the count of pageviews for a path.
    *
    * @param string $path
-   *   The path to look up
+   *   The path to look up.
+   *
    * @return string
+   *   Count of page views.
    */
   public function displayGaCount($path) {
-    // Make sure the path starts with a slash
-    $path = '/'. trim($path, ' /');
+    // Make sure the path starts with a slash.
+    $path = '/' . trim($path, ' /');
 
-    // It's the front page
+    // It's the front page.
     if ($this->pathMatcher->isFrontPage()) {
       $aliases = ['/'];
       $sum_of_pageviews = $this->sumPageviews($aliases);
@@ -479,14 +478,13 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Look up the count via the hash of the pathes.
    *
-   * @param $aliases
    * @return string
+   *   Count of views.
    */
   protected function sumPageviews($aliases) {
 
-    // $aliases can make pageview_total greater than pageviews because $aliases
-    // can include page aliases, node/id, and node/id/ URIs.
-
+    // $aliases can make pageview_total greater than pageviews
+    // because $aliases can include page aliases, node/id, and node/id/ URIs.
     $hashes = array_map('md5', $aliases);
     $path_counts = $this->connection->select('google_analytics_counter', 'gac')
       ->fields('gac', ['pageviews'])
@@ -524,8 +522,10 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Merge the sum of pageviews into google_analytics_counter_storage.
    *
-   * @param $nid
-   * @param $sum_of_pageviews
+   * @param int $nid
+   *   Node id value.
+   * @param int $sum_of_pageviews
+   *   Count of page views.
    *
    * @throws \Exception
    */
@@ -538,9 +538,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
   /**
    * Get the row count of a table, sometimes with conditions.
-   *
-   * @param string $table
-   * @return mixed
    */
   public function getCount($table) {
     switch ($table) {
@@ -549,30 +546,32 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
         $query->addField('t', 'field_pageview_total');
         $query->condition('pageview_total', 0, '>');
         break;
+
       case 'node_counter':
         $query = $this->connection->select($table, 't');
         $query->addField('t', 'field_totalcount');
         $query->condition('totalcount', 0, '>');
         break;
+
       case 'google_analytics_counter_storage_all_nodes':
         $query = $this->connection->select('google_analytics_counter_storage', 't');
         break;
+
       case 'queue':
         $query = $this->connection->select('queue', 'q');
         $query->condition('name', 'google_analytics_counter_worker', '=');
         break;
+
       default:
         $query = $this->connection->select($table, 't');
         break;
+
     }
     return $query->countQuery()->execute()->fetchField();
   }
 
   /**
    * Get the the top twenty results for pageviews and pageview_totals.
-   *
-   * @param string $table
-   * @return mixed
    */
   public function getTopTwentyResults($table) {
     $query = $this->connection->select($table, 't');
@@ -591,6 +590,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
           ];
         }
         break;
+
       case 'google_analytics_counter_storage':
         $query->fields('t', ['nid', 'pageview_total']);
         $query->orderBy('pageview_total', 'DESC');
@@ -602,6 +602,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
           ];
         }
         break;
+
       default:
         break;
     }
@@ -612,7 +613,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Save the pageview count for a given node.
    *
-   * @param integer $nid
+   * @param int $nid
    *   The node id of the node for which to save the data.
    */
   public function updateStorage($nid) {
@@ -635,7 +636,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }, $aliases));
 
     // It's the front page
-    // Todo: Could be brittle
+    // Todo: Could be brittle.
     if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
       $sum_of_pageviews = $this->sumPageviews(['/']);
       $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
@@ -649,10 +650,10 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Update the path counts.
    *
+   * This function is triggered by hook_cron().
+   *
    * @param int $index
    *   The index of the chunk to fetch and update.
-   *
-   * This function is triggered by hook_cron().
    *
    * @throws \Exception
    */
@@ -660,7 +661,8 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $feed = $this->getChunkedResults($index);
 
     foreach ($feed->results->rows as $value) {
-      // Remove Google Analytics pagepaths that are extremely long and meaningless.
+      // Remove Google Analytics pagepaths that are
+      // extremely long and meaningless.
       $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
       $this->connection->merge('google_analytics_counter')
         ->key(['pagepath_hash' => md5($page_path)])
@@ -695,10 +697,13 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Revoke Google Authentication Message.
    *
-   * @param $build
+   * @param array $build
+   *   Build data.
+   *
    * @return mixed
+   *   Build array.
    */
-  public function revokeAuthenticationMessage($build) {
+  public function revokeAuthenticationMessage(array $build) {
     $t_args = [
       ':href' => Url::fromRoute('google_analytics_counter.admin_auth_revoke', [], ['absolute' => TRUE])
         ->toString(),
@@ -716,6 +721,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * Returns the link with the Google project name if it is available.
    *
    * @return string
+   *   Project name.
    */
   public function googleProjectName() {
     $config = $this->config;
