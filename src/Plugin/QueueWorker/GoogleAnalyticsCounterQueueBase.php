@@ -14,6 +14,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 abstract class GoogleAnalyticsCounterQueueBase extends QueueWorkerBase implements ContainerFactoryPluginInterface {
 
+  // Here we don't use the Dependency Injection,
+  // but the __construct() and create() methods are necessary.
+
   /**
    * {@inheritdoc}
    */

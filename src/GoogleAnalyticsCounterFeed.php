@@ -281,7 +281,7 @@ class GoogleAnalyticsCounterFeed {
    * Revoke an OAuth2 access token or refresh token. This method will revoke
    * the current access token, if a token isn't provided.
    *
-   * @param string|null $token
+   * @param string|NULL $token
    *   The token (access token or a refresh token) that should be revoked.
    *
    * @return bool
@@ -367,9 +367,9 @@ class GoogleAnalyticsCounterFeed {
     // Provide a query MD5 for the cid if the developer did not provide one.
     if (empty($cache_options['cid'])) {
       $cache_options['cid'] = 'GoogleAnalyticsCounterFeed:' . md5(serialize(array_merge($params, [
-        $url,
-        $method,
-      ])));
+          $url,
+          $method,
+        ])));
     }
 
     $cache = \Drupal::cache()->get($cache_options['cid']);
@@ -405,7 +405,7 @@ class GoogleAnalyticsCounterFeed {
    * @param string $method
    *   HTTM method.
    */
-  protected function request($url, array $params = array(), array $headers = array(), $method = 'GET') {
+  protected function request($url, $params = array(), $headers = array(), $method = 'GET') {
     $options = [
       'method' => $method,
       'headers' => $headers,
@@ -453,7 +453,7 @@ class GoogleAnalyticsCounterFeed {
    *
    * @return $this
    */
-  public function queryAccounts(array $params = array(), array $cache_options = array()) {
+  public function queryAccounts($params = array(), $cache_options = array()) {
     $this->setQueryPath('management/accounts');
     $this->query($this->queryPath, $params, 'GET', $this->generateAuthHeader(), $cache_options);
     return $this;
@@ -469,7 +469,7 @@ class GoogleAnalyticsCounterFeed {
    *
    * @return $this
    */
-  public function queryWebProperties(array $params = array(), array $cache_options = array()) {
+  public function queryWebProperties($params = array(), $cache_options = array()) {
     $params += [
       'account-id' => '~all',
     ];
@@ -525,7 +525,7 @@ class GoogleAnalyticsCounterFeed {
    *
    * @return $this
    */
-  public function queryReportFeed(array $params = array(), array $cache_options = array()) {
+  public function queryReportFeed($params = array(), $cache_options = array()) {
 
     // Provide defaults if the developer did not override them.
     $params += [

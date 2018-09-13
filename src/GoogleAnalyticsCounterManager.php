@@ -245,14 +245,14 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   Array of options.
    */
   public function getWebPropertiesOptions() {
-    if ($this->isAuthenticated() !== TRUE) {
-      // When not authenticated, there is nothing to get.
-      return [];
+    // When not authenticated, there are no options.
+    if (!$this->isAuthenticated()) {
+      return;
     }
 
     $feed = $this->newGaFeed();
 
-    $webprops = $feed->queryWebProperties()->results->items;
+    $web_properties = $feed->queryWebProperties()->results->items;
     $profiles = $feed->queryProfiles()->results->items;
     $options = [];
 
@@ -260,9 +260,9 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     if (!empty($profiles)) {
       foreach ($profiles as $profile) {
         $webprop = NULL;
-        foreach ($webprops as $webprop_value) {
-          if ($webprop_value->id == $profile->webPropertyId) {
-            $webprop = $webprop_value;
+        foreach ($web_properties as $web_property) {
+          if ($web_property->id == $profile->webPropertyId) {
+            $webprop = $web_property;
             break;
           }
         }
@@ -356,7 +356,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed|object
    *   A new GoogleAnalyticsCounterFeed object
    */
-  public function reportData(array $params = array(), array $cache_options = array()) {
+  public function reportData($params = [], $cache_options = []) {
     $config = $this->config;
 
     // The total number of published nodes.
@@ -371,6 +371,15 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
 
     $ga_feed->queryReportFeed($params, $cache_options);
+
+    //    DEBUG:
+    //    echo '<pre>';
+    //    // The returned object.
+    //    // print_r($ga_feed);
+    //    // Current Google Query.
+    //    print_r($ga_feed->results->selfLink);
+    //    echo '</pre>';
+    //    exit;
 
     // Handle errors here too.
     if (!empty($ga_feed->error)) {
@@ -422,9 +431,9 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $pointer += $chunk;
 
     $t_args = [
-      '@size_of' => count($ga_feed->results->rows),
+      '@size_of' => sizeof($ga_feed->results->rows),
       '@first' => ($pointer - $chunk),
-      '@second' => ($pointer - $chunk - 1 + count($ga_feed->results->rows)),
+      '@second' => ($pointer - $chunk - 1 + sizeof($ga_feed->results->rows)),
     ];
     $this->logger->info('Retrieved @size_of items from Google Analytics data for paths @first - @second.', $t_args);
 
@@ -478,6 +487,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Look up the count via the hash of the pathes.
    *
+   * @param $aliases
    * @return string
    *   Count of views.
    */
@@ -538,6 +548,9 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
   /**
    * Get the row count of a table, sometimes with conditions.
+   *
+   * @param string $table
+   * @return mixed
    */
   public function getCount($table) {
     switch ($table) {
@@ -546,32 +559,30 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
         $query->addField('t', 'field_pageview_total');
         $query->condition('pageview_total', 0, '>');
         break;
-
       case 'node_counter':
         $query = $this->connection->select($table, 't');
         $query->addField('t', 'field_totalcount');
         $query->condition('totalcount', 0, '>');
         break;
-
       case 'google_analytics_counter_storage_all_nodes':
         $query = $this->connection->select('google_analytics_counter_storage', 't');
         break;
-
       case 'queue':
         $query = $this->connection->select('queue', 'q');
         $query->condition('name', 'google_analytics_counter_worker', '=');
         break;
-
       default:
         $query = $this->connection->select($table, 't');
         break;
-
     }
     return $query->countQuery()->execute()->fetchField();
   }
 
   /**
    * Get the the top twenty results for pageviews and pageview_totals.
+   *
+   * @param string $table
+   * @return mixed
    */
   public function getTopTwentyResults($table) {
     $query = $this->connection->select($table, 't');
@@ -590,7 +601,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
           ];
         }
         break;
-
       case 'google_analytics_counter_storage':
         $query->fields('t', ['nid', 'pageview_total']);
         $query->orderBy('pageview_total', 'DESC');
@@ -602,7 +612,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
           ];
         }
         break;
-
       default:
         break;
     }
@@ -613,7 +622,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Save the pageview count for a given node.
    *
-   * @param int $nid
+   * @param integer $nid
    *   The node id of the node for which to save the data.
    */
   public function updateStorage($nid) {
@@ -636,7 +645,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }, $aliases));
 
     // It's the front page
-    // Todo: Could be brittle.
+    // Todo: Could be brittle
     if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
       $sum_of_pageviews = $this->sumPageviews(['/']);
       $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
@@ -650,10 +659,10 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Update the path counts.
    *
-   * This function is triggered by hook_cron().
-   *
    * @param int $index
    *   The index of the chunk to fetch and update.
+   *
+   * This function is triggered by hook_cron().
    *
    * @throws \Exception
    */
@@ -661,8 +670,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $feed = $this->getChunkedResults($index);
 
     foreach ($feed->results->rows as $value) {
-      // Remove Google Analytics pagepaths that are
-      // extremely long and meaningless.
+      // Remove Google Analytics pagepaths that are extremely long and meaningless.
       $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
       $this->connection->merge('google_analytics_counter')
         ->key(['pagepath_hash' => md5($page_path)])
@@ -697,13 +705,10 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Revoke Google Authentication Message.
    *
-   * @param array $build
-   *   Build data.
-   *
+   * @param $build
    * @return mixed
-   *   Build array.
    */
-  public function revokeAuthenticationMessage(array $build) {
+  public function revokeAuthenticationMessage($build) {
     $t_args = [
       ':href' => Url::fromRoute('google_analytics_counter.admin_auth_revoke', [], ['absolute' => TRUE])
         ->toString(),

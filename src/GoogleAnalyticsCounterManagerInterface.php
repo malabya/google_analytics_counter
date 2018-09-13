@@ -71,7 +71,7 @@ interface GoogleAnalyticsCounterManagerInterface {
   /**
    * Save the pageview count for a given node.
    *
-   * @param int $nid
+   * @param integer $nid
    *   The node id of the node for which to save the data.
    */
   public function updateStorage($nid);
@@ -100,7 +100,7 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed
    *   A new GoogleAnalyticsCounterFeed object
    */
-  public function reportData(array $params = [], array $cache_options = []);
+  public function reportData($params = [], $cache_options = []);
 
   /**
    * Get the count of pageviews for a path.
@@ -154,7 +154,7 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @return mixed
    *   Build array.
    */
-  public function revokeAuthenticationMessage(array $build);
+  public function revokeAuthenticationMessage($build);
 
   /**
    * Sets the Google project name which is used in multiple places.
