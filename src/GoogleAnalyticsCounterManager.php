@@ -371,16 +371,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
 
     $ga_feed->queryReportFeed($params, $cache_options);
-
-    //    DEBUG:
-    //    echo '<pre>';
-    //    // The returned object.
-    //    // print_r($ga_feed);
-    //    // Current Google Query.
-    //    print_r($ga_feed->results->selfLink);
-    //    echo '</pre>';
-    //    exit;
-
     // Handle errors here too.
     if (!empty($ga_feed->error)) {
       throw new \RuntimeException($ga_feed->error);
