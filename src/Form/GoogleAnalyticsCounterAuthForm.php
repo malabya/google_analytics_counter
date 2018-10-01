@@ -84,6 +84,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    global $base_url;
     $config = $this->config('google_analytics_counter.settings');
 
     $form['#tree'] = TRUE;
@@ -154,7 +155,9 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 12,
     ];
 
-    $description = ($this->manager->isAuthenticated() === TRUE) ? $this->t('The path that users are redirected to after they have authenticated with Google.') : $this->t('The path that users are redirected to after they have authenticated with Google.<br /> Default: <strong>@default_uri</strong>', ['@default_uri' => GoogleAnalyticsCounterFeed::currentUrl()]);
+    $current_path = \Drupal::service('path.current')->getPath();
+    $uri = \Drupal::service('path.alias_manager')->getAliasByPath($current_path);
+    $description = ($this->manager->isAuthenticated() === TRUE) ? $this->t('The path that users are redirected to after they have authenticated with Google.') : $this->t('The path that users are redirected to after they have authenticated with Google.<br /> Default: <strong>@default_uri</strong>', ['@default_uri' => $base_url . $uri]);
     $form['redirect_uri'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Authorized redirect URI'),

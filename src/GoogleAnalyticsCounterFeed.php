@@ -118,26 +118,6 @@ class GoogleAnalyticsCounterFeed {
   }
 
   /**
-   * Get the current page url.
-   */
-  public static function currentUrl() {
-    if (!empty($_SERVER['HTTPS'])) {
-      $https = $_SERVER['HTTPS'] == 'on';
-    }
-    else {
-      $https = FALSE;
-    }
-    $url = $https ? 'https://' : 'http://';
-    $url .= $_SERVER['SERVER_NAME'];
-    if ((!$https && $_SERVER['SERVER_PORT'] != '80') ||
-      ($https && $_SERVER['SERVER_PORT'] != '443')
-    ) {
-      $url .= ':' . $_SERVER['SERVER_PORT'];
-    }
-    return $url . $_SERVER['REQUEST_URI'];
-  }
-
-  /**
    * Create a URL to obtain user authorization.
    *
    * The authorization endpoint allows the user to first
