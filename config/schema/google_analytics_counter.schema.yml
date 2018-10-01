@@ -46,7 +46,7 @@ google_analytics_counter.settings:
           label: 'The fixed end date for Google Analytics queries'
         profile_id:
           type: string
-          label: 'The Google Analytics view (profile) to use'
+          label: 'The Google Analytics view to use'
         profile_id_prefill:
           type: string
-          label: 'Prefill with a Google Analytics view (profile) id '
+          label: 'Prefill with a Google Analytics view id '

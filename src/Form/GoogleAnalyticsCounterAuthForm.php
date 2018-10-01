@@ -122,7 +122,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       }
     }
 
-    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') : $this->t('Save configuration for your Client ID, Client Secret, Authorized redirect URI, and, optionally, a View (Profile). Then set up authentication with Google Analytics.');
+    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') : $this->t('Save configuration for your Client ID, Client Secret, Authorized redirect URI, and, optionally, a View. Then set up authentication with Google Analytics.');
 
     $form['setup'] = [
       '#type' => 'markup',
@@ -175,11 +175,11 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     ];
     $form['profile_id_prefill'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Prefill a Google View (Profile) ID'),
+      '#title' => $this->t('Prefill a Google View ID'),
       '#default_value' => $config->get('general_settings.profile_id_prefill'),
       '#size' => 20,
       '#maxlength' => 20,
-      '#description' => $this->t('If you know which Google view (profile) you will be using, you may enter its ID here. Otherwise, you <u>must</u> come back to this form after you have <a href=:href>@href</a> and select a view (profile) from the list in <strong>Google Views (Profiles) IDs</strong>.<br />Refer to your Google Views at <a href="https://360suite.google.com/orgs?authuser=0" target="_blank">Google Analytics 360 Suite</a>. Google Views (Profiles) IDs are eight digit numbers, e.g. 32178653', $t_args),
+      '#description' => $this->t('If you know which Google view you will be using, you may enter its ID here. Otherwise, you <u>must</u> come back to this form after you have <a href=:href>@href</a> and select a view from the list in <strong>Google Views (Profiles) IDs</strong>.<br />Refer to your Google Views at <a href="https://360suite.google.com/orgs?authuser=0" target="_blank">Google Analytics 360 Suite</a>. Google Views (Profiles) IDs are eight digit numbers, e.g. 32178653', $t_args),
       '#states' => [
         'visible' => [
           ':input[name="profile_id"]' => ['empty' => TRUE],
@@ -194,10 +194,10 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     }
     $form['profile_id'] = [
       '#type' => 'select',
-      '#title' => $this->t('Google Views (Profiles) IDs'),
+      '#title' => $this->t('Google Views IDs'),
       '#options' => $options,
       '#default_value' => $config->get('general_settings.profile_id'),
-      '#description' => $this->t("Choose a Google Analytics view (profile). If you are not authenticated, 'Unauthenticated' is the only available option."),
+      '#description' => $this->t("Choose a Google Analytics view. If you are not authenticated, 'Unauthenticated' is the only available option."),
       '#weight' => 15,
     ];
 

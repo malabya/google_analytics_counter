@@ -115,7 +115,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.api_dayquota'),
       '#min' => 1,
       '#max' => 10000,
-      '#description' => $this->t('This is the daily limit of requests <strong>per view (profile)</strong> per day. Refer to your <a href=:href2 target="_blank">@href2</a> page to view quotas.', $t_args),
+      '#description' => $this->t('This is the daily limit of requests <strong>per view</strong> per day. Refer to your <a href=:href2 target="_blank">@href2</a> page to view quotas.', $t_args),
       '#required' => TRUE,
     ];
 

@@ -103,7 +103,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $t_args = $this->getStartDateEndDate();
     $t_args += ['%total_pageviews' => number_format($this->state->get('google_analytics_counter.total_pageviews'))];
     $build['google_info']['total_pageviews'] = [
-      '#markup' => $this->t('%total_pageviews pageviews were recorded by Google Analytics for this view (profile) between %start_date - %end_date.', $t_args),
+      '#markup' => $this->t('%total_pageviews pageviews were recorded by Google Analytics for this view between %start_date - %end_date.', $t_args),
       '#prefix' => '<p>',
       '#suffix' => '</p>',
     ];
@@ -113,7 +113,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '%total_paths' => number_format($this->state->get('google_analytics_counter.total_paths')),
     ];
     $build['google_info']['total_paths'] = [
-      '#markup' => $this->t('%total_paths paths were recorded by Google Analytics for this view (profile) between %start_date - %end_date.', $t_args),
+      '#markup' => $this->t('%total_paths paths were recorded by Google Analytics for this view between %start_date - %end_date.', $t_args),
       '#prefix' => '<p>',
       '#suffix' => '</p>',
     ];

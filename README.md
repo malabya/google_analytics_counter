@@ -36,8 +36,8 @@ The secondary use for this module is to:
    See "Creating a Project in Google" in the next section of this document 
    for more information on setting up Google Analytics.
 
-6. If you know which view (profile) you will be using you can add its ID to the
-   'Prefill a Google View (Profile)' field.
+6. If you know which view you will be using you can add its ID to the
+   'Prefill a Google View' field.
 
 7. Optionally add your Google Project's machine name. This field helps to take 
    you directly to your Analytics API page to view Google's quotas.
@@ -53,10 +53,10 @@ The secondary use for this module is to:
 
 12. If all goes well, you will be returned to the authentication page. 
     (/admin/config/system/google-analytics-counter/authentication)
-    If you did not prefill a Google View (Profile) ID, select a view (profile) 
+    If you did not prefill a Google View ID, select a view  
     from the select list under Google Views (Profiles) IDs. Another way to tell
     if all has gone well with authentication is if you see your Google Analytics
-    profiles listed in Google Views (Profiles) IDs.
+    profiles listed in Views IDs.
     Click Save configuration.
 
 13. Go to the Dashboard (/admin/config/system/google-analytics-counter/dashboard)
