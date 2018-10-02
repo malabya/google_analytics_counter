@@ -54,7 +54,7 @@ The secondary use for this module is to:
 12. If all goes well, you will be returned to the authentication page. 
     (/admin/config/system/google-analytics-counter/authentication)
     If you did not prefill a Google View ID, select a view  
-    from the select list under Google Views (Profiles) IDs. Another way to tell
+    from the select list under Google Views IDs. Another way to tell
     if all has gone well with authentication is if you see your Google Analytics
     profiles listed in Views IDs.
     Click Save configuration.
