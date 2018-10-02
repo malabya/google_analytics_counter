@@ -188,10 +188,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 14,
     ];
 
-    $options = $this->manager->getWebPropertiesOptions();
-    if (!$options) {
-      $options = [$config->get('general_settings.profile_id') => 'Unauthenticated'];
-    }
+    $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : [$config->get('general_settings.profile_id') => 'Unauthenticated'];
     $form['profile_id'] = [
       '#type' => 'select',
       '#title' => $this->t('Google Views'),
