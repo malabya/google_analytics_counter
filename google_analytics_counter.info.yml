@@ -2,6 +2,5 @@ name: 'Google Analytics Counter'
 type: module
 description: 'Lightweight page view counter drawing on data collected by Google Analytics.'
 core: 8.x
-version: 8.x-1.0
 package: Statistics
 configure: google_analytics_counter.admin_settings_form
