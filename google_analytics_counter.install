@@ -155,3 +155,13 @@ function google_analytics_counter_update_8002() {
 function google_analytics_counter_update_8003() {
   \Drupal::state()->delete('google_analytics_counter.dayquota_timestamp');
 }
+
+/**
+ * Issue #3003910: Remove overwrite_statistics configuration.
+ */
+function google_analytics_counter_update_8004() {
+  $config_factory = \Drupal::configFactory();
+  $config_factory->getEditable('google_analytics_counter.settings')
+    ->clear('general_settings.overwrite_statistics')
+    ->save();
+}
