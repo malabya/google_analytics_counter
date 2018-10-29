@@ -37,7 +37,7 @@ function google_analytics_counter_cron() {
   // To avoid this interval, set cron_interval to 0.
   if (\Drupal::time()->getRequestTime() >= \Drupal::state()->get('system.cron_last') + $interval) {
     /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
-    $manager = Drupal::service('google_analytics_counter.manager');
+    $manager = \Drupal::service('google_analytics_counter.manager');
     $queue = \Drupal::queue('google_analytics_counter_worker');
 
     try {
