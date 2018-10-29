@@ -97,11 +97,12 @@ class GoogleAnalyticsCounterFormatter extends FormatterBase implements Container
 
     foreach ($items as $delta => $item) {
       $elements[$delta] = [
-        '#type' => 'html_tag',
-        '#tag' => 'p',
-        '#value' => $this->t('The content area color has been changed to '),
+        '#type' => 'inline_template',
+        '#template' => '{{ value|nl2br }}',
+        '#context' => ['value' => $item->value],
       ];
     }
+
     return $elements;
   }
 
