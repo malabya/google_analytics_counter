@@ -105,7 +105,7 @@ class GoogleAnalyticsCounterFormatter extends FormatterBase implements Container
 //        '#attributes' => [
 //          'style' => 'color: ' . $item->value,
 //        ],
-        '#value' => $item->value,
+        '#value' => $this->manager->displayGaCount($this->currentPath->getPath()),
       ];
     }
 

@@ -91,36 +91,18 @@ class GoogleAnalyticsCounterWidget extends WidgetBase implements ContainerFactor
     $path = '';
     $node = \Drupal::routeMatch()->getParameter('node');
     if ($node instanceof \Drupal\node\NodeInterface) {
-      // You can get nid and anything else you need from the node object.
       $nid = $node->id();
       $path = \Drupal::service('path.alias_manager')->getAliasByPath('/node/' . $nid);
     }
 
-    $value = isset($items[$delta]->value) ? $items[$delta]->value : '';
     $element += [
       '#type' => 'textfield',
-      '#default_value' => $value,
-      '#size' => 7,
-      '#maxlength' => 7,
-//      '#element_validate' => [
-//        [$this, 'validate'],
-//      ],
+      '#default_value' => $this->manager->displayGaCount($path),
+      '#size' => 11,
+      '#maxlength' => 11,
+      '#disabled' => TRUE,
     ];
     return ['value' => $element];
   }
-
-//  /**
-//   * Validate the color text field.
-//   */
-//  public function validate($element, FormStateInterface $form_state) {
-//    $value = $element['#value'];
-//    if (strlen($value) == 0) {
-//      $form_state->setValueForElement($element, '');
-//      return;
-//    }
-//    if (!preg_match('/^#([a-f0-9]{6})$/iD', strtolower($value))) {
-//      $form_state->setError($element, $this->t("Color must be a 6-digit hexadecimal value, suitable for CSS."));
-//    }
-//  }
 
 }
