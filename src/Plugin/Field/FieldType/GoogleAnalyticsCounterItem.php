@@ -15,7 +15,7 @@ use Drupal\Core\TypedData\DataDefinition;
  *   id = "field_google_analytics_counter",
  *   label = @Translation("Google Analytics Counter"),
  *   module = "google_analytics_counter",
- *   description = @Translation("Demonstrates a field composed of an RGB color."),
+ *   description = @Translation("A field containing the Google Views."),
  *   default_widget = "field_google_analytics_counter",
  *   default_formatter = "field_google_analytics_counter"
  * )
