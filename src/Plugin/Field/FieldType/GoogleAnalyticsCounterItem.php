@@ -9,13 +9,15 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\TypedData\DataDefinition;
 
 /**
+ * Plugin implementation of the 'field_google_analytics_counter' field type.
+ *
  * @FieldType(
- *   id = "google_analytics_counter",
+ *   id = "field_google_analytics_counter",
  *   label = @Translation("Google Analytics Counter"),
  *   module = "google_analytics_counter",
- *   description = @Translation("A field with Google Analytics pageview content."),
- *   default_formatter = "google_analytics_counter",
- *   default_widget = "google_analytics_counter"
+ *   description = @Translation("Demonstrates a field composed of an RGB color."),
+ *   default_widget = "field_google_analytics_counter",
+ *   default_formatter = "field_google_analytics_counter"
  * )
  */
 class GoogleAnalyticsCounterItem extends FieldItemBase {

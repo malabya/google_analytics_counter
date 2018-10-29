@@ -16,14 +16,14 @@ use Drupal\Core\Field\FieldDefinitionInterface;
 
 
 /**
- * Plugin implementation of the 'google_analytics_counter' formatter.
+ * Plugin implementation of the 'field_google_analytics_counter' formatter.
  *
  * @FieldFormatter(
- *   id = "google_analytics_counter",
- *   module = "google_analytics_counter",
+ *   id = "field_google_analytics_counter",
+ *   module = "google_analytics",
  *   label = @Translation("Google Analytics Counter"),
  *   field_types = {
- *     "google_analytics_counter"
+ *     "field_google_analytics_counter"
  *   }
  * )
  */
@@ -97,9 +97,15 @@ class GoogleAnalyticsCounterFormatter extends FormatterBase implements Container
 
     foreach ($items as $delta => $item) {
       $elements[$delta] = [
-        '#type' => 'inline_template',
-        '#template' => '{{ value|nl2br }}',
-        '#context' => ['value' => $item->value],
+        // We create a render array to produce the desired markup,
+        // "<p style="color: #hexcolor">The color code ... #hexcolor</p>".
+        // See theme_html_tag().
+        '#type' => 'html_tag',
+        '#tag' => 'p',
+//        '#attributes' => [
+//          'style' => 'color: ' . $item->value,
+//        ],
+        '#value' => $item->value,
       ];
     }
 

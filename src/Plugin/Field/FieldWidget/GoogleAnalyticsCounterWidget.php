@@ -18,12 +18,14 @@ use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 
 
 /**
+ * Plugin implementation of the 'field_google_analytics_counter' widget.
+ *
  * @FieldWidget(
- *   id = "google_analytics_counter",
+ *   id = "field_google_analytics_counter",
  *   module = "google_analytics_counter",
  *   label = @Translation("Google Analytics Counter"),
  *   field_types = {
- *     "string"
+ *     "field_google_analytics_counter"
  *   }
  * )
  */
@@ -94,18 +96,31 @@ class GoogleAnalyticsCounterWidget extends WidgetBase implements ContainerFactor
       $path = \Drupal::service('path.alias_manager')->getAliasByPath('/node/' . $nid);
     }
 
-
-//    $get_path = \Drupal::service('path.alias_manager')->getPath();
-
+    $value = isset($items[$delta]->value) ? $items[$delta]->value : '';
     $element += [
       '#type' => 'textfield',
-      '#title' => t('Pageviews'),
-      '#default_value' => $this->manager->displayGaCount($this->currentPath->getPath()),
-      '#size' => 11,
-      '#maxlength' => 11,
-      '#disabled' => TRUE,
+      '#default_value' => $value,
+      '#size' => 7,
+      '#maxlength' => 7,
+//      '#element_validate' => [
+//        [$this, 'validate'],
+//      ],
     ];
     return ['value' => $element];
   }
+
+//  /**
+//   * Validate the color text field.
+//   */
+//  public function validate($element, FormStateInterface $form_state) {
+//    $value = $element['#value'];
+//    if (strlen($value) == 0) {
+//      $form_state->setValueForElement($element, '');
+//      return;
+//    }
+//    if (!preg_match('/^#([a-f0-9]{6})$/iD', strtolower($value))) {
+//      $form_state->setError($element, $this->t("Color must be a 6-digit hexadecimal value, suitable for CSS."));
+//    }
+//  }
 
 }
