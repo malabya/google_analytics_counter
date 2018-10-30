@@ -146,6 +146,7 @@ function google_analytics_counter_uninstall() {
     'entity_type' => 'node',
   ];
 
+  // Delete the field config.
   foreach ($bundles as $bundle) {
     foreach ($fields as $field_name => $config) {
       $field = FieldConfig::loadByName($config['entity_type'], $bundle, $field_name);
@@ -155,6 +156,7 @@ function google_analytics_counter_uninstall() {
     }
   }
 
+  // Delete the field storage config.
   foreach ($fields as $field_name => $config) {
     $field_storage = FieldStorageConfig::loadByName($config['entity_type'], $field_name);
     if (!empty($field_storage)) {
