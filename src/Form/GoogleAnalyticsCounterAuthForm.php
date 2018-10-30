@@ -110,7 +110,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       if ($config->get('general_settings.client_id') !== '') {
         $form['authenticate'] = [
           '#type' => 'fieldset',
-          '#title' => $this->t('Set up authentication'),
+          '#title' => $this->t('Authenticate with Google Analytics'),
           '#description' => $this->t("This action will redirect you to Google. Login with the account you'd like to use."),
           '#collapsible' => TRUE,
           '#collapsed' => FALSE,
@@ -122,7 +122,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       }
     }
 
-    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') : $this->t('Save configuration for your Client ID, Client Secret, Authorized redirect URI, and, optionally, a View. Then set up authentication with Google Analytics.');
+    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') . '</p>' : '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized redirect URI, and project name, if available.') . '</li><li>' . $this->t('Save configuration.') . '</li><li>' . $this->t('Authenticate with Google Analytics by:') . '</li><ul><li>' .  $this->t('Following the instructions in the included README.md to set up a project in Google Analytics.') . '</li><li>' .  $this->t('And then clicking the button above.') . '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select which Google view to collect analytics from and save configuration again.') . '</li></ol>';
 
     $form['setup'] = [
       '#type' => 'markup',
@@ -168,36 +168,6 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 13,
     ];
 
-    $t_args = [
-      ':href' => Url::fromRoute('google_analytics_counter.admin_auth_form', [], ['absolute' => TRUE])
-        ->toString(),
-      '@href' => 'authenticated',
-    ];
-    $form['profile_id_prefill'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Prefill a Google View ID'),
-      '#default_value' => $config->get('general_settings.profile_id_prefill'),
-      '#size' => 20,
-      '#maxlength' => 20,
-      '#description' => $this->t('If you know which Google view you will be using, you may enter its ID here. Otherwise, you <u>must</u> come back to this form after you have <a href=:href>@href</a> and select a view from the list in <strong>Google Views</strong>.<br />Refer to your Google Views at <a href="https://360suite.google.com/orgs?authuser=0" target="_blank">Google Analytics 360 Suite</a>. Google Views (Profiles) IDs are eight digit numbers, e.g. 32178653', $t_args),
-      '#states' => [
-        'visible' => [
-          ':input[name="profile_id"]' => ['empty' => TRUE],
-        ],
-      ],
-      '#weight' => 14,
-    ];
-
-    $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : [$config->get('general_settings.profile_id') => 'Unauthenticated'];
-    $form['profile_id'] = [
-      '#type' => 'select',
-      '#title' => $this->t('Google Views'),
-      '#options' => $options,
-      '#default_value' => $config->get('general_settings.profile_id'),
-      '#description' => $this->t("Choose a Google Analytics view. If you are not authenticated, 'Unauthenticated' is the only available option."),
-      '#weight' => 15,
-    ];
-
     $project_name = $this->manager->googleProjectName();
     $t_args = [
       ':href' => $project_name,
@@ -208,8 +178,18 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Google Project Name'),
       '#default_value' => $config->get('general_settings.project_name'),
-      '#description' => $this->t("Optionally add your Google Project's machine name. Machine names are written like <em>project-name</em>. This field helps to take you directly to your <a href=:href>@href</a> page to view quotas. To set up your Google Project, See the README.md included with this module.", $t_args),
-      '#weight' => 16,
+      '#description' => $this->t("Optionally add your Google Project's machine name. Machine names are written like <em>project-name</em>. This field helps to take you directly to your <a href=:href>@href</a> page to view quotas.", $t_args),
+      '#weight' => 14,
+    ];
+
+    $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : [$config->get('general_settings.profile_id') => 'Unauthenticated'];
+    $form['profile_id'] = [
+      '#type' => 'select',
+      '#title' => $this->t("Google View"),
+      '#options' => $options,
+      '#default_value' => $config->get('general_settings.profile_id'),
+      '#description' => $this->t("Choose a Google Analytics view. If you are not authenticated, 'Unauthenticated' is the only available option."),
+      '#weight' => 15,
     ];
 
     return parent::buildForm($form, $form_state);
@@ -241,9 +221,8 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
           ->set('general_settings.client_id', $form_state->getValue('client_id'))
           ->set('general_settings.client_secret', $form_state->getValue('client_secret'))
           ->set('general_settings.redirect_uri', $form_state->getValue('redirect_uri'))
-          ->set('general_settings.profile_id', $form_state->getValue('profile_id'))
-          ->set('general_settings.profile_id_prefill', $form_state->getValue('profile_id_prefill'))
           ->set('general_settings.project_name', $form_state->getValue('project_name'))
+          ->set('general_settings.profile_id', $form_state->getValue('profile_id'))
           ->save();
 
         parent::submitForm($form, $form_state);

@@ -6,6 +6,8 @@
  */
 
 use Drupal\Core\Url;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Entity\FieldConfig;
 
 /**
  * Implements hook_requirements().
@@ -135,6 +137,12 @@ function google_analytics_counter_uninstall() {
   for ($x = 0; $x <= $chunks; $x++) {
     \Drupal::database()->query("DELETE FROM {queue} WHERE name = 'google_analytics_counter_worker' LIMIT 200000");
   }
+
+  // Delete the Google Analytics Counter field.
+  if ($field_storage = FieldStorageConfig::loadByName('node', 'google_analytics_counter')) {
+    $field_storage->delete();
+  }
+
 }
 
 /**
@@ -163,5 +171,15 @@ function google_analytics_counter_update_8004() {
   $config_factory = \Drupal::configFactory();
   $config_factory->getEditable('google_analytics_counter.settings')
     ->clear('general_settings.overwrite_statistics')
+    ->save();
+}
+
+/**
+ * Issue #3003875: Remove profile_id_prefill configuration.
+ */
+function google_analytics_counter_update_8005() {
+  $config_factory = \Drupal::configFactory();
+  $config_factory->getEditable('google_analytics_counter.settings')
+    ->clear('general_settings.profile_id_prefill')
     ->save();
 }

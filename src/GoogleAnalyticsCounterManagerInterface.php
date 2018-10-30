@@ -27,14 +27,6 @@ interface GoogleAnalyticsCounterManagerInterface {
   public function newGaFeed();
 
   /**
-   * Get the redirect uri to redirect the google oauth request back to.
-   *
-   * @return string
-   *   The redirect Uri from the configuration or the path.
-   */
-  public function getRedirectUri();
-
-  /**
    * Get the list of available web properties.
    *
    * @return array
@@ -79,7 +71,7 @@ interface GoogleAnalyticsCounterManagerInterface {
   /**
    * Request report data.
    *
-   * @param array $params
+   * @param array $parameters
    *   An associative array containing:
    *   - profile_id: required [default='ga:profile_id']
    *   - metrics: required [ga:pageviews]
@@ -100,7 +92,7 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed
    *   A new GoogleAnalyticsCounterFeed object
    */
-  public function reportData($params = [], $cache_options = []);
+  public function reportData($parameters = [], $cache_options = []);
 
   /**
    * Get the count of pageviews for a path.
