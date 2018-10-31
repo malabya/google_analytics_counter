@@ -122,7 +122,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       }
     }
 
-    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') . '</p>' : '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized redirect URI, and project name, if available.') . '</li><li>' . $this->t('Save configuration.') . '</li><li>' . $this->t('Authenticate with Google Analytics by:') . '</li><ul><li>' .  $this->t('Following the instructions in the included README.md to set up a project in Google Analytics.') . '</li><li>' .  $this->t('And then clicking the button above.') . '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select which Google view to collect analytics from and save configuration again.') . '</li></ol>';
+    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') . '</p>' : '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized Redirect URI, and Google Project Name, if it is available.') . '</li><li>' . $this->t('Save configuration.') . '</li><li>' . $this->t('Authenticate with Google Analytics by:') . '</li><ul><li>' .  $this->t('Following the instructions in the README.md to set up a project in Google Analytics.') . '</li><li>' .  $this->t('And then click the Authenticate with Google Analytics button above.') . '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select which Google view to collect analytics from and save configuration again.') . '</li></ol>';
 
     $form['setup'] = [
       '#type' => 'markup',
@@ -160,7 +160,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     $description = ($this->manager->isAuthenticated() === TRUE) ? $this->t('The path that users are redirected to after they have authenticated with Google.') : $this->t('The path that users are redirected to after they have authenticated with Google.<br /> Default: <strong>@default_uri</strong>', ['@default_uri' => $base_url . $uri]);
     $form['redirect_uri'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Authorized redirect URI'),
+      '#title' => $this->t('Authorized Redirect URI'),
       '#default_value' => $config->get('general_settings.redirect_uri'),
       '#size' => 90,
       '#description' => $description,

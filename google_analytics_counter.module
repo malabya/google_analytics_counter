@@ -52,10 +52,10 @@ function google_analytics_counter_cron() {
         }
 
         // Queue all the published nodes to be counted.
-        $ids = \Drupal::entityQuery('node')
+        $nids = \Drupal::entityQuery('node')
           ->condition('status', NodeInterface::PUBLISHED)
           ->execute();
-        foreach ($ids as $nid) {
+        foreach ($nids as $nid) {
           $queue->createItem(['type' => 'count', 'nid' => $nid]);
         }
       }

@@ -25,6 +25,11 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
   use StringTranslationTrait;
 
+//  /**
+//   * The table for the node__field_google_analytics_counter storage.
+//   */
+//  const TABLE = 'node__field_google_analytics_counter';
+
   /**
    * The google_analytics_counter.settings config object.
    *
@@ -657,15 +662,41 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     foreach ($feed->results->rows as $value) {
       // Remove Google Analytics pagepaths that are extremely long and meaningless.
       $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
+
+      // Update the Google Analytics Counter.
       $this->connection->merge('google_analytics_counter')
-        ->key(['pagepath_hash' => md5($page_path)])
+        ->key('pagepath_hash', md5($page_path))
         ->fields([
           // Escape the path see https://www.drupal.org/node/2381703
           'pagepath' => $page_path,
-          'pageviews' => SafeMarkup::checkPlain($value['pageviews']),
+          'pageviews' => $value['pageviews'],
         ])
         ->execute();
-    }
+
+//      // Update the Google Analytics Counter field if it exists.
+//      if (!$this->connection->schema()->tableExists(static::TABLE)) {
+//        return;
+//      }
+//
+//      $nid = '';
+//      $node = \Drupal::routeMatch()->getParameter('node');
+//      if ($node instanceof NodeInterface) {
+//        $nid = $node->id();
+//      }
+//
+//      $this->connection->merge('node__field_google_analytics_counter')
+//        ->key('entity_id', $nid)
+//        ->fields([
+//          'bundle' => $node->getType(),
+//          'deleted' => 0,
+//          'entity_id' => $nid,
+//          'revision_id' => $nid,
+//          'langcode' => 'en',
+//          'delta' => 0,
+//          'field_google_analytics_counter_value' => $value['pageviews'],
+//        ])
+//        ->execute();
+      }
 
     // Log the results.
     $this->logger->info($this->t('Saved @count paths from Google Analytics into the database.', ['@count' => count($feed->results->rows)]));
