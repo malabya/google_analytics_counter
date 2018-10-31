@@ -8,6 +8,7 @@
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\NodeInterface;
+use Drupal\node\Entity\Node;
 
 /**
  * Implements hook_help().
@@ -45,18 +46,22 @@ function google_analytics_counter_cron() {
       if ($manager->isAuthenticated() === TRUE) {
         // Fetch the first batch to see how many there are.
         $results = $manager->getChunkedResults();
+
+        // Queue the chunks.
         $total = $results->results->totalResults;
         for ($index = 0; $index < $total / $config->get('general_settings.chunk_to_fetch'); $index++) {
           // Add a queue item to fetch for all chunks.
           $queue->createItem(['type' => 'fetch', 'index' => $index]);
         }
 
-        // Queue all the published nodes to be counted.
-        $nids = \Drupal::entityQuery('node')
-          ->condition('status', NodeInterface::PUBLISHED)
-          ->execute();
-        foreach ($nids as $nid) {
-          $queue->createItem(['type' => 'count', 'nid' => $nid]);
+        // Queue all the published nodes.
+        $database = \Drupal::database();
+        $select = $database->select('node_field_data', 'nfd');
+        $select->fields('nfd', ['nid', 'type']);
+        $select->condition('status', NodeInterface::PUBLISHED);
+        $result = $select->execute();
+        while ($record = $result->fetchAssoc()) {
+          $queue->createItem(['type' => 'count', 'nid' => $record['nid'], 'bundle' => $record['type']]);
         }
       }
       else {

@@ -25,10 +25,10 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
   use StringTranslationTrait;
 
-//  /**
-//   * The table for the node__field_google_analytics_counter storage.
-//   */
-//  const TABLE = 'node__field_google_analytics_counter';
+  /**
+   * The table for the node__field_google_analytics_counter storage.
+   */
+  const TABLE = 'node__field_google_analytics_counter';
 
   /**
    * The google_analytics_counter.settings config object.
@@ -524,14 +524,35 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   Node id value.
    * @param int $sum_of_pageviews
    *   Count of page views.
+   * @param string $bundle
+   *   The content type of the node.
    *
    * @throws \Exception
    */
-  protected function mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews) {
+  protected function mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle) {
     $this->connection->merge('google_analytics_counter_storage')
-      ->key(['nid' => $nid])
+      ->key('nid', $nid)
       ->fields(['pageview_total' => $sum_of_pageviews])
       ->execute();
+
+    // Update the Google Analytics Counter field if it exists.
+    if (!$this->connection->schema()->tableExists(static::TABLE)) {
+      return;
+    }
+
+    $this->connection->merge('node__field_google_analytics_counter')
+      ->key('entity_id', $nid)
+      ->fields([
+        'bundle' => $bundle,
+        'deleted' => 0,
+        'entity_id' => $nid,
+        'revision_id' => $nid,
+        'langcode' => 'en',
+        'delta' => 0,
+        'field_google_analytics_counter_value' => $sum_of_pageviews,
+      ])
+      ->execute();
+
   }
 
   /**
@@ -611,11 +632,13 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * Save the pageview count for a given node.
    *
    * @param integer $nid
-   *   The node id of the node for which to save the data.
+   *   The node id.
+   * @param string $bundle
+   *   The content type of the node.
    *
    * @throws \Exception
    */
-  public function updateStorage($nid) {
+  public function updateStorage($nid, $bundle) {
     // Get all the aliases for a given node id.
     $aliases = [];
     $path = '/node/' . $nid;
@@ -638,11 +661,11 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     // Todo: Could be brittle
     if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
       $sum_of_pageviews = $this->sumPageviews(['/']);
-      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
+      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle);
     }
     else {
       $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
-      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews);
+      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle);
     }
   }
 
@@ -672,30 +695,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
           'pageviews' => $value['pageviews'],
         ])
         ->execute();
-
-//      // Update the Google Analytics Counter field if it exists.
-//      if (!$this->connection->schema()->tableExists(static::TABLE)) {
-//        return;
-//      }
-//
-//      $nid = '';
-//      $node = \Drupal::routeMatch()->getParameter('node');
-//      if ($node instanceof NodeInterface) {
-//        $nid = $node->id();
-//      }
-//
-//      $this->connection->merge('node__field_google_analytics_counter')
-//        ->key('entity_id', $nid)
-//        ->fields([
-//          'bundle' => $node->getType(),
-//          'deleted' => 0,
-//          'entity_id' => $nid,
-//          'revision_id' => $nid,
-//          'langcode' => 'en',
-//          'delta' => 0,
-//          'field_google_analytics_counter_value' => $value['pageviews'],
-//        ])
-//        ->execute();
       }
 
     // Log the results.

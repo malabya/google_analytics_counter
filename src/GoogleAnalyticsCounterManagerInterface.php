@@ -64,9 +64,13 @@ interface GoogleAnalyticsCounterManagerInterface {
    * Save the pageview count for a given node.
    *
    * @param integer $nid
-   *   The node id of the node for which to save the data.
+   *   The node id.
+   * @param string $bundle
+   *   The content type of the node.
+   *
+   * @throws \Exception
    */
-  public function updateStorage($nid);
+  public function updateStorage($nid, $bundle);
 
   /**
    * Request report data.
