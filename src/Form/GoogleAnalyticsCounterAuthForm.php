@@ -126,10 +126,11 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '<br />' . $this->t('Now that you are authenticated with Google Analytics, select a ') .  '<strong>' . $this->t('Google View') . '</strong>' . $this->t(' to collect analytics from and click Save configuration.') . '</p>' :
       '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized Redirect URI, and Google Project Name, if it is available.') .
       '</li><li>' . $this->t('Save configuration.') .
-      '</li><li>' . $this->t('Authenticate with Google Analytics by:') .
+      '</li><li>' . $this->t('Authenticate with Google Analytics:') .
       '</li><ul><li>' .  $this->t('Follow the instructions in the README.md to set up a project in Google Analytics.') .
       '</li><li>' .  $this->t('And then click the Authenticate with Google Analytics button above.') .
-      '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select a ') .  '<strong>' . $this->t('Google View') . '</strong>' . $this->t(' to collect analytics from and click Save configuration.') . '</li></ol>';
+      '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select a ') . '<strong>' . $this->t('Google View') . '</strong>' . $this->t(" to collect analytics from and click Save configuration.") .
+      '</li><ul><li>' .  $this->t("If you are not authenticated, 'Unauthenticated' is the only available option for ") .  '<strong>' . $this->t('Google View') . '</strong>.</li></ul></ol>';
 
     $form['setup'] = [
       '#type' => 'markup',
