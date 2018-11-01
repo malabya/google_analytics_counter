@@ -122,7 +122,14 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       }
     }
 
-    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') . '</p>' : '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized Redirect URI, and Google Project Name, if it is available.') . '</li><li>' . $this->t('Save configuration.') . '</li><li>' . $this->t('Authenticate with Google Analytics by:') . '</li><ul><li>' .  $this->t('Following the instructions in the README.md to set up a project in Google Analytics.') . '</li><li>' .  $this->t('And then click the Authenticate with Google Analytics button above.') . '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select which Google view to collect analytics from and save configuration again.') . '</li></ol>';
+    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
+      '<br />' . $this->t('Now that you are authenticated with Google Analytics, select a ') .  '<strong>' . $this->t('Google View') . '</strong>' . $this->t(' to collect analytics from and click Save configuration.') . '</p>' :
+      '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized Redirect URI, and Google Project Name, if it is available.') .
+      '</li><li>' . $this->t('Save configuration.') .
+      '</li><li>' . $this->t('Authenticate with Google Analytics by:') .
+      '</li><ul><li>' .  $this->t('Follow the instructions in the README.md to set up a project in Google Analytics.') .
+      '</li><li>' .  $this->t('And then click the Authenticate with Google Analytics button above.') .
+      '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select a ') .  '<strong>' . $this->t('Google View') . '</strong>' . $this->t(' to collect analytics from and click Save configuration.') . '</li></ol>';
 
     $form['setup'] = [
       '#type' => 'markup',

@@ -1,7 +1,16 @@
 Google Analytics Counter 8.x-1.0-alpha1
 ---------------------------------------
 
-### About this Module
+Table of Contents
+-----------------
+
+* Introduction
+* Goals
+* Installation
+* Create a Project in Google
+* Add the custom field to a content type
+
+### Introduction
 
 Google Analytics Counter is a scalable, lightweight page view counter drawing
 on data collected by Google Analytics.
@@ -16,11 +25,16 @@ The secondary use for this module is to:
 
 ### Goals
 
-- A themable block in Drupal which displays Google Analytics Pageviews.
 - A comprehensive and understandable solution to storing Google Analytics Pageviews in Drupal.
-- Google Analytics Counter data is available in views. (Drupal 7. Drupal 8 under development.)
+- A themable block in Drupal which displays Google Analytics Pageviews.
+- A filter which adds the pageviews inline.
+- Make the pageviews available in views.
+  - This is possible two ways:
+  - By creating views based on the Google Analytics Counter
+  - By adding a custom field to a content type which is populated during cron runs
+    which can then be added to views like any other field.
 
-### Installing the Google Analytics Counter Module
+### Installation
 
 1. Copy/upload the google analytics counter module to the modules directory of
    your Drupal installation.
@@ -69,7 +83,7 @@ The secondary use for this module is to:
 16. Place a Google Analytics Counter block on your site.
     (/admin/structure/block)
 
-### Creating a Project in Google
+### Create a Project in Google
 
 1. Go to https://console.developers.google.com/cloud-resource-manager
    Click Create project.
@@ -115,6 +129,11 @@ The secondary use for this module is to:
 13. Copy your client ID client secret, and Authorized redirect URIs from Google
      and add them to analytics authentication form in the module.
      (/admin/config/system/google-analytics-counter/authentication).
+
+### Add the custom field to a content type
+
+1. After installing version 8.x-3.0-alpha4 or above, go to 
+
 
 ### Project Status
 
