@@ -128,8 +128,8 @@ function google_analytics_counter_uninstall() {
   // Revoke the state values.
   $manager->revoke();
 
-  // Remove queued workers from the database 200,000 workers at a time.
-  _google_analytics_counter_remove_queued_workers();
+  // Remove queued items from the database.
+  _google_analytics_counter_remove_queued_items();
 
   // Uninstall the Google Analytics Counter field.
   $bundles = ['node'];
@@ -158,9 +158,9 @@ function google_analytics_counter_uninstall() {
 }
 
 /**
- * Remove queued workers from the database 200,000 workers at a time.
+ * Remove queued items from the database.
  */
-function _google_analytics_counter_remove_queued_workers() {
+function _google_analytics_counter_remove_queued_items() {
   $quantity = 200000;
   $queued_workers = \Drupal::database()
     ->query("SELECT COUNT(*) FROM {queue} WHERE name = 'google_analytics_counter_worker'")
@@ -236,9 +236,8 @@ function google_analytics_counter_update_8006() {
 }
 
 /**
- * Issue #3009673: Delete any processed google_analytics_counter_worker rows from the queue table.
+ * Issue #3009673: Remove stale queued items from the database.
  */
 function google_analytics_counter_update_8007() {
-  // Remove queued workers from the database 200,000 workers at a time.
-  _google_analytics_counter_remove_queued_workers();
+  _google_analytics_counter_remove_queued_items();
 }

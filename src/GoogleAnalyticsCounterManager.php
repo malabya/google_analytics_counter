@@ -543,7 +543,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
 
     $this->connection->merge('node__field_google_analytics_counter')
-      ->key('entity_id', $nid)
+      ->key('entity_id', $vid)
       ->fields([
         'bundle' => $bundle,
         'deleted' => 0,
