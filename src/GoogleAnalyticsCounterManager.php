@@ -542,33 +542,41 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       return;
     }
 
-    $this->connection->merge('node__field_google_analytics_counter')
-      ->key('entity_id', $vid)
-      ->fields([
-        'bundle' => $bundle,
-        'deleted' => 0,
-        'entity_id' => $nid,
-        'revision_id' => $vid,
-        'langcode' => 'en',
-        'delta' => 0,
-        'field_google_analytics_counter_value' => $sum_of_pageviews,
-      ])
-      ->execute();
+    // To avoid integrity constraint violations, use update or insert on the field entity.
+    // To do. Try upsert or merge for better performance.
+    $query = $this->connection->select('node__field_google_analytics_counter', 'gac');
+    $query->fields('gac');
+    $query->condition('entity_id', $nid);
+    $entity_id = $query->execute()->fetchField();
 
-//          $this->connection->upsert('node__field_google_analytics_counter')
-//            ->key('revision_id')
-//            ->fields(['bundle', 'deleted', 'entity_id', 'revision_id', 'langcode', 'delta',  'node__field_google_analytics_counter_value'])
-//            ->values([
-//              'bundle' => $bundle,
-//              'deleted' => 0,
-//              'entity_id' => $nid,
-//              'revision_id' => $vid,
-//              'langcode' => 'en',
-//              'delta' => 0,
-//              'field_google_analytics_counter_value' => $sum_of_pageviews,
-//            ])
-//            ->execute();
-        }
+    if ($entity_id) {
+      $this->connection->update('node__field_google_analytics_counter')
+        ->fields([
+          'bundle' => $bundle,
+          'deleted' => 0,
+          'entity_id' => $nid,
+          'revision_id' => $vid,
+          'langcode' => 'en',
+          'delta' => 0,
+          'field_google_analytics_counter_value' => $sum_of_pageviews,
+        ])
+        ->condition('entity_id', $entity_id)
+        ->execute();
+    }
+    else {
+      $this->connection->insert('node__field_google_analytics_counter')
+        ->fields([
+          'bundle' => $bundle,
+          'deleted' => 0,
+          'entity_id' => $nid,
+          'revision_id' => $vid,
+          'langcode' => 'en',
+          'delta' => 0,
+          'field_google_analytics_counter_value' => $sum_of_pageviews,
+        ])
+        ->execute();
+    }
+  }
 
 
 
