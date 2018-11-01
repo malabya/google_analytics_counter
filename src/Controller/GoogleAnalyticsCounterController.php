@@ -130,7 +130,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     // Google Query.
     $build['google_info']['google_query'] = [
       '#type' => 'details',
-      '#title' => $this->t('Most recent query to Google'),
+      '#title' => $this->t('Recent query to Google'),
       '#open' => FALSE,
     ];
 
@@ -326,7 +326,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     else {
       $t_args = [
         '%start_date' => $config->get('general_settings.start_date') ? $this->dateFormatter
-          ->format(strtotime('today') - strtotime(ltrim($config->get('general_settings.start_date'), '-'), 0), 'custom', 'M j, Y') : 'N/A',
+          ->format(strtotime('yesterday') - strtotime(ltrim($config->get('general_settings.start_date'), '-'), 0), 'custom', 'M j, Y') : 'N/A',
         '%end_date' => $config->get('general_settings.start_date') ? $this->dateFormatter
           ->format(strtotime('tomorrow'), 'custom', 'M j, Y') : 'N/A',
       ];
