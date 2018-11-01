@@ -129,15 +129,7 @@ function google_analytics_counter_uninstall() {
   $manager->revoke();
 
   // Remove queued workers from the database 200,000 workers at a time.
-  $quantity = 200000;
-  $queued_workers = \Drupal::database()->query("SELECT COUNT(*) FROM {queue} WHERE name = 'google_analytics_counter_worker'")->fetchField();
-  $chunks = $queued_workers / $quantity;
-
-  // Todo: get $t_arg working.
-  $t_arg = ['@quantity' => $quantity];
-  for ($x = 0; $x <= $chunks; $x++) {
-    \Drupal::database()->query("DELETE FROM {queue} WHERE name = 'google_analytics_counter_worker' LIMIT 200000");
-  }
+  _google_analytics_counter_remove_queued_workers();
 
   // Uninstall the Google Analytics Counter field.
   $bundles = ['node'];
@@ -162,6 +154,24 @@ function google_analytics_counter_uninstall() {
     if (!empty($field_storage)) {
       $field_storage->delete();
     }
+  }
+}
+
+/**
+ * Remove queued workers from the database 200,000 workers at a time.
+ */
+function _google_analytics_counter_remove_queued_workers() {
+  $quantity = 200000;
+  $queued_workers = \Drupal::database()
+    ->query("SELECT COUNT(*) FROM {queue} WHERE name = 'google_analytics_counter_worker'")
+    ->fetchField();
+  $chunks = $queued_workers / $quantity;
+
+  // Todo: get $t_arg working.
+  $t_arg = ['@quantity' => $quantity];
+  for ($x = 0; $x <= $chunks; $x++) {
+    \Drupal::database()
+      ->query("DELETE FROM {queue} WHERE name = 'google_analytics_counter_worker' LIMIT 200000");
   }
 }
 
@@ -223,4 +233,12 @@ function google_analytics_counter_update_8006() {
   \Drupal::entityTypeManager()->getStorage('field_config')
     ->create($source->read('field.field.node.page.field_google_analytics_counter'))
     ->save();
+}
+
+/**
+ * Issue #3009673: Delete any processed google_analytics_counter_worker rows from the queue table.
+ */
+function google_analytics_counter_update_8007() {
+  // Remove queued workers from the database 200,000 workers at a time.
+  _google_analytics_counter_remove_queued_workers();
 }

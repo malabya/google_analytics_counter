@@ -57,11 +57,11 @@ function google_analytics_counter_cron() {
         // Queue all the published nodes.
         $database = \Drupal::database();
         $select = $database->select('node_field_data', 'nfd');
-        $select->fields('nfd', ['nid', 'type']);
+        $select->fields('nfd', ['nid', 'type', 'vid']);
         $select->condition('status', NodeInterface::PUBLISHED);
         $result = $select->execute();
         while ($record = $result->fetchAssoc()) {
-          $queue->createItem(['type' => 'count', 'nid' => $record['nid'], 'bundle' => $record['type']]);
+          $queue->createItem(['type' => 'count', 'nid' => $record['nid'], 'bundle' => $record['type'], 'vid' => $record['vid']]);
         }
       }
       else {

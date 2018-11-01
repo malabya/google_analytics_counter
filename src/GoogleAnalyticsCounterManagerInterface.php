@@ -67,10 +67,12 @@ interface GoogleAnalyticsCounterManagerInterface {
    *   The node id.
    * @param string $bundle
    *   The content type of the node.
+   * @param int $vid
+   *   Revision id value.
    *
    * @throws \Exception
    */
-  public function updateStorage($nid, $bundle);
+  public function updateStorage($nid, $bundle, $vid);
 
   /**
    * Request report data.

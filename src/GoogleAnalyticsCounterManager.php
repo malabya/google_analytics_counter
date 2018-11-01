@@ -526,10 +526,12 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   Count of page views.
    * @param string $bundle
    *   The content type of the node.
+   * @param int $vid
+   *   Revision id value.
    *
    * @throws \Exception
    */
-  protected function mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle) {
+  protected function mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle, $vid) {
     $this->connection->merge('google_analytics_counter_storage')
       ->key('nid', $nid)
       ->fields(['pageview_total' => $sum_of_pageviews])
@@ -546,14 +548,29 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
         'bundle' => $bundle,
         'deleted' => 0,
         'entity_id' => $nid,
-        'revision_id' => $nid,
+        'revision_id' => $vid,
         'langcode' => 'en',
         'delta' => 0,
         'field_google_analytics_counter_value' => $sum_of_pageviews,
       ])
       ->execute();
 
-  }
+//          $this->connection->upsert('node__field_google_analytics_counter')
+//            ->key('revision_id')
+//            ->fields(['bundle', 'deleted', 'entity_id', 'revision_id', 'langcode', 'delta',  'node__field_google_analytics_counter_value'])
+//            ->values([
+//              'bundle' => $bundle,
+//              'deleted' => 0,
+//              'entity_id' => $nid,
+//              'revision_id' => $vid,
+//              'langcode' => 'en',
+//              'delta' => 0,
+//              'field_google_analytics_counter_value' => $sum_of_pageviews,
+//            ])
+//            ->execute();
+        }
+
+
 
   /**
    * Get the row count of a table, sometimes with conditions.
@@ -635,10 +652,12 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   The node id.
    * @param string $bundle
    *   The content type of the node.
+   * @param int $vid
+   *   Revision id value.
    *
    * @throws \Exception
    */
-  public function updateStorage($nid, $bundle) {
+  public function updateStorage($nid, $bundle, $vid) {
     // Get all the aliases for a given node id.
     $aliases = [];
     $path = '/node/' . $nid;
@@ -661,11 +680,11 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     // Todo: Could be brittle
     if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
       $sum_of_pageviews = $this->sumPageviews(['/']);
-      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle);
+      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
     }
     else {
       $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
-      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle);
+      $this->mergeGoogleAnalyticsCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
     }
   }
 
