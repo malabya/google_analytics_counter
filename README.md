@@ -7,8 +7,8 @@ Table of Contents
 * Introduction
 * Goals
 * Installation
-* Create a Project in Google
-* Add the custom field to a content type
+* Create a Project in Google.
+* The custom Google Analytics Counter field.
 * Project status
 
 ### Introduction
@@ -84,7 +84,7 @@ The secondary use for this module is to:
 16. Place a Google Analytics Counter block on your site.
     (/admin/structure/block)
 
-### Create a Project in Google
+### Create a Project in Google.
 
 1. Go to https://console.developers.google.com/cloud-resource-manager
    Click Create project.
@@ -131,31 +131,35 @@ The secondary use for this module is to:
      and add them to analytics authentication form in the module.
      (/admin/config/system/google-analytics-counter/authentication).
 
-### Add the custom field to a content type
+### The custom Google Analytics Counter field.
 
 A custom Google Analytics Counter field has been added to version 8.x-3.0-alpha4
-or above. Having the Google pageviews in a custom fields makes adding Google
+and above. Having the Google pageviews in a custom fields makes adding Google
 pageviews to Drupal views the same as adding any other node field to a view.
 
 After installing version 8.x-3.0-alpha4 or above or running the module updates
 for existing installations with `drush updatedb` The custom Google Analytics
-Counter field is added by default to the basic page content type.
+Counter field is added to the basic page content type.
 See /admin/structure/types/manage/page/fields. 
 
-Note that the custom field is disabled on the Manage form display tab and
-the Manage display tab for the basic page content type. To enable the custom
-field on basic page content type, drag the field out of the Disabled sectio
-of the respective tab and Save.
+Note that on installation or update the custom field is disabled on the Manage
+form display tab and the Manage display tab for the basic page content type.
+To enable the custom field on the basic page content type, drag the field out of
+the Disabled section of the respective tab and Save. Likewise do the same on
+other contents type to which you add the custom field.
 
-#### For all other content types, Follow these steps.
+The custom field can also be removed from the system without concern. The module
+will then store analytics data in the custom tables only.
 
-1. Go to a content type's Manage fields Tab,
-   for example /admin/structure/types/manage/article/fields.
+#### To add the custom field to other content types, Follow these steps.
+
+1. Go to a content type's Manage fields Tab.
+   For example /admin/structure/types/manage/article/fields.
 
 2. Click +Add field.
 
-3. Re-use an existing field by clicking `- Select an existing field -` and
-   select the custom field under `Text (plain): field_google_analytics_counter`.
+3. Re-use the existing field by clicking `- Select an existing field -` and
+   selecting the custom field `Text (plain): field_google_analytics_counter`.
    Change the field Label as you see fit.
 
 4. Click Save and continue.
@@ -165,14 +169,14 @@ of the respective tab and Save.
 5. No need to add a Default value since the field is populated with Data from Google.
    Adding 0 is okay for now, although I'm planning on making this field readonly
    in future releases. See /admin/structure/types/manage/page/fields/node.page.field_google_analytics_counter
-   for a default example of Help text and a Default value.
+   for an example of Help text and a Default value.
 
 6. Click Save settings and add the field to Manage form display and Manage display
-   if you would like to see the field's value in the node edit form on or the node's
-   view.
+   if you would like to see the field's value in the node edit form or on the
+   node's view.
 
 7. Now that the custom field has been added to the content type, the pageviews
-   can now be added to Drupal views like any other node field.
+   can be added to Drupal views like any other node field.
 
 ### Project Status
 
