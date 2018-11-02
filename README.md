@@ -47,42 +47,46 @@ The secondary use for this module is to:
 
 4. Go to the authentication page. (/admin/config/system/google-analytics-counter/authentication)
 
-5. Add your Google Project Client ID, Client Secret and Authorized redirect URI. 
+5. Add your Google Project Client ID, Client Secret and Authorized Redirect URI. 
    See "Creating a Project in Google" in the next section of this document 
    for more information on setting up Google Analytics.
 
-6. If you know which view you will be using you can add its ID to the
-   'Prefill a Google View' field.
-
-7. Optionally add your Google Project's machine name. This field helps to take 
+6. Optionally add your Google Project's machine name. This field helps to take 
    you directly to your Analytics API page to view Google's quotas.
 
-8. Click Save configuration.
+7. Click Save configuration.
 
-9. Click the large button at the top of the page labeled 'Authenticate'.
+8. Click the large button at the top of the page labeled 'Authenticate With Google'.
 
-10. Select the google account to which you would like to authenticate.
+9. Select the google account to which you would like to authenticate.
 
-11. Fill in credentials if requested by Google.
+10. Fill in credentials if requested by Google.
     Click Allow.
 
-12. If all goes well, you will be returned to the authentication page. 
+11. If all goes well, you will be returned to Authorized REdirect URI which
+    should be the authentication page. 
     (/admin/config/system/google-analytics-counter/authentication)
-    If you did not prefill a Google View ID, select a view  
-    from the select list under Google Views IDs. Another way to tell
+    Select a view from the select list in Google Views. Another way to tell
     if all has gone well with authentication is if you see your Google Analytics
-    profiles listed in Views IDs.
+    profiles listed in Google Vviews. If you did not successfully authenticate 
+    with Google the only option in Google Views is 'Unauthenticated'.
     Click Save configuration.
 
-13. Go to the Dashboard (/admin/config/system/google-analytics-counter/dashboard)
+12. Go to the Dashboard (/admin/config/system/google-analytics-counter/dashboard)
 
-14. Note: most of the numbers are 0 until you run cron.
+13. Note: most of the numbers are 0 until you run cron.
 
-15. Run cron. Generally speaking, it is a good idea to run cron continuously
+14. Run cron. Generally speaking, it is a good idea to run cron continuously
     with a scheduler like Jenkins to keep pageviews data up to date.
 
-16. Place a Google Analytics Counter block on your site.
-    (/admin/structure/block)
+15. Place a Google Analytics Counter block on your site.
+    (/admin/structure/block).
+
+16. Or Enable the text filter (More to come).
+
+17. Or Add the custom Google Analytics Counter field to a content type and use
+    the custom field like any other node field; e.g. view displays and views.
+    See 'The custom Google Analytics Counter field.' below for more information.
 
 ### Create a Project in Google.
 
