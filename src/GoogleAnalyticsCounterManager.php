@@ -367,7 +367,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     // drush_print($ga_feed);
     // Current Google Query.
     // drush_print($ga_feed->results->selfLink);
-    // exit;
 
     // Handle errors here too.
     if (!empty($ga_feed->error)) {
