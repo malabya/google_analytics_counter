@@ -163,7 +163,7 @@ will then store analytics data in the custom tables only.
    Change the field Label as you see fit.
 
 4. Click Save and continue.
-   Add Help text such as `This field is used to store Google Analytics pageviews.`
+   Add Help text such as `This field stores Google Analytics pageviews.`
    or anything else as you see fit. Or leave the Help text blank.
 
 5. No need to add a Default value since the field is populated with Data from Google.

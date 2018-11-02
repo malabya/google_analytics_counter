@@ -9,7 +9,7 @@ field_name: field_google_analytics_counter
 entity_type: node
 bundle: page
 label: 'Google Analytics Counter'
-description: 'This field is used to store Google Analytics pageviews.'
+description: 'This field stores Google Analytics pageviews.'
 required: false
 translatable: false
 default_value:
