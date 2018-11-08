@@ -142,20 +142,14 @@ and above. Having the Google pageviews in a custom fields makes adding Google
 pageviews to Drupal views the same as adding any other node field to a view.
 
 After installing version 8.x-3.0-alpha4 or above or running the module updates
-for existing installations with `drush updatedb` The custom Google Analytics
-Counter field is added to the basic page content type.
-See /admin/structure/types/manage/page/fields. 
-
-Note that on installation or update the custom field is disabled on the Manage
-form display tab and the Manage display tab for the basic page content type.
-To enable the custom field on the basic page content type, drag the field out of
-the Disabled section of the respective tab and Save. Likewise do the same on
-other contents type to which you add the custom field.
+for existing installations with `drush updatedb` The field storage for the 
+Google Analytics Counter field (machine name = field_google_analytics_counter)
+is added to the system.
 
 The custom field can also be removed from the system without concern. The module
 will then store analytics data in the custom tables only.
 
-#### To add the custom field to other content types, Follow these steps.
+#### To add the custom field, follow these steps.
 
 1. Go to a content type's Manage fields Tab.
    For example /admin/structure/types/manage/article/fields.
@@ -172,12 +166,10 @@ will then store analytics data in the custom tables only.
 
 5. No need to add a Default value since the field is populated with Data from Google.
    Adding 0 is okay for now, although I'm planning on making this field readonly
-   in future releases. See /admin/structure/types/manage/page/fields/node.page.field_google_analytics_counter
-   for an example of Help text and a Default value.
+   in future releases.
 
-6. Click Save settings and add the field to Manage form display and Manage display
-   if you would like to see the field's value in the node edit form or on the
-   node's view.
+6. Click Save settings and add proceed to add the field to Manage form display 
+   and Manage display as you see fit.
 
 7. Now that the custom field has been added to the content type, the pageviews
    can be added to Drupal views like any other node field.
