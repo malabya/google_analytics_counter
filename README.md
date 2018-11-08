@@ -171,7 +171,10 @@ will then store analytics data in the custom tables only.
 6. Click Save settings and add proceed to add the field to Manage form display 
    and Manage display as you see fit.
 
-7. Now that the custom field has been added to the content type, the pageviews
+7. Note that the field has to, at least, be in the Manage form display in order
+   for the field to be used in views.
+
+8. Now that the custom field has been added to the content type, the pageviews
    can be added to Drupal views like any other node field.
 
 ### Project Status
