@@ -495,9 +495,9 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Programmatically revoke states.
+   * Delete states.
    */
-  public function revoke() {
+  public function gacDeleteState() {
     $this->state->deleteMultiple([
       'google_analytics_counter.access_token',
       'google_analytics_counter.cron_next_execution',

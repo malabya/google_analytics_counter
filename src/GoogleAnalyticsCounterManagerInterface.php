@@ -114,7 +114,7 @@ interface GoogleAnalyticsCounterManagerInterface {
   /**
    * Programatically revoke token.
    */
-  public function revoke();
+  public function gacDeleteState();
 
   /**
    * Get the row count of a table, sometimes with conditions.

@@ -9,6 +9,7 @@ use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Url;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\Entity\FieldConfig;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
 
 /**
  * Implements hook_requirements().
@@ -27,8 +28,8 @@ function google_analytics_counter_requirements($phase) {
     '%profile_id' => $config->get('general_settings.profile_id'),
     ':href' => Url::fromRoute('google_analytics_counter.admin_auth_form', [], ['absolute' => TRUE])
       ->toString(),
-    '@href_here' => 'authentication here',
-    '@href' => 'authenticate here',
+    '@authentication_form' => 'authentication form',
+    '@href' => 'authenticate',
   ];
   /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
   $manager = Drupal::service('google_analytics_counter.manager');
@@ -36,17 +37,17 @@ function google_analytics_counter_requirements($phase) {
   if ($manager->isAuthenticated() === TRUE) {
     $requirements['google_analytics_counter_authentication'] = [
       'title' => t('Google Analytics Counter'),
-      'description' => t('Google Analytics profile ga:%profile_id has been authenticated. You can revoke <a href=:href>@href_here</a>.', $t_args),
+      'description' => t('Google Analytics profile ga:%profile_id has been authenticated. You can revoke authentication on the <a href=:href>@authentication_form</a>.', $t_args),
       'severity' => REQUIREMENT_OK,
-      'value' => t('A Google Analytics profile is authenticated: OK'),
+      'value' => t('Google Analytics has been authenticated'),
     ];
   }
   else {
     $requirements['google_analytics_counter_authentication'] = [
       'title' => t('Google Analytics Counter'),
-      'description' => t('Google Analytics Counter cannot fetch any new data. Please <a href=:href>@href</a>.', $t_args),
+      'description' => t('Google Analytics has <strong> not</strong> been authenticated. Authenticate with Google on the <a href=:href>@authentication_form</a>.', $t_args),
       'severity' => REQUIREMENT_ERROR,
-      'value' => t('Google Analytics have not been authenticated!'),
+      'value' => t('Google Analytics has not been authenticated.'),
     ];
   }
 
@@ -79,7 +80,6 @@ function google_analytics_counter_schema() {
       ),
       'pageviews' => array(
         'type' => 'int',
-        // Big int unsigned: 8 B (18446744073709551615).
         'size' => 'big',
         'description' => 'Pageview count.',
         'unsigned' => TRUE,
@@ -123,13 +123,16 @@ function google_analytics_counter_schema() {
  * Implements hook_uninstall().
  */
 function google_analytics_counter_uninstall() {
+  $config = \Drupal::config('google_analytics_counter.settings');
+
   /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
   $manager = Drupal::service('google_analytics_counter.manager');
+
   // Revoke the state values.
-  $manager->revoke();
+  $manager->gacDeleteState();
 
   // Remove queued items from the database.
-  _google_analytics_counter_remove_queued_items();
+  GoogleAnalyticsCounterHelper::removeQueuedItems();
 
   // Uninstall the Google Analytics Counter field.
   $bundles = ['node'];
@@ -154,24 +157,6 @@ function google_analytics_counter_uninstall() {
     if (!empty($field_storage)) {
       $field_storage->delete();
     }
-  }
-}
-
-/**
- * Remove queued items from the database.
- */
-function _google_analytics_counter_remove_queued_items() {
-  $quantity = 200000;
-  $queued_workers = \Drupal::database()
-    ->query("SELECT COUNT(*) FROM {queue} WHERE name = 'google_analytics_counter_worker'")
-    ->fetchField();
-  $chunks = $queued_workers / $quantity;
-
-  // Todo: get $t_arg working.
-  $t_arg = ['@quantity' => $quantity];
-  for ($x = 0; $x <= $chunks; $x++) {
-    \Drupal::database()
-      ->query("DELETE FROM {queue} WHERE name = 'google_analytics_counter_worker' LIMIT 200000");
   }
 }
 
@@ -218,6 +203,12 @@ function google_analytics_counter_update_8005() {
  * Issue #3009673: Add the Google Analytics Counter field to existing installations.
  */
 function google_analytics_counter_update_8006() {
+  // Check if field storage exists.
+  $config = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
+  if (isset($config)) {
+    return NULL;
+  }
+
   // Obtain configuration from yaml files
   $config_path = 'modules/contrib/google_analytics_counter/config/optional';
   $source      = new FileStorage($config_path);
@@ -233,5 +224,5 @@ function google_analytics_counter_update_8006() {
  * Issue #3009673: Remove stale queued items from the database.
  */
 function google_analytics_counter_update_8007() {
-  _google_analytics_counter_remove_queued_items();
+  GoogleAnalyticsCounterHelper::removeQueuedItems();
 }

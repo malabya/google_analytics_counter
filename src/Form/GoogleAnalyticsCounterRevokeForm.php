@@ -102,7 +102,7 @@ class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Revoke the state values.
-    $this->manager->revoke();
+    $this->manager->gacDeleteState();
 
     // Set redirect.
     $form_state->setRedirectUrl($this->getCancelUrl());
