@@ -50,6 +50,3 @@ google_analytics_counter.settings:
         profile_id:
           type: string
           label: 'The Google Analytics view to use.'
-        profile_ids:
-          type: mapping
-          label: 'The Google Analytics view to use.'

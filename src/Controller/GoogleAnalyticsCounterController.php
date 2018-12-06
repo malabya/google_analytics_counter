@@ -88,6 +88,18 @@ class GoogleAnalyticsCounterController extends ControllerBase {
    * {@inheritdoc}
    */
   public function dashboard() {
+    $config = $this->config;
+
+    if (!$this->manager->isAuthenticated() === TRUE) {
+      $build = [];
+      $this->manager->notAuthenticatedMessage();
+
+      // Add a link to the revoke form.
+      $build = $this->manager->revokeAuthenticationMessage($build);
+
+      return $build;
+    }
+
     $build = [];
     $build['intro'] = [
       '#type' => 'html_tag',
@@ -95,13 +107,14 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t('Information on this page is updated during cron runs.') . '</h4>',
     ];
 
-    // The Google section.
+    // Information from Google.
     $build['google_info'] = [
       '#type' => 'details',
       '#title' => $this->t('Information from Google Analytics API'),
       '#open' => TRUE,
     ];
 
+    // Get and format total pageviews.
     $t_args = $this->getStartDateEndDate();
     $t_args += ['%total_pageviews' => number_format($this->state->get('google_analytics_counter.total_pageviews'))];
     $build['google_info']['total_pageviews'] = [
@@ -110,6 +123,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t('%total_pageviews pageviews were recorded by Google Analytics for this view between %start_date - %end_date.', $t_args),
     ];
 
+    // Get and format total paths.
     $t_args = $this->getStartDateEndDate();
     $t_args += [
       '%total_paths' => number_format($this->state->get('google_analytics_counter.total_paths')),
@@ -120,6 +134,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t('%total_paths paths were recorded by Google Analytics for this view between %start_date - %end_date.', $t_args),
     ];
 
+    // Get the most recent query or print helpful message for site builders.
     if (!$this->state->get('google_analytics_counter.most_recent_query')) {
       $t_args = ['%most_recent_query' => 'No query has been run yet or Google is not running queries from your system. See the module\'s README.md or Google\'s documentation.'];
     }
@@ -127,7 +142,6 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       $t_args = ['%most_recent_query' => $this->state->get('google_analytics_counter.most_recent_query')];
     }
 
-    // Google Query.
     $build['google_info']['google_query'] = [
       '#type' => 'details',
       '#title' => $this->t('Recent query to Google'),
@@ -140,9 +154,9 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t('%most_recent_query', $t_args) . '<br /><br />' . $this->t('The access_token needs to be included with the query. Get the access_token with <em>drush state-get google_analytics_counter.access_token</em>'),
     ];
 
+    // If available, print dataLastRefreshed from Google.
     $date_formatted = !empty($this->state->get('google_analytics_counter.data_last_refreshed')) ? $this->dateFormatter->format($this->state->get('google_analytics_counter.data_last_refreshed'), 'custom', 'M d, Y h:i:sa') : '';
-    // Todo: The text part should not be in <em class="placeholder">.
-    $data_last_refreshed = !empty($this->state->get('google_analytics_counter.data_last_refreshed')) ? $date_formatted . ' is when Google last refreshed analytics data.' : 'Google\'s last refreshed analytics data is currently unavailable.';
+    $data_last_refreshed = !empty($this->state->get('google_analytics_counter.data_last_refreshed')) ? $date_formatted . ' is when Google last refreshed analytics data.' : "Google's last refreshed analytics data is currently unavailable.";
     $t_arg = ['%data_last_refreshed' => $data_last_refreshed];
     $build['google_info']['data_last_refreshed'] = [
       '#type' => 'html_tag',
@@ -150,9 +164,9 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t('%data_last_refreshed', $t_arg),
     ];
 
-    $project_name = $this->manager->googleProjectName();
+    // Print a message about Google quotas with an embedded link to Analytics API.
     $t_args = [
-      ':href' => $project_name,
+      ':href' => $this->manager->googleProjectName(),
       '@href' => 'Analytics API',
     ];
     $build['google_info']['daily_quota'] = [
@@ -161,7 +175,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t('Refer to your <a href=:href target="_blank">@href</a> page to view quotas.', $t_args),
     ];
 
-    // The Drupal section.
+    // Information from Drupal.
     $build['drupal_info'] = [
       '#type' => 'details',
       '#title' => $this->t('Information from this site'),
@@ -268,10 +282,17 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#rows' => $rows,
     ];
 
-    $build['drupal_info']['last_cron_run'] = [
+    // Cron Information.
+    $build['cron_info'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Cron Information'),
+      '#open' => TRUE,
+    ];
+
+    $build['cron_info']['last_cron_run'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->t("Cron's last run: %time ago.", ['%time' => $this->dateFormatter->formatTimeDiffSince($this->state->get('system.cron_last'))]),
+      '#value' => $this->t("Cron's last successful run: %time ago.", ['%time' => $this->dateFormatter->formatTimeDiffSince($this->state->get('system.cron_last'))]),
     ];
 
     $temp = $this->state->get('google_analytics_counter.cron_next_execution') - $this->time->getRequestTime();
@@ -285,24 +306,17 @@ class GoogleAnalyticsCounterController extends ControllerBase {
         ])->toString(),
         '@href' => 'Run cron immediately.',
       ];
-      $build['drupal_info']['run_cron'] = [
+      $build['cron_info']['run_cron'] = [
         '#type' => 'html_tag',
         '#tag' => 'p',
         '#value' => $this->t('<a href=:href>@href</a>', $t_args),
       ];
     }
 
-    // Revoke Google authentication.
+    // Add a link to the revoke form.
     $build = $this->manager->revokeAuthenticationMessage($build);
 
-    if ($this->manager->isAuthenticated() === TRUE) {
-      return $build;
-    }
-    else {
-      $build = [];
-      $this->manager->notAuthenticatedMessage();
-      return $build;
-    }
+    return $build;
   }
 
   /**
@@ -328,7 +342,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
         '%start_date' => $config->get('general_settings.start_date') ? $this->dateFormatter
           ->format(strtotime('yesterday') - strtotime(ltrim($config->get('general_settings.start_date'), '-'), 0), 'custom', 'M j, Y') : 'N/A',
         '%end_date' => $config->get('general_settings.start_date') ? $this->dateFormatter
-          ->format(strtotime('tomorrow'), 'custom', 'M j, Y') : 'N/A',
+          ->format(strtotime('yesterday'), 'custom', 'M j, Y') : 'N/A',
       ];
 
       return $t_args;

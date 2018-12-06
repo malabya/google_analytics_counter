@@ -32,7 +32,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
   protected $manager;
 
   /**
-   * Constructs a new SiteMaintenanceModeForm.
+   * Constructs an instance of GoogleAnalyticsCounterSettingsForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
@@ -102,11 +102,10 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
-    $project_name = $this->manager->googleProjectName();
     $t_args = [
       ':href' => Url::fromUri('https://developers.google.com/analytics/devguides/reporting/core/v3/limits-quotas')->toString(),
       '@href' => 'Limits and Quotas on API Requests',
-      ':href2' => $project_name,
+      ':href2' => $this->manager->googleProjectName(),
       '@href2' => 'Analytics API',
     ];
     $form['api_dayquota'] = [
@@ -114,8 +113,8 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Maximum GA API requests per day'),
       '#default_value' => $config->get('general_settings.api_dayquota'),
       '#min' => 1,
-      '#max' => 10000,
-      '#description' => $this->t('This is the daily limit of requests <strong>per view</strong> per day. Refer to your <a href=:href2 target="_blank">@href2</a> page to view quotas.', $t_args),
+      '#max' => 50000,
+      '#description' => $this->t('The Queries per day quota. Refer to <a href=:href2 target="_blank">@href2</a> page to view quotas for your Google app.', $t_args),
       '#required' => TRUE,
     ];
 
@@ -140,7 +139,8 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#max' => 10000,
       '#required' => TRUE,
       '#description' => $this->t('%queue_count items are in the queue. The number of items in the queue should be 0 after cron runs.', $t_arg) .
-        '<br /><strong>' . $this->t('Note:') .'</strong>'. $this->t(' Having 0 items in the queue confirms that pageview counts are up to date. Increase Queue Time to process all the queued items during a single cron run. Default: 120 seconds.'),
+        '<br /><strong>' . $this->t('Note:') .'</strong>'. $this->t(' Having 0 items in the queue confirms that pageview counts are up to date. Increase Queue Time to process all the queued items during a single cron run. Default: 120 seconds.') .
+        '<br />' . $this->t('Changing the Queue Time will require that the cache to be cleared, which may take a minute after submission.'),
     ];
 
     // Google Analytics start date settings.
@@ -233,10 +233,12 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('google_analytics_counter.settings');
 
-    // hook_queue_info_alter() requires a cache rebuild.
+    // If the queue time has change the cache needs to be cleared.
     if ($form_state->getValue('queue_time') != $config->get('general_settings.queue_time')) {
       drupal_flush_all_caches();
+      \Drupal::messenger()->addMessage(t(('Caches cleared.')));
     }
+
 
     $config
       ->set('general_settings.cron_interval', $form_state->getValue('cron_interval'))

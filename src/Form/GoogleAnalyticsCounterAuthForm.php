@@ -122,15 +122,25 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       }
     }
 
+    $t_arg = [
+      ':href' => Url::fromRoute('google_analytics_counter.admin_dashboard_form', [], ['absolute' => TRUE])
+        ->toString(),
+      '@href' => 'Dashboard',
+    ];
     $markup_description = ($this->manager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
-      '<br />' . $this->t('Now that you are authenticated with Google Analytics, select a ') .  '<strong>' . $this->t('Google View') . '</strong>' . $this->t(' to collect analytics from and click Save configuration.') . '</p>' :
+      '<ol><li>' . $this->t('Now that you are authenticated with Google Analytics, select the') .  '<strong>' . $this->t(' Google Views ') . '</strong>' . $this->t('to collect analytics from and click Save configuration.') .
+      '</li><li>' . $this->t('Save configuration.') .
+      '</li><li>' . $this->t('On the next cron job, analytics from the Google View field and the Additional Google Views field will be saved to Drupal.') .
+      '</li><ul><li>' . $this->t('Information on the <a href=:href>@href</a> page is derived from the Google View field, not the Additional Google Views field.', $t_arg) .
+      '</li><li>' . $this->t('After cron runs, check pageviews for all selected Google Views on the <a href=:href>@href</a>  page in the Top Twenty Results section.', $t_arg) .
+      '</li></ul></ol></p>' :
       '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized Redirect URI, and Google Project Name.') .
       '</li><li>' . $this->t('Save configuration.') .
       '</li><li>' . $this->t('Authenticate with Google Analytics:') .
       '</li><ul><li>' .  $this->t('Follow the instructions in the README.md to set up a project in Google Analytics.') .
       '</li><li>' .  $this->t('And then click the Authenticate with Google Analytics button above.') .
-      '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select a ') . '<strong>' . $this->t('Google View') . '</strong>' . $this->t(" to collect analytics from and click Save configuration.") .
-      '</li><ul><li>' .  $this->t("If you are not authenticated, 'Unauthenticated' is the only available option for ") .  '<strong>' . $this->t('Google View') . '</strong>.</li></ul></ol>';
+      '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select the') . '<strong>' . $this->t(' Google Views ') . '</strong>' . $this->t('to collect analytics from and click Save configuration.') .
+      '</li><ul><li>' .  $this->t('If you are not authenticated,') . '<strong>' . $this->t(' Unauthenticated ') . '</strong>' . $this->t('is the only available option for ') .  '<strong>' . $this->t('Google Views') . '</strong>.</li></ul></ol>';
 
     $form['setup'] = [
       '#type' => 'markup',
@@ -176,9 +186,8 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 13,
     ];
 
-    $project_name = $this->manager->googleProjectName();
     $t_args = [
-      ':href' => $project_name,
+      ':href' => $this->manager->googleProjectName(),
       '@href' => 'Analytics API',
     ];
 
@@ -204,7 +213,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
   }
 
   /**
-   * Steps through the OAuth process, revokes tokens and saves profiles.
+   * Authenticates tokens and saves configuration.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('google_analytics_counter.settings');
