@@ -109,12 +109,12 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @return string
    *   Count of pageviews.
    */
-  public function displayGaCount($path);
+  public function displayGacCount($path);
 
   /**
    * Programatically revoke token.
    */
-  public function revoke();
+  public function gacDeleteState();
 
   /**
    * Get the row count of a table, sometimes with conditions.

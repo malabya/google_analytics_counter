@@ -26,6 +26,7 @@ function google_analytics_counter_help($route_name, RouteMatchInterface $route_m
  */
 function google_analytics_counter_cron() {
   $config = \Drupal::config('google_analytics_counter.settings');
+  $database = \Drupal::database();
 
   // $interval must be a value in seconds.
   $interval = 60 * $config->get('general_settings.cron_interval');
@@ -37,40 +38,53 @@ function google_analytics_counter_cron() {
   // On some systems, cron could be every minute. Throttle updating with the
   // cron_interval on the settings form.
   // To avoid this interval, set cron_interval to 0.
-  if (\Drupal::time()->getRequestTime() >= \Drupal::state()->get('system.cron_last') + $interval) {
-    /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
-    $manager = \Drupal::service('google_analytics_counter.manager');
-    $queue = \Drupal::queue('google_analytics_counter_worker');
+  if (!\Drupal::time()->getRequestTime() >= \Drupal::state()->get('system.cron_last') + $interval) {
+    return;
+  }
 
-    try {
-      if ($manager->isAuthenticated() === TRUE) {
-        // Fetch the first batch to see how many there are.
-        $results = $manager->getChunkedResults();
+  // Proceed no further if not authenticated.
+  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
+  $manager = \Drupal::service('google_analytics_counter.manager');
+  if (!$manager->isAuthenticated()) {
+    \Drupal::logger('google_analytics_counter')->alert('Google Analytics Counter is not authenticated or no Google Views have been added.');
+    return;
+  }
 
-        // Queue the chunks.
-        $total = $results->results->totalResults;
-        for ($index = 0; $index < $total / $config->get('general_settings.chunk_to_fetch'); $index++) {
-          // Add a queue item to fetch for all chunks.
-          $queue->createItem(['type' => 'fetch', 'index' => $index]);
-        }
+  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
+  $manager = \Drupal::service('google_analytics_counter.manager');
+  $queue = \Drupal::queue('google_analytics_counter_worker');
 
-        // Queue all the published nodes.
-        $database = \Drupal::database();
-        $select = $database->select('node_field_data', 'nfd');
-        $select->fields('nfd', ['nid', 'type', 'vid']);
-        $select->condition('status', NodeInterface::PUBLISHED);
-        $result = $select->execute();
-        while ($record = $result->fetchAssoc()) {
-          $queue->createItem(['type' => 'count', 'nid' => $record['nid'], 'bundle' => $record['type'], 'vid' => $record['vid']]);
-        }
-      }
-      else {
-        \Drupal::logger('google_analytics_counter')->alert('Google Analytics Counter is not authenticated.');
-      }
+  try {
+    // Fetch the first batch to see how many there are.
+    $results = $manager->getChunkedResults();
+
+    // Queue the chunks.
+    $total = $results->results->totalResults;
+    for ($index = 0; $index < $total / $config->get('general_settings.chunk_to_fetch'); $index++) {
+      // Add a queue item to fetch for all chunks.
+      $queue->createItem([
+        'type' => 'fetch',
+        'index' => $index,
+      ]);
     }
-    catch (RuntimeException $e) {
-      \Drupal::logger('google_analytics_counter')->alert('Cron experienced a problem: ' . $e->getMessage());
+
+    // Select all the published nodes and create queue count items.
+    $query = $database->select('node_field_data', 'nfd');
+    $query->fields('nfd', ['nid', 'type', 'vid']);
+    $query->condition('status', NodeInterface::PUBLISHED);
+    $result = $query->execute();
+    while ($record = $result->fetchAssoc()) {
+      $queue->createItem([
+        'type' => 'count',
+        'nid' => $record['nid'],
+        'bundle' => $record['type'],
+        'vid' => $record['vid']
+      ]);
     }
+  }
+  catch (RuntimeException $e) {
+    \Drupal::logger('google_analytics_counter')
+      ->alert('Cron experienced a problem: ' . $e->getMessage());
   }
 }
 
