@@ -136,11 +136,11 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '</li></ul></ol></p>' :
       '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized Redirect URI, and Google Project Name.') .
       '</li><li>' . $this->t('Save configuration.') .
-      '</li><li>' . $this->t('Authenticate with Google Analytics:') .
-      '</li><ul><li>' .  $this->t('Follow the instructions in the README.md to set up a project in Google Analytics.') .
-      '</li><li>' .  $this->t('And then click the Authenticate with Google Analytics button above.') .
-      '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select the') . '<strong>' . $this->t(' Google Views ') . '</strong>' . $this->t('to collect analytics from and click Save configuration.') .
-      '</li><ul><li>' .  $this->t('If you are not authenticated,') . '<strong>' . $this->t(' Unauthenticated ') . '</strong>' . $this->t('is the only available option for ') .  '<strong>' . $this->t('Google Views') . '</strong>.</li></ul></ol>';
+      '</li><li>' . $this->t('Click Authenticate in Authenticate with Google Analytics above.') .
+      '</li><ul><li>' .  $this->t('If you don\'t already have Google Analytics set up in Google, follow the instructions in the README.md included with this module.') .
+      '</li><li>' .  $this->t('After setting up Google Analytics, come back to this page and click the Authenticate button above.') .
+      '</li></ul><li>' . $this->t('After authenticating with Google Analytics, select the') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('to collect analytics from and click Save configuration.') .
+      '</li><ul><li>' .  $this->t('If you are not authenticated,') . '<strong>' . $this->t(' Unauthenticated ') . '</strong>' . $this->t('is the only available option for ') .  '<strong>' . $this->t('Google View') . '</strong>.</li></ul></ol>';
 
     $form['setup'] = [
       '#type' => 'markup',
@@ -199,7 +199,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 14,
     ];
 
-    $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : [$config->get('general_settings.profile_id') => 'Unauthenticated'];
+    $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
     $form['profile_id'] = [
       '#type' => 'select',
       '#title' => $this->t("Google View"),
