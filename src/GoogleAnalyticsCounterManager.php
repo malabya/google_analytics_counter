@@ -285,14 +285,11 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     return time() + $config->get('general_settings.cache_length');
   }
 
-
-
-
   /**
    * Get the total results from Google.
    *
    * @param int $index
-   *   The index of the chunk to fetch so that it can be queued.
+   *   The index of the chunk to fetch for the queue.
    *
    * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed
    *   The returned feed after the request has been made.
@@ -333,15 +330,15 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * @param array $parameters
    *   An associative array containing:
    *   - profile_id: required [default='ga:profile_id']
+   *   - dimensions: optional [ga:pagePath]
    *   - metrics: required [ga:pageviews]
-   *   - dimensions: optional [default=none]
-   *   - sort_metric: optional [default=none]
-   *   - filters: optional [default=none]
-   *   - segment: optional [default=none]
-   *   - start_date: [default=-1 week]
+   *   - sort: optional [ga:pageviews]
+   *   - start-date: [default=-1 week]
    *   - end_date: optional [default=tomorrow]
    *   - start_index: [default=1]
    *   - max_results: optional [default=10,000].
+   *   - filters: optional [default=none]
+   *   - segment: optional [default=none]
    * @param array $cache_options
    *   An optional associative array containing:
    *   - cid: optional [default=md5 hash]
@@ -394,14 +391,14 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     // The last time the Data was refreshed by Google. Not always available from Google.
     $this->state->set('google_analytics_counter.data_last_refreshed', $ga_feed->results->dataLastRefreshed);
 
+    // The first selfLink query to Google. Helpful for debugging in the dashboard.
+    $this->state->set('google_analytics_counter.most_recent_query', $ga_feed->results->selfLink);
+
     // The total number of pageViews for this profile from start_date to end_date.
     $this->state->set('google_analytics_counter.total_pageviews', $ga_feed->results->totalsForAllResults['pageviews']);
 
     // The total number of pagePaths for this profile from start_date to end_date.
     $this->state->set('google_analytics_counter.total_paths', $ga_feed->results->totalResults);
-
-    // The most recent query to Google. Helpful for debugging.
-    $this->state->set('google_analytics_counter.most_recent_query', $ga_feed->results->selfLink);
 
     // The number of results from Google Analytics in one request.
     $chunk = $config->get('general_settings.chunk_to_fetch');
@@ -495,6 +492,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     foreach ($path_counts as $path_count) {
       $sum_of_pageviews += $path_count->pageviews;
     }
+
     return $sum_of_pageviews;
   }
 
@@ -583,6 +581,8 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * Get the the top twenty results for pageviews and pageview_totals.
    *
    * @param string $table
+   *   The table from which the results are selected.
+   *
    * @return mixed
    */
   public function getTopTwentyResults($table) {
@@ -678,14 +678,14 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
     foreach ($feed->results->rows as $value) {
       // Use only the first 2047 characters of the pagepath. This is extremely long
-      // but Google does store everything and Drupal can make uris (like in views) that long.
+      // but Google does store everything and Drupal can make URIs (like in views) that long.
       $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
 
       // Update the Google Analytics Counter.
       $this->connection->merge('google_analytics_counter')
         ->key('pagepath_hash', md5($page_path))
         ->fields([
-          // Escape the path see https://www.drupal.org/node/2381703
+          //To do: Escape the path see https://www.drupal.org/node/2381703
           'pagepath' => $page_path,
           'pageviews' => $value['pageviews'],
         ])
@@ -694,6 +694,116 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
     // Log the results.
     $this->logger->info($this->t('Saved @count paths from Google Analytics into the database.', ['@count' => count($feed->results->rows)]));
+  }
+
+  /****************************************************************************/
+  // Field functions.
+  /****************************************************************************/
+
+  /**
+   * Adds the checked the fields.
+   *
+   * @param \Drupal\node\NodeTypeInterface $type
+   *   A node type entity.
+   * @param string $label
+   *   The formatter label display setting.
+   *
+   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\field\Entity\FieldConfig|null
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function gacAddField(NodeTypeInterface $type, $label = 'Google Analytics Counter') {
+
+    // Check if field storage exists.
+    $config = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
+    if (!isset($config)) {
+      // Obtain configuration from yaml files
+      $config_path = 'modules/contrib/google_analytics_counter/config/optional';
+      $source = new FileStorage($config_path);
+
+      // Obtain the storage manager for field storage bases.
+      // Create the new field configuration from the yaml configuration and save.
+      \Drupal::entityTypeManager()->getStorage('field_storage_config')
+        ->create($source->read('field.storage.node.field_google_analytics_counter'))
+        ->save();
+    }
+
+    // Add the checked fields.
+    $field_storage = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
+    $field = FieldConfig::loadByName('node', $type->id(), 'field_google_analytics_counter');
+    if (empty($field)) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => $type->id(),
+        'label' => $label,
+        'description' => t('This field stores Google Analytics pageviews.'),
+        'field_name' => 'field_google_analytics_counter',
+        'entity_type' => 'node',
+        'settings' => array('display_summary' => TRUE),
+      ]);
+      $field->save();
+
+      // Assign widget settings for the 'default' form mode.
+      entity_get_form_display('node', $type->id(), 'default')
+        ->setComponent('google_analytics_counter', array(
+          'type' => 'textfield',
+          '#maxlength' => 255,
+          '#default_value' => 0,
+          '#description' => t('This field stores Google Analytics pageviews.'),
+        ))
+        ->save();
+
+      // Assign display settings for the 'default' and 'teaser' view modes.
+      entity_get_display('node', $type->id(), 'default')
+        ->setComponent('google_analytics_counter', array(
+          'label' => 'hidden',
+          'type' => 'textfield',
+        ))
+        ->save();
+
+      // The teaser view mode is created by the Standard profile and therefore
+      // might not exist.
+      $view_modes = \Drupal::entityManager()->getViewModes('node');
+      if (isset($view_modes['teaser'])) {
+        entity_get_display('node', $type->id(), 'teaser')
+          ->setComponent('google_analytics_counter', array(
+            'label' => 'hidden',
+            'type' => 'textfield',
+          ))
+          ->save();
+      }
+    }
+
+    return $field;
+  }
+
+  /**
+   * Deletes the unchecked field configurations.
+   *
+   * @param \Drupal\node\NodeTypeInterface $type
+   *   A node type entity.
+   *
+   * @return null|void
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   *
+   * @see GoogleAnalyticsCounterConfigureTypesForm
+   */
+  public function gacDeleteField(NodeTypeInterface $type) {
+    // Check if field exists on the content type.
+    $content_type = $type->id();
+    $config = FieldConfig::loadByName('node', $content_type, 'field_google_analytics_counter');
+    if (!isset($config)) {
+      return NULL;
+    }
+    // Delete the field from the content type.
+    FieldConfig::loadByName('node', $content_type, 'field_google_analytics_counter')->delete();
+
+    // Delete the gac_type_{content_type} from configuration.
+//    $config_factory = \Drupal::configFactory();
+//    $config_factory->getEditable('google_analytics_counter.settings')
+//      ->set("gac_type_$content_type", 0)
+//      ->save();
   }
 
   /****************************************************************************/

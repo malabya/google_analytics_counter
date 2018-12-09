@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Config\FileStorage;
+use Drupal\Core\Database\Database;
 use Drupal\Core\Url;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\Entity\FieldConfig;
@@ -45,7 +46,7 @@ function google_analytics_counter_requirements($phase) {
   else {
     $requirements['google_analytics_counter_authentication'] = [
       'title' => t('Google Analytics Counter'),
-      'description' => t('Google Analytics has <strong> not</strong> been authenticated. Authenticate with Google on the <a href=:href>@authentication_form</a>.', $t_args),
+      'description' => t('Google Analytics has <strong>not</strong> been authenticated. Authenticate with Google on the <a href=:href>@authentication_form</a>.', $t_args),
       'severity' => REQUIREMENT_ERROR,
       'value' => t('Google Analytics has not been authenticated.'),
     ];
@@ -123,8 +124,6 @@ function google_analytics_counter_schema() {
  * Implements hook_uninstall().
  */
 function google_analytics_counter_uninstall() {
-  $config = \Drupal::config('google_analytics_counter.settings');
-
   /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
   $manager = Drupal::service('google_analytics_counter.manager');
 

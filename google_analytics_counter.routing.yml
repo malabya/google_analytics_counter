@@ -6,6 +6,14 @@ google_analytics_counter.admin_settings_form:
   requirements:
     _permission: 'administer google analytics counter'
 
+google_analytics_counter.configure_types_form:
+  path: '/admin/config/system/google-analytics-counter-configure-types'
+  defaults:
+    _form: '\Drupal\google_analytics_counter\Form\GoogleAnalyticsCounterConfigureTypesForm'
+    _title_callback: '\Drupal\google_analytics_counter\Form\GoogleAnalyticsCounterConfigureTypesForm::getTitle'
+  requirements:
+    _permission: 'administer google analytics counter'
+
 google_analytics_counter.admin_dashboard_form:
   path: '/admin/config/system/google-analytics-counter/dashboard'
   defaults:

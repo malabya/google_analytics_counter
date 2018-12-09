@@ -63,12 +63,12 @@ The secondary use for this module is to:
 10. Fill in credentials if requested by Google.
     Click Allow.
 
-11. If all goes well, you will be returned to Authorized REdirect URI which
+11. If all goes well, you will be returned to Authorized Redirect URI which
     should be the authentication page. 
     (/admin/config/system/google-analytics-counter/authentication)
     Select a view from the select list in Google Views. Another way to tell
     if all has gone well with authentication is if you see your Google Analytics
-    profiles listed in Google Vviews. If you did not successfully authenticate 
+    profiles listed in Google Views. If you did not successfully authenticate
     with Google the only option in Google Views is 'Unauthenticated'.
     Click Save configuration.
 
