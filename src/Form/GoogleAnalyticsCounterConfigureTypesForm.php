@@ -84,6 +84,12 @@ class GoogleAnalyticsCounterConfigureTypesForm extends FormBase {
       '#weight' => -10,
     ];
 
+    $form['message'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'h6',
+      '#value' => $this->t('If none are checked, the field storage is also removed, and the queue will run faster.'),
+    ];
+
     // Add a checkbox field for each content type.
     $content_types = \Drupal::service('entity.manager')->getStorage('node_type')->loadMultiple();
     foreach ($content_types as $machine_name => $content_type) {
