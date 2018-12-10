@@ -522,6 +522,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       return;
     }
 
+    // Todo: This can be more performant by adding only the bundles that have been selected.
     $query = $this->connection->select('node__field_google_analytics_counter', 'gac');
     $query->fields('gac');
     $query->condition('entity_id', $nid);
@@ -701,7 +702,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       $this->connection->merge('google_analytics_counter')
         ->key('pagepath_hash', md5($page_path))
         ->fields([
-          //To do: Escape the path see https://www.drupal.org/node/2381703
+          // Escape the path see https://www.drupal.org/node/2381703
           'pagepath' => $page_path,
           'pageviews' => $value['pageviews'],
         ])
