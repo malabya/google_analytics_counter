@@ -522,22 +522,38 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       return;
     }
 
-    $this->connection->merge('node__field_google_analytics_counter')
-      ->key([
-        'entity_id', $nid,
-        'revision_id', $vid,
-        'langcode', 'en',
-      ])
-      ->fields([
-        'bundle' => $bundle,
-        'deleted' => 0,
-        'entity_id' => $nid,
-        'revision_id' => $vid,
-        'langcode' => 'en',
-        'delta' => 0,
-        'field_google_analytics_counter_value' => $sum_of_pageviews,
-      ])
-      ->execute();
+    $query = $this->connection->select('node__field_google_analytics_counter', 'gac');
+    $query->fields('gac');
+    $query->condition('entity_id', $nid);
+    $entity_id = $query->execute()->fetchField();
+
+    if ($entity_id) {
+      $this->connection->update('node__field_google_analytics_counter')
+        ->fields([
+          'bundle' => $bundle,
+          'deleted' => 0,
+          'entity_id' => $nid,
+          'revision_id' => $vid,
+          'langcode' => 'en',
+          'delta' => 0,
+          'field_google_analytics_counter_value' => $sum_of_pageviews,
+        ])
+        ->condition('entity_id', $entity_id)
+        ->execute();
+    }
+    else {
+      $this->connection->insert('node__field_google_analytics_counter')
+        ->fields([
+          'bundle' => $bundle,
+          'deleted' => 0,
+          'entity_id' => $nid,
+          'revision_id' => $vid,
+          'langcode' => 'en',
+          'delta' => 0,
+          'field_google_analytics_counter_value' => $sum_of_pageviews,
+        ])
+        ->execute();
+    }
   }
 
   /**
@@ -798,12 +814,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
     // Delete the field from the content type.
     FieldConfig::loadByName('node', $content_type, 'field_google_analytics_counter')->delete();
-
-    // Delete the gac_type_{content_type} from configuration.
-//    $config_factory = \Drupal::configFactory();
-//    $config_factory->getEditable('google_analytics_counter.settings')
-//      ->set("gac_type_$content_type", 0)
-//      ->save();
   }
 
   /****************************************************************************/
