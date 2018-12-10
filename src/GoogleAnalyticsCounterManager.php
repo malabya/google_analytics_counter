@@ -226,7 +226,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
           'google_analytics_counter.refresh_token' => $gac_feed->refreshToken,
         ]);
 
-        $this->messenger->addStatus($this->t('You have been successfully authenticated.'));
+        $this->messenger->addStatus($this->t('You have been successfully authenticated.'), FALSE);
 
       }
       catch (Exception $e) {
