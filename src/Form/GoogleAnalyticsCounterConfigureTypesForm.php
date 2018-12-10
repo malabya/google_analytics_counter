@@ -179,23 +179,26 @@ class GoogleAnalyticsCounterConfigureTypesForm extends FormBase {
     $values = $form_state->cleanValues()->getValues();
 
     foreach ($values as $key => $value) {
-      // Add the field if it has been checked.
+      // Add the field to the content type if the field has been checked.
       $type = \Drupal::service('entity.manager')
         ->getStorage('node_type')
         ->load(substr($key, 9));
       if ($value == 1) {
         $this->manager->gacAddField($type);
 
+        // Update the gac_type_ configuration.
         $config_factory->getEditable('google_analytics_counter.settings')
           ->set("general_settings.$key", $value)
           ->save();
       }
 
-      // Delete the field if it is unchecked.
-      // If no fields are checked, the field storage is also removed.
+      // Delete the field for the type if it is unchecked.
+      // If no types are checked, the field storage is removed,
+      // but will be rewritten by checking a type.
       else {
         $this->manager->gacDeleteField($type);
 
+        // Update the gac_type_ configuration.
         $config_factory->getEditable('google_analytics_counter.settings')
           ->set("general_settings.$key", NULL)
           ->save();
