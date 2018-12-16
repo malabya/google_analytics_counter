@@ -22,3 +22,9 @@ google_analytics_counter.admin_auth_form:
   parent: google_analytics_counter.index
   route_name: google_analytics_counter.admin_auth_form
   weight: 30
+google_analytics_counter.admin_configure_types:
+  title: 'Custom field'
+  description: 'Add the custom field to selected content types.'
+  parent: google_analytics_counter.index
+  route_name: google_analytics_counter.configure_types_form
+  weight: 40

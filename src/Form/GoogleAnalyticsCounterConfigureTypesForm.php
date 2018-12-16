@@ -5,21 +5,22 @@ namespace Drupal\google_analytics_counter\Form;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Ajax\CloseDialogCommand;
 use Drupal\Core\Ajax\OpenModalDialogCommand;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+
 
 /**
  * The form for editing content types with the custom google analytics counter field.
  *
  * @internal
  */
-class GoogleAnalyticsCounterConfigureTypesForm extends FormBase {
+class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
 
   /**
    * The Messenger service.
@@ -38,22 +39,19 @@ class GoogleAnalyticsCounterConfigureTypesForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('messenger'),
-      $container->get('google_analytics_counter.manager')
-    );
+  public function __construct(MessengerInterface $messenger, GoogleAnalyticsCounterManagerInterface $manager) {
+    $this->messenger = $messenger;
+    $this->manager = $manager;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function __construct(
-    MessengerInterface $messenger,
-    GoogleAnalyticsCounterManagerInterface $manager
-  ) {
-    $this->messenger = $messenger;
-    $this->manager = $manager;
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('messenger'),
+      $container->get('google_analytics_counter.manager')
+    );
   }
 
   /**
@@ -75,19 +73,19 @@ class GoogleAnalyticsCounterConfigureTypesForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $options = NULL) {
     $config = $this->config('google_analytics_counter.settings');
-    $form['#prefix'] = '<div id="gac_configure_types_modal_form">';
-    $form['#suffix'] = '</div>';
 
-    // The status messages that will contain any form errors.
-    $form['status_messages'] = [
-      '#type' => 'status_messages',
-      '#weight' => -10,
-    ];
+//    $form['message'] = [
+//      '#type' => 'html_tag',
+//      '#tag' => 'h6',
+//      '#value' => $this->t('If none are checked, the field storage is also removed, and the queue will run faster.'),
+//    ];
 
-    $form['message'] = [
-      '#type' => 'html_tag',
-      '#tag' => 'h6',
-      '#value' => $this->t('If none are checked, the field storage is also removed, and the queue will run faster.'),
+    // Remove the storage for the custom field.
+    $form["gac_type_remove_storage"] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Removes the custom field'),
+      '#description' => $this->t('Removes all traces of the custom field from the system'),
+      '#default_value' => $config->get("general_settings.gac_type_remove_storage"),
     ];
 
     // Add a checkbox field for each content type.
@@ -100,69 +98,7 @@ class GoogleAnalyticsCounterConfigureTypesForm extends FormBase {
       ];
     }
 
-    $form['actions'] = ['#type' => 'actions'];
-    $form['actions']['submit'] = [
-      '#type' => 'submit',
-      '#button_type' => 'primary',
-      '#value' => $this->t('Save'),
-      '#ajax' => [
-        'callback' => [$this, 'gacModalFormSaveAjax'],
-        'event' => 'click',
-      ],
-    ];
-    $form['actions']['cancel'] = [
-      '#type' => 'button',
-      '#value' => $this->t('Cancel'),
-      '#ajax' => [
-        'callback' => [$this, 'gacModalFormCancelAjax'],
-      ],
-    ];
-
-    $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
-
-    return $form;
-  }
-
-  /**
-   * AJAX callback handler that displays any errors or a success message.
-   */
-  public function gacModalFormSaveAjax(array $form, FormStateInterface $form_state) {
-    $response = new AjaxResponse();
-
-    // If there are any form errors, re-display the form.
-    if ($form_state->hasAnyErrors()) {
-      $response->addCommand(new ReplaceCommand('#gac_configure_types_modal_form', $form));
-    }
-    else {
-      $response->addCommand(new CloseDialogCommand());
-
-      // Check if field storage exists.
-      $config = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
-      if (!isset($config)) {
-        $response->addCommand(new OpenModalDialogCommand($this->t('The custom google analytics counter field has been removed:'), $this->t('No content types have the custom google analytics counter field.'), ['width' => 800]));
-      }
-      else {
-        $response->addCommand(new OpenModalDialogCommand($this->t('The checked content types have the custom google analytics counter field:'), $this->t('Now go to the Manage form display and the Manage display tabs of the content type (e.g. admin/structure/types/manage/article/display) and enable the custom field as you wish.'), ['width' => 800]));
-      }
-    }
-    return $response;
-  }
-
-  /**
-   * AJAX callback handler that for the cancel button.
-   */
-  public function gacModalFormCancelAjax(array $form, FormStateInterface $form_state) {
-    $response = new AjaxResponse();
-
-    // If there are any form errors, re-display the form.
-    if ($form_state->hasAnyErrors()) {
-      $response->addCommand(new ReplaceCommand('#gac_configure_types_modal_form', $form));
-    }
-    else {
-      $response->addCommand(new CloseDialogCommand());
-    }
-
-    return $response;
+    return parent::buildForm($form, $form_state);
   }
 
   /**
@@ -193,8 +129,8 @@ class GoogleAnalyticsCounterConfigureTypesForm extends FormBase {
       }
 
       // Delete the field for the type if it is unchecked.
-      // If no types are checked, the field storage is removed,
-      // but will be rewritten by checking a type.
+      // If no types are checked, the field storage is removed.
+      // The field can be added again by checking a type.
       else {
         $this->manager->gacDeleteField($type);
 

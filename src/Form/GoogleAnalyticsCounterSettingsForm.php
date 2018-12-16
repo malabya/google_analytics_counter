@@ -2,7 +2,6 @@
 
 namespace Drupal\google_analytics_counter\Form;
 
-use Drupal\Component\Serialization\Json;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -217,61 +216,6 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#states' => [
         'disabled' => [
           ':input[name="advanced_date_checkbox"]' => ['checked' => FALSE],
-        ],
-      ],
-    ];
-
-    $header = [
-      'type' => $this->t('Items'),
-      'operations' => $this->t('Operations'),
-    ];
-    $form['content_types_container'] = [
-      '#type' => 'details',
-      '#title' => $this->t('Select content types to add the custom google analytics counter field to:'),
-      '#open' => TRUE,
-    ];
-    $form['content_types_container']['content_types'] = [
-      '#type' => 'table',
-      '#header' => $header,
-      '#empty' => $this->t('There are no content types.'),
-    ];
-
-    // Get the content types.
-    $content_type = [];
-    $content_types = \Drupal::service('entity.manager')->getStorage('node_type')->loadMultiple();
-    foreach ($content_types as $machine_name => $content_type) {
-      $content_types[$content_type->id()] = $content_type->label();
-    }
-    $content_types_list = [
-      '#theme' => 'item_list',
-      '#items' => $content_types,
-      '#context' => ['list_style' => 'comma-list'],
-      '#empty' => $this->t('none'),
-    ];
-    $form['content_types_container']['content_types'][$content_type->id()] = [
-      'type' => [
-        '#type' => 'inline_template',
-        '#template' => '<strong>Content types</strong></br><span id="selected-content-types">{{ selected_bundles }}</span>',
-        '#context' => [
-          'label' => $this->t('@bundle types', ['@bundle' => $content_type->label()]),
-          'content_type_id' => $content_type->id(),
-          'selected_bundles' => $content_types_list,
-        ],
-      ],
-      'operations' => [
-        '#type' => 'operations',
-        '#links' => [
-          'select' => [
-            'title' => $this->t('Select'),
-            'url' => Url::fromRoute('google_analytics_counter.configure_types_form'),
-            'attributes' => [
-              'class' => ['use-ajax'],
-              'data-dialog-type' => 'modal',
-              'data-dialog-options' => Json::encode([
-                'width' => 700,
-              ]),
-            ],
-          ],
         ],
       ],
     ];
