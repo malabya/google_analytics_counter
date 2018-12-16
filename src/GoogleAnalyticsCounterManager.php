@@ -732,7 +732,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   public function gacPreAddField($type, $config_factory, $key, $value) {
     $this->gacAddField($type);
 
-    // Update the gac_type_ configuration.
+    // Update the gac_type_{content_type} configuration.
     $config_factory->getEditable('google_analytics_counter.settings')
       ->set("general_settings.$key", $value)
       ->save();
@@ -828,7 +828,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   public function gacPreDeleteField($type, $config_factory, $key) {
     $this->gacDeleteField($type);
 
-    // Update the gac_type_ configuration.
+    // Update the gac_type_{content_type} configuration.
     $config_factory->getEditable('google_analytics_counter.settings')
       ->set("general_settings.$key", NULL)
       ->save();

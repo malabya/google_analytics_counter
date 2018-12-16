@@ -9,14 +9,10 @@ use Drupal\Core\Entity\EditorialContentEntityBase;
  */
 class GoogleAnalyticsCounterHelper extends EditorialContentEntityBase {
 
-  /****************************************************************************/
-  // Query functions.
-  /****************************************************************************/
-
   /**
    * Remove queued items from the database.
    */
-  public static function removeQueuedItems() {
+  public static function gacRemoveQueuedItems() {
     $quantity = 200000;
 
     $connection = \Drupal::database();
@@ -32,6 +28,27 @@ class GoogleAnalyticsCounterHelper extends EditorialContentEntityBase {
     for ($x = 0; $x <= $chunks; $x++) {
       \Drupal::database()
         ->query("DELETE FROM {queue} WHERE name = 'google_analytics_counter_worker' LIMIT 200000");
+    }
+  }
+
+  /**
+   * Creates the gac_type_{content_type} configuration on installation or update.
+   */
+  public static function gacSaveGacTypeConfig() {
+    $config_factory = \Drupal::configFactory();
+    $content_types = \Drupal::service('entity.manager')
+      ->getStorage('node_type')
+      ->loadMultiple();
+
+    foreach ($content_types as $machine_name => $content_type) {
+      // For updates, don't overwrite existing configuration.
+      $gac_type = $config_factory->getEditable('google_analytics_counter.settings')
+        ->get("general_settings.gac_type_$machine_name");
+      if (empty($gac_type)) {
+        $config_factory->getEditable('google_analytics_counter.settings')
+          ->set("general_settings.gac_type_$machine_name", NULL)
+          ->save();
+      }
     }
   }
 }

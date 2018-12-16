@@ -121,6 +121,13 @@ function google_analytics_counter_schema() {
 }
 
 /**
+ * Implements hook_install().
+ */
+function google_analytics_counter_install() {
+  GoogleAnalyticsCounterHelper::gacSaveGacTypeConfig();
+}
+
+/**
  * Implements hook_uninstall().
  */
 function google_analytics_counter_uninstall() {
@@ -131,7 +138,7 @@ function google_analytics_counter_uninstall() {
   $manager->gacDeleteState();
 
   // Remove queued items from the database.
-  GoogleAnalyticsCounterHelper::removeQueuedItems();
+  GoogleAnalyticsCounterHelper::gacRemoveQueuedItems();
 
   // Uninstall the Google Analytics Counter field.
   $bundles = ['node'];
@@ -223,5 +230,13 @@ function google_analytics_counter_update_8006() {
  * Issue #3009673: Remove stale queued items from the database.
  */
 function google_analytics_counter_update_8007() {
-  GoogleAnalyticsCounterHelper::removeQueuedItems();
+  GoogleAnalyticsCounterHelper::gacRemoveQueuedItems();
 }
+
+/**
+ * Issue #3020811: Move Configure types form into its own tab.
+ */
+function google_analytics_counter_update_8008() {
+  GoogleAnalyticsCounterHelper::gacSaveGacTypeConfig();
+}
+
