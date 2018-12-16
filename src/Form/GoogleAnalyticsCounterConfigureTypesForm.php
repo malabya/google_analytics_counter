@@ -74,17 +74,11 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state, $options = NULL) {
     $config = $this->config('google_analytics_counter.settings');
 
-//    $form['message'] = [
-//      '#type' => 'html_tag',
-//      '#tag' => 'h6',
-//      '#value' => $this->t('If none are checked, the field storage is also removed, and the queue will run faster.'),
-//    ];
-
-    // Remove the storage for the custom field.
+    // A checkbox to determine whether the storage for the custom field should be removed.
     $form["gac_type_remove_storage"] = [
       '#type' => 'checkbox',
-      '#title' => $this->t('Removes the custom field'),
-      '#description' => $this->t('Removes all traces of the custom field from the system'),
+      '#title' => $this->t('Remove the custom field'),
+      '#description' => $this->t('Removes all traces of the custom Google Analytics Counter field from the system.'),
       '#default_value' => $config->get("general_settings.gac_type_remove_storage"),
     ];
 

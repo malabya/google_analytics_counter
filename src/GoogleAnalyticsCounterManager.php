@@ -851,7 +851,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
         ->toString(),
       '@href' => 'revoking Google authentication',
     ];
-    $build['cron_info']['revoke_authentication'] = [
+    $build['cron_information']['revoke_authentication'] = [
       '#markup' => t("If there's a problem with OAUTH authentication, try <a href=:href>@href</a>.", $t_args),
       '#prefix' => '<p>',
       '#suffix' => '</p>',

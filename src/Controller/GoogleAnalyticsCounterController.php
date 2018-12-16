@@ -283,13 +283,13 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     ];
 
     // Cron Information.
-    $build['cron_info'] = [
+    $build['cron_information'] = [
       '#type' => 'details',
       '#title' => $this->t('Cron Information'),
       '#open' => TRUE,
     ];
 
-    $build['cron_info']['last_cron_run'] = [
+    $build['cron_information']['last_cron_run'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
       '#value' => $this->t("Cron's last successful run: %time ago.", ['%time' => $this->dateFormatter->formatTimeDiffSince($this->state->get('system.cron_last'))]),
@@ -306,7 +306,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
         ])->toString(),
         '@href' => 'Run cron immediately.',
       ];
-      $build['cron_info']['run_cron'] = [
+      $build['cron_information']['run_cron'] = [
         '#type' => 'html_tag',
         '#tag' => 'p',
         '#value' => $this->t('<a href=:href>@href</a>', $t_args),
