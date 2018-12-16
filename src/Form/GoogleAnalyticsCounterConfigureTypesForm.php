@@ -111,9 +111,17 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $config = $this->config('google_analytics_counter.settings');
     $config_factory = \Drupal::configFactory();
     $values = $form_state->cleanValues()->getValues();
 
+    // Save the remove storage configuration and then unset it so the
+    // content types can be processed.
+    $config
+      ->set('general_settings.gac_type_remove_storage', $values['gac_type_remove_storage'])->save();
+    unset($values['gac_type_remove_storage']);
+
+    // Loop through each content type and add/subtract or do nothing to the content type.
     foreach ($values as $key => $value) {
       // Add the field to the content type if the field has been checked.
       $type = \Drupal::service('entity.manager')
