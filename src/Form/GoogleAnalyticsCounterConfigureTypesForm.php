@@ -13,6 +13,7 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 
 
 /**
@@ -21,6 +22,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @internal
  */
 class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
+
+  /**
+   * Config Factory Service Object.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
 
   /**
    * The Messenger service.
@@ -39,7 +47,9 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(MessengerInterface $messenger, GoogleAnalyticsCounterManagerInterface $manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, MessengerInterface $messenger, GoogleAnalyticsCounterManagerInterface $manager) {
+    parent::__construct($config_factory);
+    $this->configFactory = $config_factory;
     $this->messenger = $messenger;
     $this->manager = $manager;
   }
@@ -49,6 +59,7 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
+      $container->get('config.factory'),
       $container->get('messenger'),
       $container->get('google_analytics_counter.manager')
     );
@@ -74,21 +85,37 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
   public function buildForm(array $form, FormStateInterface $form_state, $options = NULL) {
     $config = $this->config('google_analytics_counter.settings');
 
-    // A checkbox to determine whether the storage for the custom field should be removed.
-    $form["gac_type_remove_storage"] = [
+    // Add a checkbox to determine whether the storage for the custom field should be removed.
+    $form['gac_custom_field_storage_status'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Custom field storage information'),
+      '#open' => TRUE,
+    ];
+    $form['gac_custom_field_storage_status']['gac_type_remove_storage'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Remove the custom field'),
-      '#description' => $this->t('Removes all traces of the custom Google Analytics Counter field from the system.'),
+      '#description' => $this->t('Removes the custom Google Analytics Counter field from the system completely.'),
       '#default_value' => $config->get("general_settings.gac_type_remove_storage"),
     ];
 
     // Add a checkbox field for each content type.
+    $form['gac_content_types'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Content types'),
+      '#open' => TRUE,
+    ];
     $content_types = \Drupal::service('entity.manager')->getStorage('node_type')->loadMultiple();
     foreach ($content_types as $machine_name => $content_type) {
-      $form["gac_type_$machine_name"] = [
+      $form['gac_content_types']["gac_type_$machine_name"] = [
         '#type' => 'checkbox',
         '#title' => $content_type->label(),
         '#default_value' => $config->get("general_settings.gac_type_$machine_name"),
+        '#states' => [
+          'disabled' => [
+            ':input[name="gac_type_remove_storage"]' => ['checked' => TRUE],
+          ],
+        ],
+
       ];
     }
 
@@ -109,19 +136,24 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
     $config_factory = \Drupal::configFactory();
     $values = $form_state->cleanValues()->getValues();
 
-    // Save the remove storage configuration and then unset it so the
-    // content types can be processed.
+    // Save the remove_storage configuration.
     $config
-      ->set('general_settings.gac_type_remove_storage', $values['gac_type_remove_storage'])->save();
-    unset($values['gac_type_remove_storage']);
+      ->set('general_settings.gac_type_remove_storage', $values['gac_type_remove_storage'])
+      ->save();
 
-    // Loop through each content type and add/subtract or do nothing to the content type.
+    // Loop through each content type. Add/subtract or do nothing to the content type.
     foreach ($values as $key => $value) {
-      // Add the field to the content type if the field has been checked.
+      if ($key == 'gac_type_remove_storage') {
+        continue;
+      }
+
+      // Get the NodeTypeInterface $type.
       $type = \Drupal::service('entity.manager')
         ->getStorage('node_type')
         ->load(substr($key, 9));
-      if ($value == 1) {
+
+      // Add the field to the content type if the field has been checked.
+      if ($values['gac_type_remove_storage'] == FALSE && $value == 1) {
         $this->manager->gacAddField($type);
 
         // Update the gac_type_ configuration.
@@ -129,26 +161,28 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
           ->set("general_settings.$key", $value)
           ->save();
       }
-
-      // Delete the field for the type if it is unchecked.
-      // If no types are checked, the field storage is removed.
-      // The field can be added again by checking a type.
       else {
-        $this->manager->gacDeleteField($type);
+        if ($values['gac_type_remove_storage'] = TRUE && $value == 1) {
+          $this->manager->gacDeleteField($type);
 
-        // Update the gac_type_ configuration.
-        $config_factory->getEditable('google_analytics_counter.settings')
-          ->set("general_settings.$key", NULL)
-          ->save();
+          // Update the gac_type_ configuration.
+          $config_factory->getEditable('google_analytics_counter.settings')
+            ->set("general_settings.$key", NULL)
+            ->save();
+        }
+
+        // Delete the field for the type if it is unchecked.
+        // If no types are checked, the field storage is removed.
+        else {
+          $this->manager->gacDeleteField($type);
+
+          // Update the gac_type_ configuration.
+          $config_factory->getEditable('google_analytics_counter.settings')
+            ->set("general_settings.$key", NULL)
+            ->save();
+        }
       }
     }
-  }
-
-  /**
-   * Route title callback.
-   */
-  public function getTitle() {
-    return $this->t('Check the content types you wish to add the custom field to.');
   }
 
 }

@@ -718,6 +718,27 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /****************************************************************************/
 
   /**
+   * Prepares to add the custom field and saves the configuration.
+   *
+   * @param $type
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param $key
+   * @param $value
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function gacPreAddField($type, $config_factory, $key, $value) {
+    $this->gacAddField($type);
+
+    // Update the gac_type_ configuration.
+    $config_factory->getEditable('google_analytics_counter.settings')
+      ->set("general_settings.$key", $value)
+      ->save();
+  }
+
+  /**
    * Adds the checked the fields.
    *
    * @param \Drupal\node\NodeTypeInterface $type
@@ -793,6 +814,24 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     }
 
     return $field;
+  }
+
+  /**
+   * Prepares to delete the custom field and saves the configuration.
+   *
+   * @param $type
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param $key
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function gacPreDeleteField($type, $config_factory, $key) {
+    $this->gacDeleteField($type);
+
+    // Update the gac_type_ configuration.
+    $config_factory->getEditable('google_analytics_counter.settings')
+      ->set("general_settings.$key", NULL)
+      ->save();
   }
 
   /**
