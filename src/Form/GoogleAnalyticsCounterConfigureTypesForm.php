@@ -141,45 +141,30 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
       ->set('general_settings.gac_type_remove_storage', $values['gac_type_remove_storage'])
       ->save();
 
-    // Loop through each content type. Add/subtract or do nothing to the content type.
+    // Loop through each content type. Add/subtract the custom field or do nothing.
     foreach ($values as $key => $value) {
       if ($key == 'gac_type_remove_storage') {
         continue;
       }
 
-      // Get the NodeTypeInterface $type.
+      // Get the NodeTypeInterface $type from gac_type_{content_type}.
       $type = \Drupal::service('entity.manager')
         ->getStorage('node_type')
         ->load(substr($key, 9));
 
-      // Add the field to the content type if the field has been checked.
+      // Add the field if the field has been checked.
       if ($values['gac_type_remove_storage'] == FALSE && $value == 1) {
-        $this->manager->gacAddField($type);
-
-        // Update the gac_type_ configuration.
-        $config_factory->getEditable('google_analytics_counter.settings')
-          ->set("general_settings.$key", $value)
-          ->save();
+        $this->manager->gacPreAddField($type, $config_factory, $key, $value);
       }
       else {
+        // Delete the field.
         if ($values['gac_type_remove_storage'] = TRUE && $value == 1) {
-          $this->manager->gacDeleteField($type);
-
-          // Update the gac_type_ configuration.
-          $config_factory->getEditable('google_analytics_counter.settings')
-            ->set("general_settings.$key", NULL)
-            ->save();
+          $this->manager->gacPreDeleteField($type, $config_factory, $key);
         }
 
-        // Delete the field for the type if it is unchecked.
-        // If no types are checked, the field storage is removed.
+        // If no gac_type_{content_type}s are checked, remove the field storage.
         else {
-          $this->manager->gacDeleteField($type);
-
-          // Update the gac_type_ configuration.
-          $config_factory->getEditable('google_analytics_counter.settings')
-            ->set("general_settings.$key", NULL)
-            ->save();
+          $this->manager->gacPreDeleteField($type, $config_factory, $key);
         }
       }
     }
