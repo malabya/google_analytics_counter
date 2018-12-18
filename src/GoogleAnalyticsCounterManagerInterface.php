@@ -136,6 +136,20 @@ interface GoogleAnalyticsCounterManagerInterface {
   public function updatePathCounts($index = 0);
 
   /**
+   * Prepares to add the custom field and saves the configuration.
+   *
+   * @param $type
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param $key
+   * @param $value
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function gacPreAddField($type, $config_factory, $key, $value);
+
+  /**
    * Adds the checked the fields.
    *
    * @param \Drupal\node\NodeTypeInterface $type
@@ -149,6 +163,17 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function gacAddField(NodeTypeInterface $type, $label = 'Google Analytics Counter');
+
+  /**
+   * Prepares to delete the custom field and saves the configuration.
+   *
+   * @param $type
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param $key
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function gacPreDeleteField($type, $config_factory, $key);
 
   /**
    * Deletes the unchecked field configurations.
