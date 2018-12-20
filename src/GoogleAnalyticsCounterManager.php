@@ -351,12 +351,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   public function reportData($parameters = [], $cache_options = []) {
     $config = $this->config;
 
-    // The total number of published nodes.
-    $query = \Drupal::entityQuery('node');
-    $query->condition('status', NodeInterface::PUBLISHED);
-    $total_nodes = $query->count()->execute();
-    $this->state->set('google_analytics_counter.total_nodes', $total_nodes);
-
     $ga_feed = $this->newGaFeed();
     if (!$ga_feed) {
       throw new \RuntimeException($this->t('The GoogleAnalyticsCounterFeed could not be initialized, is it authenticated?'));

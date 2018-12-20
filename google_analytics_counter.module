@@ -34,6 +34,13 @@ function google_analytics_counter_cron() {
   // and there is another cron triggered...
   \Drupal::state()->set('google_analytics_counter.cron_next_execution', \Drupal::time()->getRequestTime());
 
+  // Set the total number of published nodes.
+  $query = $database->select('node_field_data', 'nfd');
+  $query->fields('nfd', ['nid']);
+  $query->condition('status', NodeInterface::PUBLISHED);
+  $total_nodes = $query->countQuery()->execute()->fetchField();
+  \Drupal::state()->set('google_analytics_counter.total_nodes', $total_nodes);
+
   // On some systems, cron could be every minute. Throttle updating with the
   // cron_interval on the settings form.
   // To avoid this interval, set cron_interval to 0.
