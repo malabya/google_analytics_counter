@@ -45,7 +45,7 @@ function google_analytics_counter_cron() {
   // cron_interval on the settings form.
   // To avoid this interval, set cron_interval to 0.
   if (!\Drupal::time()->getRequestTime() >= \Drupal::state()->get('system.cron_last') + $interval) {
-    return;
+    return FALSE;
   }
 
   // Proceed no further if not authenticated.
@@ -53,7 +53,7 @@ function google_analytics_counter_cron() {
   $manager = \Drupal::service('google_analytics_counter.manager');
   if (!$manager->isAuthenticated()) {
     \Drupal::logger('google_analytics_counter')->alert('Google Analytics Counter is not authenticated or no Google Views have been added.');
-    return;
+    return FALSE;
   }
 
   /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
