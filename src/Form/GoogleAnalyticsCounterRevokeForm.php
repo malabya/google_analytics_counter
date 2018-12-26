@@ -6,6 +6,7 @@ use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -16,6 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
 
+  // Todo: __construct() and create() can be removed.
   /**
    * The state keyvalue collection.
    *
@@ -102,7 +104,7 @@ class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Revoke the state values.
-    $this->manager->gacDeleteState();
+    GoogleAnalyticsCounterHelper::gacDeleteState();
 
     // Set redirect.
     $form_state->setRedirectUrl($this->getCancelUrl());

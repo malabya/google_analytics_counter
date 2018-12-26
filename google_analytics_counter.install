@@ -24,13 +24,10 @@ function google_analytics_counter_requirements($phase) {
   $requirements = [];
   // Verify that the user has authenticated with Google Analytics.
   // If not, display a warning on the status page.
-  $config = \Drupal::config('google_analytics_counter.settings');
   $t_args = [
-    '%profile_id' => $config->get('general_settings.profile_id'),
     ':href' => Url::fromRoute('google_analytics_counter.admin_auth_form', [], ['absolute' => TRUE])
       ->toString(),
-    '@authentication_form' => 'authentication form',
-    '@href' => 'authenticate',
+    '@href' => 'authentication form',
   ];
   /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
   $manager = Drupal::service('google_analytics_counter.manager');
@@ -38,17 +35,17 @@ function google_analytics_counter_requirements($phase) {
   if ($manager->isAuthenticated() === TRUE) {
     $requirements['google_analytics_counter_authentication'] = [
       'title' => t('Google Analytics Counter'),
-      'description' => t('Google Analytics profile ga:%profile_id has been authenticated. You can revoke authentication on the <a href=:href>@authentication_form</a>.', $t_args),
+      'description' => t('You can revoke authentication on the <a href=:href>@href</a>.', $t_args),
       'severity' => REQUIREMENT_OK,
-      'value' => t('Google Analytics has been authenticated'),
+      'value' => t('Google Analytics have been authenticated.'),
     ];
   }
   else {
     $requirements['google_analytics_counter_authentication'] = [
       'title' => t('Google Analytics Counter'),
-      'description' => t('Google Analytics has <strong>not</strong> been authenticated. Authenticate with Google on the <a href=:href>@authentication_form</a>.', $t_args),
+      'description' => t('Authenticate with Google on the <a href=:href>@href</a>.', $t_args),
       'severity' => REQUIREMENT_ERROR,
-      'value' => t('Google Analytics has not been authenticated.'),
+      'value' => t('Google Analytics have not been authenticated.'),
     ];
   }
 
@@ -61,61 +58,58 @@ function google_analytics_counter_requirements($phase) {
  * See http://drupal.org/node/146939
  */
 function google_analytics_counter_schema() {
-  $schema['google_analytics_counter'] = array(
+  $schema['google_analytics_counter'] = [
     'description' => 'Stores URIs and pageviews from Google Analytics.',
-    'fields' => array(
-      'pagepath_hash' => array(
+    'fields' => [
+      'pagepath_hash' => [
         'type' => 'varchar',
         'length' => 32,
         'description' => 'md5 hash of the relative page path.',
         'not null' => TRUE,
-      ),
-      'pagepath' => array(
+      ],
+      'pagepath' => [
         'type' => 'varchar',
-        // Varchar faster than text on MySQL (not creating temp table on disk);
-        // see http://drupal.org/node/146939#comment-2281846
         'length' => 2048,
-        // See http://stackoverflow.com/a/417184/269383
         'description' => 'Relative page path, for example "node/1" or "contact", as stored by GA.',
         'not null' => TRUE,
-      ),
-      'pageviews' => array(
+      ],
+      'pageviews' => [
         'type' => 'int',
         'size' => 'big',
         'description' => 'Pageview count.',
         'unsigned' => TRUE,
         'default' => 0,
         'not null' => TRUE,
-      ),
-    ),
-    'primary key' => array('pagepath_hash'),
-    'indexes' => array(
-      'pagepath' => array(array('pagepath', 20)),
-      'pageviews' => array('pageviews'),
-    ),
-  );
+      ],
+    ],
+    'primary key' => ['pagepath_hash'],
+    'indexes' => [
+      'pagepath' => [['pagepath', 20]],
+      'pageviews' => ['pageviews'],
+    ],
+  ];
 
-  $schema['google_analytics_counter_storage'] = array(
+  $schema['google_analytics_counter_storage'] = [
     'description' => 'Stores node ids for nodes only that have pageview totals.',
-    'fields' => array(
-      'nid' => array(
+    'fields' => [
+      'nid' => [
         'description' => 'Node IDs',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-      'pageview_total' => array(
+      ],
+      'pageview_total' => [
         'description' => 'Total pageview counts',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-    ),
-    'primary key' => array('nid'),
-    'indexes' => array(
-      'pageview_total' => array('pageview_total'),
-    ),
-  );
+      ],
+    ],
+    'indexes' => [
+      'nid' => ['nid'],
+      'pageview_total' => ['pageview_total'],
+    ],
+  ];
 
   return $schema;
 }
@@ -124,18 +118,16 @@ function google_analytics_counter_schema() {
  * Implements hook_install().
  */
 function google_analytics_counter_install() {
-  GoogleAnalyticsCounterHelper::gacSaveGacTypeConfig();
+  GoogleAnalyticsCounterHelper::gacSaveTypeConfig();
 }
 
 /**
  * Implements hook_uninstall().
  */
 function google_analytics_counter_uninstall() {
-  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
-  $manager = Drupal::service('google_analytics_counter.manager');
 
   // Revoke the state values.
-  $manager->gacDeleteState();
+  GoogleAnalyticsCounterHelper::gacDeleteState();
 
   // Remove queued items from the database.
   GoogleAnalyticsCounterHelper::gacRemoveQueuedItems();
@@ -237,6 +229,6 @@ function google_analytics_counter_update_8007() {
  * Issue #3020811: Move Configure types form into its own tab.
  */
 function google_analytics_counter_update_8008() {
-  GoogleAnalyticsCounterHelper::gacSaveGacTypeConfig();
+  GoogleAnalyticsCounterHelper::gacSaveTypeConfig();
 }
 

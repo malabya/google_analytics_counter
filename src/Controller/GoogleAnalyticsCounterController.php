@@ -7,7 +7,9 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -53,6 +55,13 @@ class GoogleAnalyticsCounterController extends ControllerBase {
   protected $manager;
 
   /**
+   * The Google Analytics Counter message manager.
+   *
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface
+   */
+  protected $messageManager;
+
+  /**
    * Constructs a Dashboard object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -63,13 +72,16 @@ class GoogleAnalyticsCounterController extends ControllerBase {
    *   The date formatter service.
    * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
    *   Google Analytics Counter Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface $message_manager
+   *   Google Analytics Counter Manager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, DateFormatter $date_formatter, GoogleAnalyticsCounterManagerInterface $manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, DateFormatter $date_formatter, GoogleAnalyticsCounterManagerInterface $manager, GoogleAnalyticsCounterMessageManagerInterface $message_manager) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->state = $state;
     $this->dateFormatter = $date_formatter;
     $this->time = \Drupal::service('datetime.time');
     $this->manager = $manager;
+    $this->messageManager = $message_manager;
   }
 
   /**
@@ -80,7 +92,8 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       $container->get('config.factory'),
       $container->get('state'),
       $container->get('date.formatter'),
-      $container->get('google_analytics_counter.manager')
+      $container->get('google_analytics_counter.manager'),
+      $container->get('google_analytics_counter.message_manager')
     );
   }
 
@@ -92,10 +105,10 @@ class GoogleAnalyticsCounterController extends ControllerBase {
 
     if (!$this->manager->isAuthenticated() === TRUE) {
       $build = [];
-      $this->manager->notAuthenticatedMessage();
+      $this->messageManager->notAuthenticatedMessage();
 
       // Add a link to the revoke form.
-      $build = $this->manager->revokeAuthenticationMessage($build);
+      $build = $this->messageManager->revokeAuthenticationMessage($build);
 
       return $build;
     }
@@ -222,7 +235,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $build['drupal_info']['queue_count'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->t('%queue_count items are in the queue. The number of items in the queue should be 0 after cron runs.<br /><strong>Note:</strong> Having 0 items in the queue confirms that pageview counts are up to date. Increase Queue Time on the <a href=:href>@href</a> to process all the queued items.', $t_args),
+      '#value' => $this->t('%queue_count items are in the queue. The number of items in the queue should be 0 after cron runs.<br />Having 0 items in the queue confirms that pageview counts are up to date. Increase Queue Time on the <a href=:href>@href</a> to process all the queued items.', $t_args),
     ];
 
     // Top Twenty Results.
@@ -248,7 +261,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t("A pagepath can include paths that don't have an NID, like /search."),
     ];
 
-    $rows = $this->manager->getTopTwentyResults('google_analytics_counter');
+    $rows = $this->messageManager->getTopTwentyResults('google_analytics_counter');
     // Display table.
     $build['drupal_info']['top_twenty_results']['counter']['table'] = [
       '#type' => 'table',
@@ -275,7 +288,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       '#value' => $this->t('A pageview total may be greater than PAGEVIEWS because a pageview total includes page aliases, node/id, and node/id/ URIs.'),
     ];
 
-    $rows = $this->manager->getTopTwentyResults('google_analytics_counter_storage');
+    $rows = $this->messageManager->getTopTwentyResults('google_analytics_counter_storage');
     // Display table.
     $build['drupal_info']['top_twenty_results']['storage']['table'] = [
       '#type' => 'table',
@@ -318,7 +331,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     }
 
     // Add a link to the revoke form.
-    $build = $this->manager->revokeAuthenticationMessage($build);
+    $build = $this->messageManager->revokeAuthenticationMessage($build);
 
     return $build;
   }

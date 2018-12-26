@@ -7,7 +7,9 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -32,6 +34,13 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
   protected $manager;
 
   /**
+   * The Google Analytics Counter message manager.
+   *
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface
+   */
+  protected $messageManager;
+
+  /**
    * Constructs an instance of GoogleAnalyticsCounterSettingsForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -40,11 +49,14 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
    *   The state keyvalue collection to use.
    * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
    *   Google Analytics Counter Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface $message_manager
+   *   Google Analytics Counter Message Manager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager, GoogleAnalyticsCounterMessageManagerInterface $message_manager) {
     parent::__construct($config_factory);
     $this->state = $state;
     $this->manager = $manager;
+    $this->messageManager = $message_manager;
   }
 
   /**
@@ -54,7 +66,8 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('state'),
-      $container->get('google_analytics_counter.manager')
+      $container->get('google_analytics_counter.manager'),
+      $container->get('google_analytics_counter.message_manager')
     );
   }
 
@@ -105,7 +118,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     $t_args = [
       ':href' => Url::fromUri('https://developers.google.com/analytics/devguides/reporting/core/v3/limits-quotas')->toString(),
       '@href' => 'Limits and Quotas on API Requests',
-      ':href2' => $this->manager->googleProjectName(),
+      ':href2' => $this->messageManager->googleProjectName(),
       '@href2' => 'Analytics API',
     ];
     $form['api_dayquota'] = [
@@ -128,8 +141,9 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
+    $get_count = GoogleAnalyticsCounterHelper::getCount('queue');
     $t_arg = [
-      '%queue_count' => $this->manager->getCount('queue'),
+      '%queue_count' => $get_count,
     ];
     $form['queue_time'] = [
       '#type' => 'number',
@@ -139,8 +153,8 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#max' => 10000,
       '#required' => TRUE,
       '#description' => $this->t('%queue_count items are in the queue. The number of items in the queue should be 0 after cron runs.', $t_arg) .
-        '<br /><strong>' . $this->t('Note:') .'</strong>'. $this->t(' Having 0 items in the queue confirms that pageview counts are up to date. Increase Queue Time to process all the queued items during a single cron run. Default: 120 seconds.') .
-        '<br />' . $this->t('Changing the Queue Time will require that the cache to be cleared, which may take a minute after submission.'),
+        '<br />' . $this->t('Having 0 items in the queue confirms that pageview counts are up to date. Increase Queue Time to process all the queued items during a single cron run. Default: 120 seconds.') .
+        '<br /><strong>' . $this->t('Note: ') .'</strong>'. $this->t('Changing the Queue Time will require that the cache to be cleared, which may take a minute after submission.'),
     ];
 
     // Google Analytics start date settings.
@@ -221,7 +235,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     ];
 
     if ($this->manager->isAuthenticated() !== TRUE) {
-      $this->manager->notAuthenticatedMessage();
+      $this->messageManager->notAuthenticatedMessage();
     }
 
     return parent::buildForm($form, $form_state);

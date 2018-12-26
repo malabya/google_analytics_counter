@@ -3,7 +3,6 @@
 namespace Drupal\google_analytics_counter;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Config\FileStorage;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Messenger\MessengerInterface;
@@ -12,10 +11,6 @@ use Drupal\Core\Path\PathMatcherInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
-use Drupal\field\Entity\FieldConfig;
-use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\node\NodeInterface;
-use Drupal\node\NodeTypeInterface;
 use Exception;
 use Psr\Log\LoggerInterface;
 
@@ -41,18 +36,18 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   protected $config;
 
   /**
-   * The state where all the tokens are saved.
-   *
-   * @var \Drupal\Core\State\StateInterface
-   */
-  protected $state;
-
-  /**
    * The database connection service.
    *
    * @var \Drupal\Core\Database\Connection
    */
   protected $connection;
+
+  /**
+   * The state where all the tokens are saved.
+   *
+   * @var \Drupal\Core\State\StateInterface
+   */
+  protected $state;
 
   /**
    * The path alias manager.
@@ -104,10 +99,19 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   protected $time;
 
   /**
-   * Constructs an Importer object.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface.
+   *
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface
+   */
+  protected $customField;
+
+  /**
+   * Constructs a Google Analytics Counter object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The factory for configuration objects.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   A database connection.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state of the drupal site.
    * @param \Drupal\Core\Database\Connection $connection
@@ -122,33 +126,37 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   A logger instance.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field
+   *   The Google Analytics Counter custom field generator.
    */
   public function __construct(
-    ConfigFactoryInterface $config_factory,
-    StateInterface $state,
-    Connection $connection,
-    AliasManagerInterface $alias_manager,
-    PathMatcherInterface $path_matcher,
-    LanguageManagerInterface $language,
-    LoggerInterface $logger,
-    MessengerInterface $messenger
-  ) {
+    ConfigFactoryInterface $config_factory, Connection $connection, StateInterface $state, AliasManagerInterface $alias_manager, PathMatcherInterface $path_matcher, LanguageManagerInterface $language, LoggerInterface $logger, MessengerInterface $messenger, GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
-    $this->state = $state;
     $this->connection = $connection;
+    $this->state = $state;
     $this->aliasManager = $alias_manager;
     $this->pathMatcher = $path_matcher;
     $this->languageManager = $language;
     $this->logger = $logger;
     $this->messenger = $messenger;
     $this->time = \Drupal::service('datetime.time');
-
     $this->prefixes = [];
     // The 'url' will return NULL when it is not a multilingual site.
     $language_url = $config_factory->get('language.negotiation')->get('url');
     if ($language_url) {
       $this->prefixes = $language_url['prefixes'];
     }
+    $this->customField = $custom_field;
+  }
+
+  /**
+   * Check to make sure we are authenticated with google.
+   *
+   * @return bool
+   *   True if there is a refresh token set.
+   */
+  public function isAuthenticated() {
+    return $this->state->get('google_analytics_counter.access_token') != NULL ? TRUE : FALSE;
   }
 
   /**
@@ -162,16 +170,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
     $gafeed = new GoogleAnalyticsCounterFeed();
     $gafeed->beginAuthentication($this->config->get('general_settings.client_id'), $redirect_uri);
-  }
-
-  /**
-   * Check to make sure we are authenticated with google.
-   *
-   * @return bool
-   *   True if there is a refresh token set.
-   */
-  public function isAuthenticated() {
-    return $this->state->get('google_analytics_counter.access_token') != NULL ? TRUE : FALSE;
   }
 
   /**
@@ -300,7 +298,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $step = $this->state->get('google_analytics_counter.data_step');
     $chunk = $config->get('general_settings.chunk_to_fetch');
 
-    // Set the pointer.
+    // Initialize the pointer.
     $pointer = $step * $chunk + 1;
 
     $parameters = [
@@ -386,6 +384,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     if (!empty($ga_feed->results->dataLastRefreshed)) {
       $this->state->set('google_analytics_counter.data_last_refreshed', $ga_feed->results->dataLastRefreshed);
     }
+
     // The first selfLink query to Google. Helpful for debugging in the dashboard.
     $this->state->set('google_analytics_counter.most_recent_query', $ga_feed->results->selfLink);
 
@@ -426,69 +425,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $this->state->set('google_analytics_counter.data_step', $new_step);
 
     return $ga_feed;
-  }
-
-  /**
-   * Get the count of pageviews for a path.
-   *
-   * @param string $path
-   *   The path to look up.
-   *
-   * @return string
-   *   Count of page views.
-   */
-  public function displayGacCount($path) {
-    // Make sure the path starts with a slash.
-    $path = '/' . trim($path, ' /');
-
-    // It's the front page.
-    if ($this->pathMatcher->isFrontPage()) {
-      $aliases = ['/'];
-      $sum_of_pageviews = $this->sumPageviews($aliases);
-    }
-    else {
-      // Look up the alias, with, and without trailing slash.
-      $aliases = [
-        $this->aliasManager->getAliasByPath($path),
-        $path,
-        $path . '/',
-      ];
-
-      $sum_of_pageviews = $this->sumPageviews($aliases);
-    }
-
-    return number_format($sum_of_pageviews);
-  }
-
-  /****************************************************************************/
-  // Query functions.
-  /****************************************************************************/
-
-  /**
-   * Look up the count via the hash of the paths.
-   *
-   * @param $aliases
-   *   The pagepaths.
-   * @param $profile_id
-   *   The current profile_id.
-   *
-   * @return string
-   *   Count of views.
-   */
-  protected function sumPageviews($aliases) {
-    // $aliases can make pageview_total greater than pageviews
-    // because $aliases can include page aliases, node/id, and node/id/ URIs.
-    $hashes = array_map('md5', $aliases);
-    $path_counts = $this->connection->select('google_analytics_counter', 'gac')
-      ->fields('gac', ['pageviews'])
-      ->condition('pagepath_hash', $hashes, 'IN')
-      ->execute();
-    $sum_of_pageviews = 0;
-    foreach ($path_counts as $path_count) {
-      $sum_of_pageviews += $path_count->pageviews;
-    }
-
-    return $sum_of_pageviews;
   }
 
   /**
@@ -553,86 +489,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Get the row count of a table, sometimes with conditions.
-   *
-   * @param string $table
-   * @return mixed
-   */
-  public function getCount($table) {
-    switch ($table) {
-      case 'google_analytics_counter_storage':
-        $query = $this->connection->select($table, 't');
-        $query->addField('t', 'field_pageview_total');
-        $query->condition('pageview_total', 0, '>');
-        break;
-      case 'node_counter':
-        $query = $this->connection->select($table, 't');
-        $query->addField('t', 'field_totalcount');
-        $query->condition('totalcount', 0, '>');
-        break;
-      case 'google_analytics_counter_storage_all_nodes':
-        $query = $this->connection->select('google_analytics_counter_storage', 't');
-        break;
-      case 'node_field_data':
-        $query = $this->connection->select('node_field_data', 'nfd');
-        $query->fields('nfd');
-        $query->condition('status', NodeInterface::PUBLISHED);
-        break;
-      case 'queue':
-        $query = $this->connection->select('queue', 'q');
-        $query->condition('name', 'google_analytics_counter_worker', '=');
-        break;
-      default:
-        $query = $this->connection->select($table, 't');
-        break;
-    }
-    return $query->countQuery()->execute()->fetchField();
-  }
-
-  /**
-   * Get the the top twenty results for pageviews and pageview_totals.
-   *
-   * @param string $table
-   *   The table from which the results are selected.
-   *
-   * @return mixed
-   */
-  public function getTopTwentyResults($table) {
-    $query = $this->connection->select($table, 't');
-    $query->range(0, 20);
-    $rows = [];
-    switch ($table) {
-      case 'google_analytics_counter':
-        $query->fields('t', ['pagepath', 'pageviews']);
-        $query->orderBy('pageviews', 'DESC');
-        $result = $query->execute()->fetchAll();
-        $rows = [];
-        foreach ($result as $value) {
-          $rows[] = [
-            $value->pagepath,
-            $value->pageviews,
-          ];
-        }
-        break;
-      case 'google_analytics_counter_storage':
-        $query->fields('t', ['nid', 'pageview_total']);
-        $query->orderBy('pageview_total', 'DESC');
-        $result = $query->execute()->fetchAll();
-        foreach ($result as $value) {
-          $rows[] = [
-            $value->nid,
-            $value->pageview_total,
-          ];
-        }
-        break;
-      default:
-        break;
-    }
-
-    return $rows;
-  }
-
-  /**
    * Save the pageview count for a given node.
    *
    * @param integer $nid
@@ -644,7 +500,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *
    * @throws \Exception
    */
-  public function updateStorage($nid, $bundle, $vid) {
+  public function gacUpdateStorage($nid, $bundle, $vid) {
     // Get all the aliases for a given node id.
     $aliases = [];
     $path = '/node/' . $nid;
@@ -676,6 +532,32 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
+   * Look up the count via the hash of the paths.
+   *
+   * @param $aliases
+   *   The pagepaths.
+   * @param $profile_id
+   *   The current profile_id.
+   *
+   * @return string
+   *   Count of views.
+   */
+  protected function sumPageviews($aliases) {
+    // $aliases can make pageview_total greater than pageviews
+    // because $aliases can include page aliases, node/id, and node/id/ URIs.
+    $hashes = array_map('md5', $aliases);
+    $path_counts = $this->connection->select('google_analytics_counter', 'gac')
+      ->fields('gac', ['pageviews'])
+      ->condition('pagepath_hash', $hashes, 'IN')
+      ->execute();
+    $sum_of_pageviews = 0;
+    foreach ($path_counts as $path_count) {
+      $sum_of_pageviews += $path_count->pageviews;
+    }
+
+    return $sum_of_pageviews;
+  }
+  /**
    * Update the path counts.
    *
    * @param int $index
@@ -685,19 +567,19 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *
    * @throws \Exception
    */
-  public function updatePathCounts($index = 0) {
+  public function gacUpdatePathCounts($index = 0) {
     $feed = $this->getChunkedResults($index);
 
     foreach ($feed->results->rows as $value) {
       // Use only the first 2047 characters of the pagepath. This is extremely long
-      // but Google does store everything and Drupal can make URIs (like in views) that long.
+      // but Google does store every URI and bots will make URIs longer than that.
       $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
 
       // Update the Google Analytics Counter.
       $this->connection->merge('google_analytics_counter')
         ->key('pagepath_hash', md5($page_path))
         ->fields([
-          // Escape the path see https://www.drupal.org/node/2381703
+          // Todo: Escape $page_path.
           'pagepath' => $page_path,
           'pageviews' => $value['pageviews'],
         ])
@@ -709,249 +591,39 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /****************************************************************************/
-  // Field functions.
+  // Display gac count in the block and the filter.
   /****************************************************************************/
 
   /**
-   * Prepares to add the custom field and saves the configuration.
+   * Get the count of pageviews for a path.
    *
-   * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   * @param $key
-   * @param $value
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  public function gacPreAddField($type, $config_factory, $key, $value) {
-    $this->gacAddField($type);
-
-    // Update the gac_type_{content_type} configuration.
-    $config_factory->getEditable('google_analytics_counter.settings')
-      ->set("general_settings.$key", $value)
-      ->save();
-  }
-
-  /**
-   * Adds the checked the fields.
-   *
-   * @param \Drupal\node\NodeTypeInterface $type
-   *   A node type entity.
-   * @param string $label
-   *   The formatter label display setting.
-   *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\field\Entity\FieldConfig|null
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  public function gacAddField(NodeTypeInterface $type, $label = 'Google Analytics Counter') {
-
-    // Check if field storage exists.
-    $config = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
-    if (!isset($config)) {
-      // Obtain configuration from yaml files
-      $config_path = 'modules/contrib/google_analytics_counter/config/optional';
-      $source = new FileStorage($config_path);
-
-      // Obtain the storage manager for field storage bases.
-      // Create the new field configuration from the yaml configuration and save.
-      \Drupal::entityTypeManager()->getStorage('field_storage_config')
-        ->create($source->read('field.storage.node.field_google_analytics_counter'))
-        ->save();
-    }
-
-    // Add the checked fields.
-    $field_storage = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
-    $field = FieldConfig::loadByName('node', $type->id(), 'field_google_analytics_counter');
-    if (empty($field)) {
-      $field = FieldConfig::create([
-        'field_storage' => $field_storage,
-        'bundle' => $type->id(),
-        'label' => $label,
-        'description' => t('This field stores Google Analytics pageviews.'),
-        'field_name' => 'field_google_analytics_counter',
-        'entity_type' => 'node',
-        'settings' => array('display_summary' => TRUE),
-      ]);
-      $field->save();
-
-      // Assign widget settings for the 'default' form mode.
-      entity_get_form_display('node', $type->id(), 'default')
-        ->setComponent('google_analytics_counter', array(
-          'type' => 'textfield',
-          '#maxlength' => 255,
-          '#default_value' => 0,
-          '#description' => t('This field stores Google Analytics pageviews.'),
-        ))
-        ->save();
-
-      // Assign display settings for the 'default' and 'teaser' view modes.
-      entity_get_display('node', $type->id(), 'default')
-        ->setComponent('google_analytics_counter', array(
-          'label' => 'hidden',
-          'type' => 'textfield',
-        ))
-        ->save();
-
-      // The teaser view mode is created by the Standard profile and therefore
-      // might not exist.
-      $view_modes = \Drupal::entityManager()->getViewModes('node');
-      if (isset($view_modes['teaser'])) {
-        entity_get_display('node', $type->id(), 'teaser')
-          ->setComponent('google_analytics_counter', array(
-            'label' => 'hidden',
-            'type' => 'textfield',
-          ))
-          ->save();
-      }
-    }
-
-    return $field;
-  }
-
-  /**
-   * Prepares to delete the custom field and saves the configuration.
-   *
-   * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   * @param $key
-   *
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  public function gacPreDeleteField($type, $config_factory, $key) {
-    $this->gacDeleteField($type);
-
-    // Update the gac_type_{content_type} configuration.
-    $config_factory->getEditable('google_analytics_counter.settings')
-      ->set("general_settings.$key", NULL)
-      ->save();
-  }
-
-  /**
-   * Deletes the unchecked field configurations.
-   *
-   * @param \Drupal\node\NodeTypeInterface $type
-   *   A node type entity.
-   *
-   * @return null|void
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   *
-   * @see GoogleAnalyticsCounterConfigureTypesForm
-   */
-  public function gacDeleteField(NodeTypeInterface $type) {
-    // Check if field exists on the content type.
-    $content_type = $type->id();
-    $config = FieldConfig::loadByName('node', $content_type, 'field_google_analytics_counter');
-    if (!isset($config)) {
-      return NULL;
-    }
-    // Delete the field from the content type.
-    FieldConfig::loadByName('node', $content_type, 'field_google_analytics_counter')->delete();
-  }
-
-  /****************************************************************************/
-  // Message functions.
-  /****************************************************************************/
-
-  /**
-   * Prints a warning message when not authenticated.
-   *
-   * @param $build
-   *
-   */
-  public function notAuthenticatedMessage($build = []) {
-    $t_arg = [
-      ':href' => Url::fromRoute('google_analytics_counter.admin_auth_form', [], ['absolute' => TRUE])
-        ->toString(),
-      '@href' => 'Authentication',
-    ];
-    \Drupal::messenger()->addWarning(t('Google Analytics have not been authenticated! Google Analytics Counter cannot fetch any new data. Please authenticate with Google from the <a href=:href>@href</a> page.', $t_arg));
-
-    // Revoke Google authentication.
-    $this->revokeAuthenticationMessage($build);
-  }
-
-  /**
-   * Revoke Google Authentication Message.
-   *
-   * @param $build
-   * @return mixed
-   */
-  public function revokeAuthenticationMessage($build) {
-    $t_args = [
-      ':href' => Url::fromRoute('google_analytics_counter.admin_auth_revoke', [], ['absolute' => TRUE])
-        ->toString(),
-      '@href' => 'revoking Google authentication',
-    ];
-    $build['cron_information']['revoke_authentication'] = [
-      '#markup' => t("If there's a problem with OAUTH authentication, try <a href=:href>@href</a>.", $t_args),
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
-    ];
-    return $build;
-  }
-
-  /**
-   * Returns the link with the Google project name if it is available.
+   * @param string $path
+   *   The path to look up.
    *
    * @return string
-   *   Project name.
+   *   Count of page views.
    */
-  public function googleProjectName() {
-    $config = $this->config;
-    $project_name = !empty($config->get('general_settings.project_name')) ?
-      Url::fromUri('https://console.developers.google.com/apis/api/analytics.googleapis.com/quotas?project=' . $config->get('general_settings.project_name'))
-        ->toString() :
-      Url::fromUri('https://console.developers.google.com/apis/api/analytics.googleapis.com/quotas')
-        ->toString();
+  public function displayGacCount($path) {
+    // Make sure the path starts with a slash.
+    $path = '/' . trim($path, ' /');
 
-    return $project_name;
-  }
-
-  /**
-   * Get the Profile name of the Google view from Drupal.
-   *
-   * @param string $profile_id
-   *   The profile id used in the google query.
-   *
-   * @return string mixed
-   */
-  public function getProfileName($profile_id) {
-
-    $profile_id = $this->state->get('google_analytics_counter.total_pageviews_' . $profile_id);
-    if (!empty($profile_id)) {
-      $profile_name = '<strong>' . $profile_id[key($profile_id)] . '</strong>';
+    // It's the front page.
+    if ($this->pathMatcher->isFrontPage()) {
+      $aliases = ['/'];
+      $sum_of_pageviews = $this->sumPageviews($aliases);
     }
     else {
-      $profile_name = '<strong>' . $this->t('Profile name is available after cron runs.') . '</strong>';
+      // Look up the alias, with, and without trailing slash.
+      $aliases = [
+        $this->aliasManager->getAliasByPath($path),
+        $path,
+        $path . '/',
+      ];
+
+      $sum_of_pageviews = $this->sumPageviews($aliases);
     }
-    return $profile_name;
+
+    return number_format($sum_of_pageviews);
   }
-
-
-  /****************************************************************************/
-  // Uninstall functions.
-  /****************************************************************************/
-
-  /**
-   * Delete states.
-   */
-  public function gacDeleteState() {
-    $this->state->deleteMultiple([
-      'google_analytics_counter.access_token',
-      'google_analytics_counter.cron_next_execution',
-      'google_analytics_counter.data_last_refreshed',
-      'google_analytics_counter.data_step',
-      'google_analytics_counter.expires_at',
-      'google_analytics_counter.most_recent_query',
-      'google_analytics_counter.refresh_token',
-      'google_analytics_counter.total_nodes',
-      'google_analytics_counter.total_pageviews',
-      'google_analytics_counter.total_paths',
-    ]);
-  }
-
 
 }

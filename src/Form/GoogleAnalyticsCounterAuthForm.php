@@ -6,8 +6,8 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface;
 use Drupal\Core\State\StateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -40,6 +40,13 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
   protected $manager;
 
   /**
+   * The Google Analytics Counter message manager.
+   *
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface
+   */
+  protected $messageManager;
+
+  /**
    * Constructs a new SiteMaintenanceModeForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -48,11 +55,15 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
    *   The state keyvalue collection to use.
    * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
    *   Google Analytics Counter Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface $message_manager
+   *   Google Analytics Counter Message Manager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager, GoogleAnalyticsCounterMessageManagerInterface $message_manager) {
+    parent::__construct($config_factory);
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->state = $state;
     $this->manager = $manager;
+    $this->messageManager = $message_manager;
   }
 
   /**
@@ -62,7 +73,8 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('state'),
-      $container->get('google_analytics_counter.manager')
+      $container->get('google_analytics_counter.manager'),
+      $container->get('google_analytics_counter.message_manager')
     );
   }
 
@@ -187,7 +199,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     ];
 
     $t_args = [
-      ':href' => $this->manager->googleProjectName(),
+      ':href' => $this->messageManager->googleProjectName(),
       '@href' => 'Analytics API',
     ];
 
@@ -221,12 +233,6 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     switch ($form_state->getValue('op')) {
       case (string) $this->t('Authenticate'):
         $this->manager->beginGacAuthentication();
-        if (!empty($config->get('general_settings.profile_id_prefill'))) {
-          \Drupal::configFactory()
-            ->getEditable('google_analytics_counter.settings')
-            ->set('general_settings.profile_id', $config->get('general_settings.profile_id_prefill'))
-            ->save();
-        }
         break;
 
       case (string) $this->t('Revoke authentication'):

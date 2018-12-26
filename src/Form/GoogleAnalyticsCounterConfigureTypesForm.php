@@ -2,19 +2,13 @@
 
 namespace Drupal\google_analytics_counter\Form;
 
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfigFormBase;
-use Drupal\Core\Ajax\CloseDialogCommand;
-use Drupal\Core\Ajax\OpenModalDialogCommand;
-use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
-
 
 /**
  * The form for editing content types with the custom google analytics counter field.
@@ -45,13 +39,21 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
   protected $manager;
 
   /**
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface.
+   *
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface
+   */
+  protected $customField;
+
+  /**
    * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, MessengerInterface $messenger, GoogleAnalyticsCounterManagerInterface $manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, MessengerInterface $messenger, GoogleAnalyticsCounterManagerInterface $manager, GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field) {
     parent::__construct($config_factory);
     $this->configFactory = $config_factory;
     $this->messenger = $messenger;
     $this->manager = $manager;
+    $this->customField = $custom_field;
   }
 
   /**
@@ -61,7 +63,8 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('messenger'),
-      $container->get('google_analytics_counter.manager')
+      $container->get('google_analytics_counter.manager'),
+      $container->get('google_analytics_counter.custom_field_generator')
     );
   }
 
@@ -154,17 +157,17 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
 
       // Add the field if the field has been checked.
       if ($values['gac_type_remove_storage'] == FALSE && $value == 1) {
-        $this->manager->gacPreAddField($type, $config_factory, $key, $value);
+        $this->customField->gacPreAddField($type, $config_factory, $key, $value);
       }
       else {
         // Delete the field.
         if ($values['gac_type_remove_storage'] = TRUE && $value == 1) {
-          $this->manager->gacPreDeleteField($type, $config_factory, $key);
+          $this->customField->gacPreDeleteField($type, $config_factory, $key);
         }
 
         // If no gac_type_{content_type}s are checked, remove the field storage.
         else {
-          $this->manager->gacPreDeleteField($type, $config_factory, $key);
+          $this->customField->gacPreDeleteField($type, $config_factory, $key);
         }
       }
     }

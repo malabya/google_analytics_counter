@@ -3,8 +3,6 @@
 namespace Drupal\google_analytics_counter;
 
 
-use Drupal\node\NodeTypeInterface;
-
 /**
  * Class GoogleAnalyticsCounterManager.
  *
@@ -13,17 +11,17 @@ use Drupal\node\NodeTypeInterface;
 interface GoogleAnalyticsCounterManagerInterface {
 
   /**
-   * Begin authentication to Google authentication page with the client_id.
-   */
-  public function beginGacAuthentication();
-
-  /**
    * Check to make sure we are authenticated with google.
    *
    * @return bool
    *   True if there is a refresh token set.
    */
   public function isAuthenticated();
+
+  /**
+   * Begin authentication to Google authentication page with the client_id.
+   */
+  public function beginGacAuthentication();
 
   /**
    * Instantiate a new GoogleAnalyticsCounterFeed object.
@@ -80,36 +78,6 @@ interface GoogleAnalyticsCounterManagerInterface {
   public function reportData($parameters = [], $cache_options = []);
 
   /**
-   * Get the count of pageviews for a path.
-   *
-   * @param string $path
-   *   The path to look up.
-   *
-   * @return string
-   *   Count of page views.
-   */
-  public function displayGacCount($path);
-
-  /**
-   * Get the row count of a table, sometimes with conditions.
-   *
-   * @param string $table
-   *
-   * @return mixed
-   */
-  public function getCount($table);
-
-  /**
-   * Get the the top twenty results for pageviews and pageview_totals.
-   *
-   * @param string $table
-   *   The table from which the results are selected.
-   *
-   * @return mixed
-   */
-  public function getTopTwentyResults($table);
-
-  /**
    * Save the pageview count for a given node.
    *
    * @param integer $nid
@@ -121,7 +89,7 @@ interface GoogleAnalyticsCounterManagerInterface {
    *
    * @throws \Exception
    */
-  public function updateStorage($nid, $bundle, $vid);
+  public function gacUpdateStorage($nid, $bundle, $vid);
 
   /**
    * Update the path counts.
@@ -133,98 +101,16 @@ interface GoogleAnalyticsCounterManagerInterface {
    *
    * @throws \Exception
    */
-  public function updatePathCounts($index = 0);
+  public function gacUpdatePathCounts($index = 0);
 
   /**
-   * Prepares to add the custom field and saves the configuration.
+   * Get the count of pageviews for a path.
    *
-   * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   * @param $key
-   * @param $value
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  public function gacPreAddField($type, $config_factory, $key, $value);
-
-  /**
-   * Adds the checked the fields.
-   *
-   * @param \Drupal\node\NodeTypeInterface $type
-   *   A node type entity.
-   * @param string $label
-   *   The formatter label display setting.
-   *
-   * @return \Drupal\Core\Entity\EntityInterface|\Drupal\field\Entity\FieldConfig|null
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  public function gacAddField(NodeTypeInterface $type, $label = 'Google Analytics Counter');
-
-  /**
-   * Prepares to delete the custom field and saves the configuration.
-   *
-   * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   * @param $key
-   *
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   */
-  public function gacPreDeleteField($type, $config_factory, $key);
-
-  /**
-   * Deletes the unchecked field configurations.
-   *
-   * @param \Drupal\node\NodeTypeInterface $type
-   *   A node type entity.
-   *
-   * @return null|void
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   *
-   * @see GoogleAnalyticsCounterConfigureTypesForm
-   */
-  public function gacDeleteField(NodeTypeInterface $type);
-
-  /**
-   * Prints a warning message when not authenticated.
-   *
-   * @param $build
-   *
-   */
-  public function notAuthenticatedMessage($build = []);
-
-  /**
-   * Revoke Google Authentication Message.
-   *
-   * @param $build
-   *
-   * @return mixed
-   */
-  public function revokeAuthenticationMessage($build);
-
-  /**
-   * Returns the link with the Google project name if it is available.
+   * @param string $path
+   *   The path to look up.
    *
    * @return string
-   *   Project name.
+   *   Count of page views.
    */
-  public function googleProjectName();
-
-  /**
-   * Get the Profile name of the Google view from Drupal.
-   *
-   * @param string $profile_id
-   *   The profile id used in the google query.
-   *
-   * @return string mixed
-   */
-  public function getProfileName($profile_id);
-
-  /**
-   * Delete states.
-   */
-  public function gacDeleteState();
+  public function displayGacCount($path);
 }

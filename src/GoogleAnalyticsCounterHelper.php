@@ -3,6 +3,7 @@
 namespace Drupal\google_analytics_counter;
 
 use Drupal\Core\Entity\EditorialContentEntityBase;
+use Drupal\node\NodeInterface;
 
 /**
  * Provides Google Analytics Counter helper functions.
@@ -34,7 +35,7 @@ class GoogleAnalyticsCounterHelper extends EditorialContentEntityBase {
   /**
    * Creates the gac_type_{content_type} configuration on installation or update.
    */
-  public static function gacSaveGacTypeConfig() {
+  public static function gacSaveTypeConfig() {
     $config_factory = \Drupal::configFactory();
     $content_types = \Drupal::service('entity.manager')
       ->getStorage('node_type')
@@ -51,4 +52,67 @@ class GoogleAnalyticsCounterHelper extends EditorialContentEntityBase {
       }
     }
   }
+
+  /**
+   * Get the row count of a table, sometimes with conditions.
+   *
+   * @param string $table
+   * @return mixed
+   */
+  public static function getCount($table) {
+    $connection = \Drupal::database();
+
+    switch ($table) {
+      case 'google_analytics_counter_storage':
+        $query = $connection->select($table, 't');
+        $query->addField('t', 'field_pageview_total');
+        $query->condition('pageview_total', 0, '>');
+        break;
+      case 'node_counter':
+        $query = $connection->select($table, 't');
+        $query->addField('t', 'field_totalcount');
+        $query->condition('totalcount', 0, '>');
+        break;
+      case 'google_analytics_counter_storage_all_nodes':
+        $query = $connection->select('google_analytics_counter_storage', 't');
+        break;
+      case 'node_field_data':
+        $query = $connection->select('node_field_data', 'nfd');
+        $query->fields('nfd');
+        $query->condition('status', NodeInterface::PUBLISHED);
+        break;
+      case 'queue':
+        $query = $connection->select('queue', 'q');
+        $query->condition('name', 'google_analytics_counter_worker', '=');
+        break;
+      default:
+        $query = $connection->select($table, 't');
+        break;
+    }
+    return $query->countQuery()->execute()->fetchField();
+  }
+
+  /****************************************************************************/
+  // Uninstall functions.
+  /****************************************************************************/
+
+  /**
+   * Delete stored state values.
+   */
+  public static function gacDeleteState() {
+    \Drupal::state()->deleteMultiple([
+      'google_analytics_counter.access_token',
+      'google_analytics_counter.cron_next_execution',
+      'google_analytics_counter.expires_at',
+      'google_analytics_counter.refresh_token',
+      'google_analytics_counter.total_nodes',
+      'google_analytics_counter.data_last_refreshed',
+      'google_analytics_counter.profile_ids',
+      'google_analytics_counter.data_step',
+      'google_analytics_counter.most_recent_query',
+      'google_analytics_counter.total_pageviews',
+      'google_analytics_counter.total_paths',
+    ]);
+  }
+
 }
