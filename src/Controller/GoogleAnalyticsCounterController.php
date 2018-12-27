@@ -183,7 +183,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
 
     // Print a message about Google quotas with an embedded link to Analytics API.
     $t_args = [
-      ':href' => $this->manager->googleProjectName(),
+      ':href' => $this->messageManager->googleProjectName(),
       '@href' => 'Analytics API',
     ];
     $build['google_info']['daily_quota'] = [
@@ -202,7 +202,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $build['drupal_info']['number_paths_stored'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->t('%num_of_results paths are currently stored in the local database table.', ['%num_of_results' => number_format($this->manager->getCount('google_analytics_counter'))]),
+      '#value' => $this->t('%num_of_results paths are currently stored in the local database table.', ['%num_of_results' => number_format(GoogleAnalyticsCounterHelper::getCount('google_analytics_counter'))]),
     ];
 
     $build['drupal_info']['total_nodes'] = [
@@ -214,11 +214,11 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $build['drupal_info']['total_nodes_with_pageviews'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->t('%num_of_results nodes on this site have pageview counts <em>greater than zero</em>.', ['%num_of_results' => number_format($this->manager->getCount('google_analytics_counter_storage'))]),
+      '#value' => $this->t('%num_of_results nodes on this site have pageview counts <em>greater than zero</em>.', ['%num_of_results' => number_format(GoogleAnalyticsCounterHelper::getCount('google_analytics_counter_storage'))]),
     ];
 
     $t_args = [
-      '%num_of_results' => number_format($this->manager->getCount('google_analytics_counter_storage_all_nodes')),
+      '%num_of_results' => number_format(GoogleAnalyticsCounterHelper::getCount('google_analytics_counter_storage_all_nodes')),
     ];
     $build['drupal_info']['total_nodes_equal_zero'] = [
       '#type' => 'html_tag',
@@ -227,7 +227,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     ];
 
     $t_args = [
-      '%queue_count' => number_format($this->manager->getCount('queue')),
+      '%queue_count' => number_format(GoogleAnalyticsCounterHelper::getCount('queue')),
       ':href' => Url::fromRoute('google_analytics_counter.admin_settings_form', [], ['absolute' => TRUE])
         ->toString(),
       '@href' => 'settings form',
