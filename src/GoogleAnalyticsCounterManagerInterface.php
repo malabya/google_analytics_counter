@@ -41,15 +41,14 @@ interface GoogleAnalyticsCounterManagerInterface {
   public function getWebPropertiesOptions();
 
   /**
-   * Get the total results from Google.
+   * Get total results from Google.
    *
-   * @param int $index
-   *   The index of the chunk to fetch for the queue.
+   * @param string $profile_id
+   *   The profile id used in the google query.
    *
-   * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed
-   *   The returned feed after the request has been made.
+   * @return mixed
    */
-  public function getChunkedResults($index = 0);
+  public function getTotalResults();
 
   /**
    * Request report data.
@@ -78,6 +77,20 @@ interface GoogleAnalyticsCounterManagerInterface {
   public function reportData($parameters = [], $cache_options = []);
 
   /**
+   * Update the path counts.
+   *
+   * @param string $profile_id
+   *   The profile id used in the google query.
+   * @param string $index
+   *   The index of the chunk to fetch and update.
+   *
+   * This function is triggered by hook_cron().
+   *
+   * @throws \Exception
+   */
+  public function gacUpdatePathCounts($index = 0);
+
+  /**
    * Save the pageview count for a given node.
    *
    * @param integer $nid
@@ -92,16 +105,20 @@ interface GoogleAnalyticsCounterManagerInterface {
   public function gacUpdateStorage($nid, $bundle, $vid);
 
   /**
-   * Update the path counts.
+   * Set the parameters for the google query.
    *
-   * @param int $index
-   *   The index of the chunk to fetch and update.
-   *
-   * This function is triggered by hook_cron().
-   *
-   * @throws \Exception
+   * @return array
    */
-  public function gacUpdatePathCounts($index = 0);
+  public function setParameters();
+
+  /**
+   * Set cache options
+   *
+   * @param array $parameters
+   *
+   * @return array
+   */
+  public function setCacheOptions(array $parameters);
 
   /**
    * Get the count of pageviews for a path.
@@ -112,5 +129,5 @@ interface GoogleAnalyticsCounterManagerInterface {
    * @return string
    *   Count of page views.
    */
-  public function displayGacCount($path);
+  public function gacDisplayCount($path);
 }

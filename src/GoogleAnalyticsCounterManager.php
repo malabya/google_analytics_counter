@@ -2,6 +2,7 @@
 
 namespace Drupal\google_analytics_counter;
 
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -10,7 +11,6 @@ use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Path\PathMatcherInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Url;
 use Exception;
 use Psr\Log\LoggerInterface;
 
@@ -114,8 +114,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   A database connection.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state of the drupal site.
-   * @param \Drupal\Core\Database\Connection $connection
-   *   A database connection.
    * @param \Drupal\Core\Path\AliasManagerInterface $alias_manager
    *   The path alias manager to find aliased resources.
    * @param \Drupal\Core\Path\PathMatcherInterface $path_matcher
@@ -273,53 +271,27 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   }
 
   /**
-   * Sets the expiry timestamp for cached queries. Default is 1 day.
+   * Get total results from Google.
    *
-   * @return int
-   *   The UNIX timestamp to expire the query at.
+   * @param string $profile_id
+   *   The profile id used in the google query.
+   *
+   * @return mixed
    */
-  public static function cacheTime() {
-    $config = \Drupal::config('google_analytics_counter.settings');
-    return time() + $config->get('general_settings.cache_length');
-  }
+  public function getTotalResults() {
+    //Set Parameters for the Query to Google
+    $parameters = $this->setParameters();
 
-  /**
-   * Get the total results from Google.
-   *
-   * @param int $index
-   *   The index of the chunk to fetch for the queue.
-   *
-   * @return \Drupal\google_analytics_counter\GoogleAnalyticsCounterFeed
-   *   The returned feed after the request has been made.
-   */
-  public function getChunkedResults($index = 0) {
-    $config = $this->config;
+    // Set cache options in Drupal.
+    $cache_options = $this->setCacheOptions($parameters);
 
-    $step = $this->state->get('google_analytics_counter.data_step');
-    $chunk = $config->get('general_settings.chunk_to_fetch');
+    //Instantiate a new GoogleAnalyticsCounterFeed object.
+    $feed = $this->gacGetFeed($parameters, $cache_options);
 
-    // Initialize the pointer.
-    $pointer = $step * $chunk + 1;
+    // Set the total number of pagePaths for this profile from start_date to end_date.
+    $total_results = $this->state->set('google_analytics_counter.total_paths', $feed->results->totalResults);
 
-    $parameters = [
-      'profile_id' => 'ga:' . $config->get('general_settings.profile_id'),
-      'metrics' => ['ga:pageviews'],
-      'dimensions' => ['ga:pagePath'],
-      'start_date' => !empty($config->get('general_settings.fixed_start_date')) ? strtotime($config->get('general_settings.fixed_start_date')) : strtotime($config->get('general_settings.start_date')),
-      // If fixed dates are not in use, use 'tomorrow' to offset any timezone
-      // shift between the hosting and Google servers.
-      'end_date' => !empty($config->get('general_settings.fixed_end_date')) ? strtotime($config->get('general_settings.fixed_end_date')) : strtotime('tomorrow'),
-      'start_index' => $pointer,
-      'max_results' => $config->get('general_settings.chunk_to_fetch'),
-    ];
-
-    $cache_options = [
-      'cid' => 'google_analytics_counter_' . md5(serialize($parameters)),
-      'expire' => self::cacheTime(),
-      'refresh' => FALSE,
-    ];
-
-    return $this->reportData($parameters, $cache_options);
+    return $total_results;
   }
 
   /**
@@ -349,50 +321,28 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   public function reportData($parameters = [], $cache_options = []) {
     $config = $this->config;
 
-    $ga_feed = $this->newGaFeed();
-    if (!$ga_feed) {
-      throw new \RuntimeException($this->t('The GoogleAnalyticsCounterFeed could not be initialized, is it authenticated?'));
-    }
+    //Set Parameters for the Query to Google
+    $parameters = $this->setParameters();
 
-    $ga_feed->queryReportFeed($parameters, $cache_options);
+    // Set cache options in Drupal.
+    $cache_options = $this->setCacheOptions($parameters);
 
-    // DEBUG:
-    // drush_print($ga_feed->results->selfLink);
-    // drush_print($ga_feed->error);
-
-    // Handle errors here too.
-    if (!empty($ga_feed->error)) {
-      throw new \RuntimeException($ga_feed->error);
-    }
-
-    // Don't write anything to google_analytics_counter if this Google Analytics
-    // data comes from cache (would be writing the same again).
-    if (!$ga_feed->fromCache) {
-      // If NULL then there is no error.
-      if (!empty($ga_feed->error)) {
-        $t_args = [
-          ':href' => Url::fromRoute('google_analytics_counter.authentication', [], ['absolute' => TRUE])
-            ->toString(),
-          '@href' => 'here',
-          '%new_data_error' => $ga_feed->error,
-        ];
-        $this->logger->error('Problem fetching data from Google Analytics: %new_data_error. Did you authenticate any Google Analytics profile? See <a href=:href>@href</a>.', $t_args);
-      }
-    }
+    //Instantiate a new GoogleAnalyticsCounterFeed object.
+    $feed = $this->gacGetFeed($parameters, $cache_options);
 
     // The last time the Data was refreshed by Google. Not always available from Google.
-    if (!empty($ga_feed->results->dataLastRefreshed)) {
-      $this->state->set('google_analytics_counter.data_last_refreshed', $ga_feed->results->dataLastRefreshed);
+    if (!empty($feed->results->dataLastRefreshed)) {
+      $this->state->set('google_analytics_counter.data_last_refreshed', $feed->results->dataLastRefreshed);
     }
 
     // The first selfLink query to Google. Helpful for debugging in the dashboard.
-    $this->state->set('google_analytics_counter.most_recent_query', $ga_feed->results->selfLink);
+    $this->state->set('google_analytics_counter.most_recent_query', $feed->results->selfLink);
 
     // The total number of pageViews for this profile from start_date to end_date.
-    $this->state->set('google_analytics_counter.total_pageviews', $ga_feed->results->totalsForAllResults['pageviews']);
+    $this->state->set('google_analytics_counter.total_pageviews', $feed->results->totalsForAllResults['pageviews']);
 
     // The total number of pagePaths for this profile from start_date to end_date.
-    $this->state->set('google_analytics_counter.total_paths', $ga_feed->results->totalResults);
+    $this->state->set('google_analytics_counter.total_paths', $feed->results->totalResults);
 
     // The number of results from Google Analytics in one request.
     $chunk = $config->get('general_settings.chunk_to_fetch');
@@ -407,15 +357,15 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $pointer += $chunk;
 
     $t_args = [
-      '@size_of' => sizeof($ga_feed->results->rows),
+      '@size_of' => sizeof($feed->results->rows),
       '@first' => ($pointer - $chunk),
-      '@second' => ($pointer - $chunk - 1 + sizeof($ga_feed->results->rows)),
+      '@second' => ($pointer - $chunk - 1 + sizeof($feed->results->rows)),
     ];
     $this->logger->info('Retrieved @size_of items from Google Analytics data for paths @first - @second.', $t_args);
 
     // Increase the step or set the step to 0 depending on whether
     // the pointer is less than or equal to the total results.
-    if ($pointer <= $ga_feed->results->totalResults) {
+    if ($pointer <= $feed->results->totalResults) {
       $new_step = $step + 1;
     }
     else {
@@ -424,68 +374,42 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
     $this->state->set('google_analytics_counter.data_step', $new_step);
 
-    return $ga_feed;
+    return $feed;
   }
 
   /**
-   * Merge the sum of pageviews into google_analytics_counter_storage.
+   * Update the path counts.
    *
-   * @param int $nid
-   *   Node id value.
-   * @param int $sum_of_pageviews
-   *   Count of page views.
-   * @param string $bundle
-   *   The content type of the node.
-   * @param int $vid
-   *   Revision id value.
+   * @param string $profile_id
+   *   The profile id used in the google query.
+   * @param string $index
+   *   The index of the chunk to fetch and update.
+   *
+   * This function is triggered by hook_cron().
    *
    * @throws \Exception
    */
-  protected function mergeCounterStorage($nid, $sum_of_pageviews, $bundle, $vid) {
-    $this->connection->merge('google_analytics_counter_storage')
-      ->key('nid', $nid)
-      ->fields(['pageview_total' => $sum_of_pageviews])
-      ->execute();
+  public function gacUpdatePathCounts($index = 0) {
+    $feed = $this->reportData($index);
 
-    // This is where the module gets expensive.
-    // Update the Google Analytics Counter field if it exists.
-    if (!$this->connection->schema()->tableExists(static::TABLE)) {
-      return;
-    }
+    foreach ($feed->results->rows as $value) {
+      // Use only the first 2047 characters of the pagepath. This is extremely long
+      // but Google does store everything and bots can make URIs that exceed that length.
+      $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
+      $page_path = SafeMarkup::checkPlain($page_path);
 
-    // Todo: This can be more performant by adding only the bundles that have been selected.
-    $query = $this->connection->select('node__field_google_analytics_counter', 'gac');
-    $query->fields('gac');
-    $query->condition('entity_id', $nid);
-    $entity_id = $query->execute()->fetchField();
-
-    if ($entity_id) {
-      $this->connection->update('node__field_google_analytics_counter')
+      // Update the Google Analytics Counter.
+      $this->connection->merge('google_analytics_counter')
+        ->key('pagepath_hash', md5($page_path))
         ->fields([
-          'bundle' => $bundle,
-          'deleted' => 0,
-          'entity_id' => $nid,
-          'revision_id' => $vid,
-          'langcode' => 'en',
-          'delta' => 0,
-          'field_google_analytics_counter_value' => $sum_of_pageviews,
-        ])
-        ->condition('entity_id', $entity_id)
-        ->execute();
-    }
-    else {
-      $this->connection->insert('node__field_google_analytics_counter')
-        ->fields([
-          'bundle' => $bundle,
-          'deleted' => 0,
-          'entity_id' => $nid,
-          'revision_id' => $vid,
-          'langcode' => 'en',
-          'delta' => 0,
-          'field_google_analytics_counter_value' => $sum_of_pageviews,
+          'pagepath' => $page_path,
+          'pageviews' => $value['pageviews'],
         ])
         ->execute();
     }
+
+    // Log the results.
+    $this->logger->info($this->t('Merged @count paths from Google Analytics into the database.', ['@count' => count($feed->results->rows)]));
   }
 
   /**
@@ -519,15 +443,17 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
       return $path . '/';
     }, $aliases));
 
+    // See scrum_notes/google_analytics_counter/aliases.md
+
     // It's the front page
     // Todo: Could be brittle
     if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
       $sum_of_pageviews = $this->sumPageviews(['/']);
-      $this->mergeCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
+      $this->updateCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
     }
     else {
       $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
-      $this->mergeCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
+      $this->updateCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
     }
   }
 
@@ -535,10 +461,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * Look up the count via the hash of the paths.
    *
    * @param $aliases
-   *   The pagepaths.
-   * @param $profile_id
-   *   The current profile_id.
-   *
    * @return string
    *   Count of views.
    */
@@ -557,41 +479,154 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
 
     return $sum_of_pageviews;
   }
+
   /**
-   * Update the path counts.
+   * Merge the sum of pageviews into google_analytics_counter_storage.
    *
-   * @param int $index
-   *   The index of the chunk to fetch and update.
-   *
-   * This function is triggered by hook_cron().
+   * @param int $nid
+   *   Node id value.
+   * @param int $sum_of_pageviews
+   *   Count of page views.
+   * @param string $bundle
+   *   The content type of the node.
+   * @param int $vid
+   *   Revision id value.
    *
    * @throws \Exception
    */
-  public function gacUpdatePathCounts($index = 0) {
-    $feed = $this->getChunkedResults($index);
+  protected function updateCounterStorage($nid, $sum_of_pageviews, $bundle, $vid) {
+    $config = $this->config;
 
-    foreach ($feed->results->rows as $value) {
-      // Use only the first 2047 characters of the pagepath. This is extremely long
-      // but Google does store every URI and bots will make URIs longer than that.
-      $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
+    $this->connection->merge('google_analytics_counter_storage')
+      ->key('nid', $nid)
+      ->fields([
+        'pageview_total' => $sum_of_pageviews,
+      ])
+      ->execute();
 
-      // Update the Google Analytics Counter.
-      $this->connection->merge('google_analytics_counter')
-        ->key('pagepath_hash', md5($page_path))
-        ->fields([
-          // Todo: Escape $page_path.
-          'pagepath' => $page_path,
-          'pageviews' => $value['pageviews'],
-        ])
-        ->execute();
-      }
+    // Update the Google Analytics Counter field if it exists.
+    if (!$this->connection->schema()->tableExists(static::TABLE)) {
+      return;
+    }
 
-    // Log the results.
-    $this->logger->info($this->t('Saved @count paths from Google Analytics into the database.', ['@count' => count($feed->results->rows)]));
+    // Todo: This can be more performant by adding only the bundles that have been selected.
+    $this->connection->upsert('node__field_google_analytics_counter')
+      ->key('revision_id')
+      ->fields(['bundle', 'deleted', 'entity_id', 'revision_id', 'langcode', 'delta', 'field_google_analytics_counter_value'])
+      ->values([
+        'bundle' => $bundle,
+        'deleted' => 0,
+        'entity_id' => $nid,
+        'revision_id' => $vid,
+        'langcode' => 'en',
+        'delta' => 0,
+        'field_google_analytics_counter_value' => $sum_of_pageviews,
+      ])
+      ->execute();
+  }
+
+  /**
+   * Set the parameters for the google query.
+   *
+   * @return array
+   */
+  public function setParameters() {
+    $config = $this->config;
+
+    $step = $this->state->get('google_analytics_counter.data_step');
+    $chunk = $config->get('general_settings.chunk_to_fetch');
+
+    // Initialize the pointer.
+    $pointer = $step * $chunk + 1;
+
+    /**
+    $parameters is an associative array containing:
+    - profile_id: required [default='ga:profile_id']
+    - dimensions: optional [ga:pagePath]
+    - metrics: required [ga:pageviews]
+    - sort: optional [ga:pageviews]
+    - start-date: [default=-1 week]
+    - end_date: optional [default=tomorrow]
+    - start_index: [default=1]
+    - max_results: optional [default=10,000].
+    - filters: optional [default=none]
+    - segment: optional [default=none]
+     */
+    $parameters = [
+      'profile_id' => 'ga:' . $config->get('general_settings.profile_id'),
+      'dimensions' => ['ga:pagePath'],
+      'metrics' => ['ga:pageviews'],
+      'sort_metric' => NULL,
+      'filters' => NULL,
+      'segment' => NULL,
+      'start_date' => !empty($config->get('general_settings.fixed_start_date')) ? strtotime($config->get('general_settings.fixed_start_date')) : strtotime($config->get('general_settings.start_date')),
+      // If fixed dates are not in use, use 'tomorrow' to offset any timezone
+      // shift between the hosting and Google servers.
+      'end_date' => !empty($config->get('general_settings.fixed_end_date')) ? strtotime($config->get('general_settings.fixed_end_date')) : strtotime('tomorrow'),
+      'start_index' => $pointer,
+      'max_results' => $chunk,
+    ];
+
+    return $parameters;
+  }
+
+  /**
+   * Set cache options
+   * @param array $parameters
+   *
+   * @return array
+   */
+  public function setCacheOptions(array $parameters) {
+
+    /**
+    $cache_options is an optional associative array containing:
+    - cid: optional [default=md5 hash]
+    - expire: optional [default=CACHE_TEMPORARY]
+    - refresh: optional [default=FALSE].
+     */
+    $cache_options = [
+      'cid' => 'google_analytics_counter_' . md5(serialize($parameters)),
+      'expire' => GoogleAnalyticsCounterHelper::cacheTime(),
+      'refresh' => FALSE,
+    ];
+    return $cache_options;
+  }
+
+  /**
+   * Instantiate a new GoogleAnalyticsCounterFeed object and query Google.
+   *
+   * @param array $parameters
+   * @param array $cache_options
+   *
+   * @return object
+   */
+  protected function gacGetFeed(array $parameters, array $cache_options) {
+    //Instantiate a new GoogleAnalyticsCounterFeed object.
+    $feed = $this->newGaFeed();
+    if (!$feed) {
+      throw new \RuntimeException($this->t('The GoogleAnalyticsCounterFeed could not be initialized is Google Analytics Counter authenticated?'));
+    }
+
+    // Make the query to Google.
+    $feed->queryReportFeed($parameters, $cache_options);
+
+    // Handle errors.
+    if (!empty($feed->error)) {
+      throw new \RuntimeException($feed->error);
+    }
+
+    // If NULL then there is no error.
+    if (!empty($feed->error)) {
+      $t_arg = [
+        '@error' => $feed->error,
+      ];
+      $this->logger->error('Google Analytics returned an error: [@error].', $t_arg);
+    }
+    return $feed;
   }
 
   /****************************************************************************/
-  // Display gac count in the block and the filter.
+  // Display gac count for $profile_id in the block and the filter.
   /****************************************************************************/
 
   /**
@@ -603,7 +638,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    * @return string
    *   Count of page views.
    */
-  public function displayGacCount($path) {
+  public function gacDisplayCount($path) {
     // Make sure the path starts with a slash.
     $path = '/' . trim($path, ' /');
 

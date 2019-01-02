@@ -15,6 +15,7 @@
   }
 }
 
+/*Todo: Can a more focused selector be used here.*/
 input#edit-field-google-analytics-counter-0-value {
   background-color: #ececec;
 }

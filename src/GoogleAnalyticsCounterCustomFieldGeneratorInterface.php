@@ -6,7 +6,9 @@ namespace Drupal\google_analytics_counter;
 use Drupal\node\NodeTypeInterface;
 
 /**
- * Google Analytics Counter custom field methods.
+ * Defines the Google Analytics Counter custom field generator.
+ *
+ * @package Drupal\google_analytics_counter
  */
 interface GoogleAnalyticsCounterCustomFieldGeneratorInterface {
 
@@ -14,7 +16,6 @@ interface GoogleAnalyticsCounterCustomFieldGeneratorInterface {
    * Prepares to add the custom field and saves the configuration.
    *
    * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    * @param $key
    * @param $value
    *
@@ -22,7 +23,7 @@ interface GoogleAnalyticsCounterCustomFieldGeneratorInterface {
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function gacPreAddField($type, $config_factory, $key, $value);
+  public function gacPreAddField($type, $key, $value);
 
   /**
    * Adds the checked the fields.
@@ -43,12 +44,11 @@ interface GoogleAnalyticsCounterCustomFieldGeneratorInterface {
    * Prepares to delete the custom field and saves the configuration.
    *
    * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    * @param $key
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function gacPreDeleteField($type, $config_factory, $key);
+  public function gacPreDeleteField($type, $key);
 
   /**
    * Deletes the unchecked field configurations.
@@ -64,18 +64,18 @@ interface GoogleAnalyticsCounterCustomFieldGeneratorInterface {
   public function gacDeleteField(NodeTypeInterface $type);
 
   /**
-   * Update the Google Analytics Counter custom field with profile_id pageviews.
+   * Deletes the field storage configurations.
    *
-   * @param $nid
-   *   The node ID that has been read.
-   * @param $sum_of_pageviews
-   *   Count of pageviews via the hash of the paths.
-   * @param $bundle
-   *   The drupal content type
-   * @param $vid
-   *   The revision ID of the node that has been read
+   * @return null|void
+   * @throws \Drupal\Core\Entity\EntityStorageException
    *
-   * @throws \Exception
+   * @see GoogleAnalyticsCounterConfigureTypesForm
    */
-  public function gacUpdateCustomField($nid, $sum_of_pageviews, $bundle, $vid);
+  public function gacDeleteFieldStorage();
+
+  /**
+   * Creates the gac_type_{content_type} configuration on installation or
+   * update.
+   */
+  public function gacChangeConfigToNull();
 }

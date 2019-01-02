@@ -92,6 +92,35 @@ class GoogleAnalyticsCounterHelper extends EditorialContentEntityBase {
     return $query->countQuery()->execute()->fetchField();
   }
 
+  /**
+   * Sets the expiry timestamp for cached queries. Default is 1 day.
+   *
+   * @return int
+   *   The UNIX timestamp to expire the query at.
+   */
+  public static function cacheTime() {
+    $config = \Drupal::config('google_analytics_counter.settings');
+    return time() + $config->get('general_settings.cache_length');
+  }
+
+  /**
+   * Search value by key in multidimensional array.
+   *
+   * @param array $array
+   * @param $search
+   *
+   * @return bool|mixed
+   *
+   * @see https://snipplr.com/view/55684/
+   */
+  public static function searchArrayValueByKey(array $array, $search) {
+    foreach (new \RecursiveIteratorIterator(new \RecursiveArrayIterator($array)) as $key => $value) {
+      if ($search === $key)
+        return $value;
+    }
+    return false;
+  }
+
   /****************************************************************************/
   // Uninstall functions.
   /****************************************************************************/

@@ -73,7 +73,7 @@ class GoogleAnalyticsCounterBlock extends BlockBase implements ContainerFactoryP
   public function build() {
     return [
       '#theme' => 'google_analytics_counter',
-      '#pageviews' => $this->manager->displayGacCount($this->currentPath->getPath()),
+      '#pageviews' => $this->manager->gacDisplayCount($this->currentPath->getPath()),
     ];
   }
 

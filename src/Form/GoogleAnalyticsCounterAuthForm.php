@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface;
 use Drupal\Core\State\StateInterface;
@@ -225,7 +226,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
   }
 
   /**
-   * Authenticates tokens and saves configuration.
+   * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('google_analytics_counter.settings');
@@ -240,12 +241,17 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
         break;
 
       default:
+        $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
+        $profile_id = $form_state->getValue('profile_id');
+        $profile_name = GoogleAnalyticsCounterHelper::searchArrayValueByKey($options, (int) $profile_id);
+
         $config
           ->set('general_settings.client_id', $form_state->getValue('client_id'))
           ->set('general_settings.client_secret', $form_state->getValue('client_secret'))
           ->set('general_settings.redirect_uri', $form_state->getValue('redirect_uri'))
           ->set('general_settings.project_name', $form_state->getValue('project_name'))
           ->set('general_settings.profile_id', $form_state->getValue('profile_id'))
+          ->set('general_settings.profile_name', $profile_name)
           ->save();
 
         parent::submitForm($form, $form_state);

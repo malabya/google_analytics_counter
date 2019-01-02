@@ -6,6 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -105,6 +106,7 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
     $form['gac_content_types'] = [
       '#type' => 'details',
       '#title' => $this->t('Content types'),
+      '#description' => $this->t('Check the content types to add the custom Google Analytics Counter field to.'),
       '#open' => TRUE,
     ];
     $content_types = \Drupal::service('entity.manager')->getStorage('node_type')->loadMultiple();
@@ -136,7 +138,7 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('google_analytics_counter.settings');
-    $config_factory = \Drupal::configFactory();
+    $config_factory = $this->configFactory();
     $values = $form_state->cleanValues()->getValues();
 
     // Save the remove_storage configuration.
@@ -157,23 +159,30 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
 
       // Add the field if the field has been checked.
       if ($values['gac_type_remove_storage'] == FALSE && $value == 1) {
-        $this->customField->gacPreAddField($type, $config_factory, $key, $value);
+        $this->customField->gacPreAddField($type, $key, $value);
+      }
+      else if ($values['gac_type_remove_storage'] == FALSE && $value == 0) {
+        $this->customField->gacPreDeleteField($type, $key);
+
+        // Update the gac_type_{content_type} configuration.
+        $config_factory->getEditable('google_analytics_counter.settings')
+          ->set("general_settings.$key", NULL)
+          ->save();
       }
       else {
         // Delete the field.
-        if ($values['gac_type_remove_storage'] = TRUE && $value == 1) {
-          $this->customField->gacPreDeleteField($type, $config_factory, $key);
-        }
-
-        // If no gac_type_{content_type}s are checked, remove the field storage.
-        else {
-          $this->customField->gacPreDeleteField($type, $config_factory, $key);
+        if ($values['gac_type_remove_storage'] == TRUE) {
+          // Delete the field.
+          $this->customField->gacPreDeleteField($type, $key);
+          // Delete the field storage.
+          $this->customField->gacDeleteFieldStorage();
+          // Set all the gac_type_{content_type} to NULL.
+          $this->customField->gacChangeConfigToNull();
         }
       }
     }
 
     parent::submitForm($form, $form_state);
-
   }
 
 }

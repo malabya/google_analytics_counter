@@ -26,20 +26,21 @@ function google_analytics_counter_help($route_name, RouteMatchInterface $route_m
 function google_analytics_counter_cron() {
   $config = \Drupal::config('google_analytics_counter.settings');
   $database = \Drupal::database();
+  $state = \Drupal::state();
 
   // $interval must be a value in seconds.
   $interval = 60 * $config->get('general_settings.cron_interval');
 
   // Important to set it before the job because if they take long
   // and there is another cron triggered...
-  \Drupal::state()->set('google_analytics_counter.cron_next_execution', \Drupal::time()->getRequestTime());
+  $state->set('google_analytics_counter.cron_next_execution', \Drupal::time()->getRequestTime());
 
   // Set the total number of published nodes.
   $query = $database->select('node_field_data', 'nfd');
   $query->fields('nfd', ['nid']);
   $query->condition('status', NodeInterface::PUBLISHED);
   $total_nodes = $query->countQuery()->execute()->fetchField();
-  \Drupal::state()->set('google_analytics_counter.total_nodes', $total_nodes);
+  $state->set('google_analytics_counter.total_nodes', $total_nodes);
 
   // On some systems, cron could be every minute. Throttle updating with the
   // cron_interval on the settings form.
@@ -52,21 +53,23 @@ function google_analytics_counter_cron() {
   /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
   $manager = \Drupal::service('google_analytics_counter.manager');
   if (!$manager->isAuthenticated()) {
-    \Drupal::logger('google_analytics_counter')->alert('Google Analytics Counter is not authenticated or no Google Views have been added.');
+    \Drupal::logger('google_analytics_counter')->alert('Google Analytics Counter is not authenticated.');
     return FALSE;
   }
 
-  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
-  $manager = \Drupal::service('google_analytics_counter.manager');
+  // Returns the google_analytics_counter_worker queue.
   $queue = \Drupal::queue('google_analytics_counter_worker');
 
-  try {
-    // Fetch the first batch to see how many there are.
-    $results = $manager->getChunkedResults();
+  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
+  $manager = \Drupal::service('google_analytics_counter.manager');
 
-    // Queue the chunks.
-    $total = $results->results->totalResults;
-    for ($index = 0; $index < $total / $config->get('general_settings.chunk_to_fetch'); $index++) {
+  try {
+    // Fetch the total results from Google first.
+    $manager->getTotalResults();
+    $total_results = $state->get('google_analytics_counter.total_paths');
+
+    // Create queue fetch items from the total results divided into chunks.
+    for ($index = 0; $index < $total_results / $config->get('general_settings.chunk_to_fetch'); $index++) {
       // Add a queue item to fetch for all chunks.
       $queue->createItem([
         'type' => 'fetch',

@@ -85,7 +85,6 @@ class GoogleAnalyticsCounterCustomFieldGenerator implements GoogleAnalyticsCount
    * Prepares to add the custom field and saves the configuration.
    *
    * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    * @param $key
    * @param $value
    *
@@ -93,7 +92,10 @@ class GoogleAnalyticsCounterCustomFieldGenerator implements GoogleAnalyticsCount
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function gacPreAddField($type, $config_factory, $key, $value) {
+  public function gacPreAddField($type, $key, $value) {
+    $config_factory = \Drupal::configFactory();
+
+    // Add the field.
     $this->gacAddField($type);
 
     // Update the gac_type_{content_type} configuration.
@@ -184,18 +186,14 @@ class GoogleAnalyticsCounterCustomFieldGenerator implements GoogleAnalyticsCount
    * Prepares to delete the custom field and saves the configuration.
    *
    * @param $type
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    * @param $key
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function gacPreDeleteField($type, $config_factory, $key) {
+  public function gacPreDeleteField($type, $key) {
+    // Delete the field.
+    // Todo: Remove this method.
     $this->gacDeleteField($type);
-
-    // Update the gac_type_{content_type} configuration.
-    $config_factory->getEditable('google_analytics_counter.settings')
-      ->set("general_settings.$key", NULL)
-      ->save();
   }
 
   /**
@@ -220,62 +218,34 @@ class GoogleAnalyticsCounterCustomFieldGenerator implements GoogleAnalyticsCount
     FieldConfig::loadByName('node', $content_type, 'field_google_analytics_counter')->delete();
   }
 
-  /****************************************************************************/
-  // Custom field update functions.
-  /****************************************************************************/
+  /**
+   * Deletes the field storage configurations.
+   *
+   * @return null|void
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   *
+   * @see GoogleAnalyticsCounterConfigureTypesForm
+   */
+  public function gacDeleteFieldStorage() {
+    $field_storage = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
+    if (!empty($field_storage)) {
+      $field_storage->delete();
+    }
+  }
 
   /**
-   * Update the Google Analytics Counter custom field with profile_id pageviews.
-   *
-   * @param $nid
-   *   The node ID that has been read.
-   * @param $sum_of_pageviews
-   *   Count of pageviews via the hash of the paths.
-   * @param $bundle
-   *   The drupal content type
-   * @param $vid
-   *   The revision ID of the node that has been read
-   *
-   * @throws \Exception
+   * Creates the gac_type_{content_type} configuration on installation or update.
    */
-  public function gacUpdateCustomField($nid, $sum_of_pageviews, $bundle, $vid) {
-    // Update the Google Analytics Counter field if it exists.
-    if (!$this->connection->schema()->tableExists(static::TABLE)) {
-      return;
-    }
+  public function gacChangeConfigToNull() {
+    $config_factory = \Drupal::configFactory();
+    $content_types = \Drupal::service('entity.manager')
+      ->getStorage('node_type')
+      ->loadMultiple();
 
-    // Todo: This can be faster by adding only the bundles that have been selected.
-    $query = $this->connection->select('node__field_google_analytics_counter', 'n');
-    $query->fields('n', ['entity_id']);
-    $query->condition('entity_id', $nid);
-    $entity_id = $query->execute()->fetchField();
-
-    if ($entity_id) {
-      $this->connection->update('node__field_google_analytics_counter')
-        ->fields([
-          'bundle' => $bundle,
-          'deleted' => 0,
-          'entity_id' => $nid,
-          'revision_id' => $vid,
-          'langcode' => 'en',
-          'delta' => 0,
-          'field_google_analytics_counter_value' => $sum_of_pageviews,
-        ])
-        ->condition('entity_id', $entity_id)
-        ->execute();
-    }
-    else {
-      $this->connection->insert('node__field_google_analytics_counter')
-        ->fields([
-          'bundle' => $bundle,
-          'deleted' => 0,
-          'entity_id' => $nid,
-          'revision_id' => $vid,
-          'langcode' => 'en',
-          'delta' => 0,
-          'field_google_analytics_counter_value' => $sum_of_pageviews,
-        ])
-        ->execute();
+    foreach ($content_types as $machine_name => $content_type) {
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set("general_settings.gac_type_$machine_name", NULL)
+        ->save();
     }
   }
 

@@ -37,4 +37,3 @@ google_analytics_counter.admin_auth_revoke:
     _title: 'Google Analytics Counter: Revoke'
   requirements:
     _permission: 'administer google analytics counter'
-
