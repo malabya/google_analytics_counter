@@ -81,6 +81,7 @@ class GoogleAnalyticsCounterBlock extends BlockBase implements ContainerFactoryP
    * {@inheritdoc}
    */
   public function getCacheMaxAge() {
+    // @todo Setup cache tags and context.
     return 0;
   }
 

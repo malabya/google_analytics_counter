@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @Filter(
  *   id = "google_analytics_counter_filter",
  *   title = @Translation("Google Analytics Counter token"),
- *   description = @Translation("Adds a token with pageview counts. Use <code>[gac]</code>, <code>[gac|all]</code>, <code>[gac|node/1234]</code>, or <code>[gac|path/to/page]</code>."),
+ *   description = @Translation("Adds a token with pageview counts. Use <code>[gac]</code> or <code>[gac|all]</code>."),
  *   type = Drupal\filter\Plugin\FilterInterface::TYPE_MARKUP_LANGUAGE,
  * )
  */
@@ -69,19 +69,8 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
    * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
    *   Google Analytics Counter Manager object.
    */
-  public function __construct(
-    array $configuration,
-    $plugin_id,
-    $plugin_definition,
-    CurrentPathStack $current_path,
-    AliasManagerInterface $alias_manager,
-    StateInterface $state,
-    GoogleAnalyticsCounterManagerInterface $manager
-  ) {
-    parent::__construct(
-      $configuration,
-      $plugin_id,
-      $plugin_definition);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, CurrentPathStack $current_path, AliasManagerInterface $alias_manager, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->currentPath = $current_path;
     $this->aliasManager = $alias_manager;
     $this->state = $state;
@@ -112,7 +101,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
   }
 
   /**
-   * Finds [gac|path/to/page] tags and replaces them by actual values.
+   * Finds 'gac' tags and replaces them by actual values.
    *
    * @param string $text
    *   String to replace.
@@ -137,11 +126,11 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       // [gac|all] displays the totalsForAllResults for the given time period,
       // assuming cron has been run. Otherwise will print N/A.
       //
-      // [gac|1234] displays the page views for node/1234.
+      // [gac|1234] displays the page views for node/1234. // Currently not working.
       //
-      // [gac|node/1234] displays the page views for node/1234.
+      // [gac|node/1234] displays the page views for node/1234. // Currently not working.
       //
-      // [gac|path/to/page] displays the pages views for path/to/page.
+      // [gac|path/to/page] displays the pages views for path/to/page. // Currently not working.
       switch ($match) {
         case '[gac]':
           $matchlink[] = $this->manager->gacDisplayCount($this->currentPath->getPath());
