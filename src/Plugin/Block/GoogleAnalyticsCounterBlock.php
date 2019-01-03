@@ -77,4 +77,11 @@ class GoogleAnalyticsCounterBlock extends BlockBase implements ContainerFactoryP
     ];
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getCacheMaxAge() {
+    return 0;
+  }
+
 }
