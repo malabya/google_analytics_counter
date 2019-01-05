@@ -34,10 +34,10 @@ abstract class GoogleAnalyticsCounterQueueBase extends QueueWorkerBase implement
    */
   public function processItem($data) {
     if ($data['type'] == 'fetch') {
-      \Drupal::service('google_analytics_counter.manager')->gacUpdatePathCounts($data['index']);
+      \Drupal::service('google_analytics_counter.app_manager')->gacUpdatePathCounts($data['index']);
     }
     elseif ($data['type'] == 'count') {
-      \Drupal::service('google_analytics_counter.manager')->gacUpdateStorage($data['nid'], $data['bundle'], $data['vid']);
+      \Drupal::service('google_analytics_counter.app_manager')->gacUpdateStorage($data['nid'], $data['bundle'], $data['vid']);
     }
   }
 

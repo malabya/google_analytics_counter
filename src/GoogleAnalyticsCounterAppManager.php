@@ -11,15 +11,15 @@ use Drupal\Core\Path\AliasManagerInterface;
 use Drupal\Core\Path\PathMatcherInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Exception;
 use Psr\Log\LoggerInterface;
 
+
 /**
- * Class GoogleAnalyticsCounterManager.
+ * Class GoogleAnalyticsCounterAppManager.
  *
  * @package Drupal\google_analytics_counter
  */
-class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInterface {
+class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManagerInterface {
 
   use StringTranslationTrait;
 
@@ -99,11 +99,12 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   protected $time;
 
   /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface.
    *
-   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface
    */
-  protected $customField;
+  protected $authManager;
+
 
   /**
    * Constructs a Google Analytics Counter object.
@@ -124,11 +125,11 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    *   A logger instance.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
-   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field
-   *   The Google Analytics Counter custom field generator.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface $auth_manager
+   *   Google Analytics Counter Auth Manager object.
    */
   public function __construct(
-    ConfigFactoryInterface $config_factory, Connection $connection, StateInterface $state, AliasManagerInterface $alias_manager, PathMatcherInterface $path_matcher, LanguageManagerInterface $language, LoggerInterface $logger, MessengerInterface $messenger, GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field) {
+    ConfigFactoryInterface $config_factory, Connection $connection, StateInterface $state, AliasManagerInterface $alias_manager, PathMatcherInterface $path_matcher, LanguageManagerInterface $language, LoggerInterface $logger, MessengerInterface $messenger, GoogleAnalyticsCounterAuthManagerInterface $auth_manager) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->connection = $connection;
     $this->state = $state;
@@ -137,144 +138,12 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
     $this->languageManager = $language;
     $this->logger = $logger;
     $this->messenger = $messenger;
-    $this->time = \Drupal::service('datetime.time');
     $this->prefixes = [];
-    // The 'url' will return NULL when it is not a multilingual site.
-    $language_url = $config_factory->get('language.negotiation')->get('url');
-    if ($language_url) {
-      $this->prefixes = $language_url['prefixes'];
-    }
-    $this->customField = $custom_field;
-  }
-
-  /**
-   * Check to make sure we are authenticated with google.
-   *
-   * @return bool
-   *   True if there is a refresh token set.
-   */
-  public function isAuthenticated() {
-    return $this->state->get('google_analytics_counter.access_token') != NULL ? TRUE : FALSE;
-  }
-
-  /**
-   * Begin authentication to Google authentication page with the client_id.
-   */
-  public function beginGacAuthentication() {
-    global $base_url;
-    $current_path = \Drupal::service('path.current')->getPath();
-    $uri = \Drupal::service('path.alias_manager')->getAliasByPath($current_path);
-    $redirect_uri = $base_url . $uri;
-
-    $gafeed = new GoogleAnalyticsCounterFeed();
-    $gafeed->beginAuthentication($this->config->get('general_settings.client_id'), $redirect_uri);
-  }
-
-  /**
-   * Instantiate a new GoogleAnalyticsCounterFeed object.
-   *
-   * @return object
-   *   GoogleAnalyticsCounterFeed object to authorize access and request data
-   *   from the Google Analytics Core Reporting API.
-   */
-  public function newGaFeed() {
-    global $base_url;
-    $config = $this->config;
-
-    // If the access token is still valid, return an authenticated GAFeed.
-    if ($this->state->get('google_analytics_counter.access_token') && time() < $this->state->get('google_analytics_counter.expires_at')) {
-      return new GoogleAnalyticsCounterFeed($this->state->get('google_analytics_counter.access_token'));
-    }
-    // If the site has an access token and refresh token, but the access
-    // token has expired, authenticate the user with the refresh token.
-    elseif ($this->state->get('google_analytics_counter.refresh_token')) {
-      $client_id = $config->get('general_settings.client_id');
-      $client_secret = $config->get('general_settings.client_secret');
-      $refresh_token = $this->state->get('google_analytics_counter.refresh_token');
-      try {
-        $gac_feed = new GoogleAnalyticsCounterFeed();
-        $gac_feed->refreshToken($client_id, $client_secret, $refresh_token);
-        $this->state->setMultiple([
-          'google_analytics_counter.access_token' => $gac_feed->accessToken,
-          'google_analytics_counter.expires_at' => $gac_feed->expiresAt,
-        ]);
-        return $gac_feed;
-      }
-      catch (Exception $e) {
-        $this->messenger->addError($this->t('There was an authentication error. Message: %message', ['%message' => $e->getMessage()]));
-        return NULL;
-      }
-    }
-    // If there is no access token or refresh token and client is returned
-    // to the config page with an access code, complete the authentication.
-    elseif (isset($_GET['code'])) {
-      try {
-        $current_path = \Drupal::service('path.current')->getPath();
-        $uri = \Drupal::service('path.alias_manager')->getAliasByPath($current_path);
-        $redirect_uri = $base_url . $uri;
-
-        $gac_feed = new GoogleAnalyticsCounterFeed();
-        $gac_feed->finishAuthentication($config->get('general_settings.client_id'), $config->get('general_settings.client_secret'), $redirect_uri);
-
-        $this->state->setMultiple([
-          'google_analytics_counter.access_token' => $gac_feed->accessToken,
-          'google_analytics_counter.expires_at' => $gac_feed->expiresAt,
-          'google_analytics_counter.refresh_token' => $gac_feed->refreshToken,
-        ]);
-
-        $this->messenger->addStatus($this->t('You have been successfully authenticated.'), FALSE);
-
-      }
-      catch (Exception $e) {
-        $this->messenger->addError($this->t('There was an authentication error. Message: %message', ['%message' => $e->getMessage()]));
-        return NULL;
-      }
-    }
-
-    return NULL;
-  }
-
-  /**
-   * Get the list of available web properties.
-   *
-   * @return array
-   *   Array of options.
-   */
-  public function getWebPropertiesOptions() {
-    // When not authenticated, the only option is 'Unauthenticated'.
-    $feed = $this->newGaFeed();
-    if (!$feed) {
-      $options = ['unauthenticated' => 'Unauthenticated'];
-      return $options;
-    }
-
-    // Get the profiles information from Google.
-    $web_properties = $feed->queryWebProperties()->results->items;
-    $profiles = $feed->queryProfiles()->results->items;
-
-    $options = [];
-    // Add options for each web property.
-    if (!empty($profiles)) {
-      foreach ($profiles as $profile) {
-        $webprop = NULL;
-        foreach ($web_properties as $web_property) {
-          if ($web_property->id == $profile->webPropertyId) {
-            $webprop = $web_property;
-            break;
-          }
-        }
-
-        $options[$webprop->name][$profile->id] = $profile->name . ' (' . $profile->id . ')';
-      }
-    }
-    return $options;
+    $this->authManager = $auth_manager;
   }
 
   /**
    * Get total results from Google.
-   *
-   * @param string $profile_id
-   *   The profile id used in the google query.
    *
    * @return mixed
    */
@@ -380,8 +249,6 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
   /**
    * Update the path counts.
    *
-   * @param string $profile_id
-   *   The profile id used in the google query.
    * @param string $index
    *   The index of the chunk to fetch and update.
    *
@@ -602,7 +469,7 @@ class GoogleAnalyticsCounterManager implements GoogleAnalyticsCounterManagerInte
    */
   protected function gacGetFeed(array $parameters, array $cache_options) {
     //Instantiate a new GoogleAnalyticsCounterFeed object.
-    $feed = $this->newGaFeed();
+    $feed = $this->authManager->newGaFeed();
     if (!$feed) {
       throw new \RuntimeException($this->t('The GoogleAnalyticsCounterFeed could not be initialized is Google Analytics Counter authenticated?'));
     }

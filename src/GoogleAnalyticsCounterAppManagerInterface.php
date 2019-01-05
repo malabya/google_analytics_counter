@@ -4,47 +4,14 @@ namespace Drupal\google_analytics_counter;
 
 
 /**
- * Class GoogleAnalyticsCounterManager.
+ * Class GoogleAnalyticsCounterAppManager.
  *
  * @package Drupal\google_analytics_counter
  */
-interface GoogleAnalyticsCounterManagerInterface {
-
-  /**
-   * Check to make sure we are authenticated with google.
-   *
-   * @return bool
-   *   True if there is a refresh token set.
-   */
-  public function isAuthenticated();
-
-  /**
-   * Begin authentication to Google authentication page with the client_id.
-   */
-  public function beginGacAuthentication();
-
-  /**
-   * Instantiate a new GoogleAnalyticsCounterFeed object.
-   *
-   * @return object
-   *   GoogleAnalyticsCounterFeed object to authorize access and request data
-   *   from the Google Analytics Core Reporting API.
-   */
-  public function newGaFeed();
-
-  /**
-   * Get the list of available web properties.
-   *
-   * @return array
-   *   Array of options.
-   */
-  public function getWebPropertiesOptions();
+interface GoogleAnalyticsCounterAppManagerInterface {
 
   /**
    * Get total results from Google.
-   *
-   * @param string $profile_id
-   *   The profile id used in the google query.
    *
    * @return mixed
    */
@@ -79,8 +46,6 @@ interface GoogleAnalyticsCounterManagerInterface {
   /**
    * Update the path counts.
    *
-   * @param string $profile_id
-   *   The profile id used in the google query.
    * @param string $index
    *   The index of the chunk to fetch and update.
    *

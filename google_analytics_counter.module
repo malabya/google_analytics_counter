@@ -50,9 +50,9 @@ function google_analytics_counter_cron() {
   }
 
   // Proceed no further if not authenticated.
-  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
-  $manager = \Drupal::service('google_analytics_counter.manager');
-  if (!$manager->isAuthenticated()) {
+  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface $auth_manager */
+  $auth_manager = \Drupal::service('google_analytics_counter.auth_manager');
+  if (!$auth_manager->isAuthenticated()) {
     \Drupal::logger('google_analytics_counter')->alert('Google Analytics Counter is not authenticated.');
     return FALSE;
   }
@@ -60,12 +60,12 @@ function google_analytics_counter_cron() {
   // Returns the google_analytics_counter_worker queue.
   $queue = \Drupal::queue('google_analytics_counter_worker');
 
-  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
-  $manager = \Drupal::service('google_analytics_counter.manager');
+  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface $app_manager */
+  $app_manager = \Drupal::service('google_analytics_counter.app_manager');
 
   try {
     // Fetch the total results from Google first.
-    $manager->getTotalResults();
+    $app_manager->getTotalResults();
     $total_results = $state->get('google_analytics_counter.total_paths');
 
     // Create queue fetch items from the total results divided into chunks.

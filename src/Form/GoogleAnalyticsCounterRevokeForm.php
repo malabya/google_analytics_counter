@@ -4,11 +4,8 @@ namespace Drupal\google_analytics_counter\Form;
 
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class GoogleAnalyticsCounterRevokeForm.
@@ -17,43 +14,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class GoogleAnalyticsCounterRevokeForm extends ConfirmFormBase {
 
-  // Todo: __construct() and create() can be removed.
-  /**
-   * The state keyvalue collection.
-   *
-   * @var \Drupal\Core\State\StateInterface
-   */
-  protected $state;
-
-  /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface.
-   *
-   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
-   */
-  protected $manager;
-
-  /**
-   * Defines a confirmation form to revoke Google authentication.
-   *
-   * @param \Drupal\Core\State\StateInterface $state
-   *   The state keyvalue collection to use.
-   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
-   *   Google Analytics Counter Manager object.
-   */
-  public function __construct(StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager) {
-    $this->state = $state;
-    $this->manager = $manager;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container) {
-    return new static(
-      $container->get('state'),
-      $container->get('google_analytics_counter.manager')
-    );
-  }
 
   /**
    * {@inheritdoc}

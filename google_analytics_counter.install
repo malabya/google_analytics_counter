@@ -29,10 +29,10 @@ function google_analytics_counter_requirements($phase) {
       ->toString(),
     '@href' => 'authentication form',
   ];
-  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager */
-  $manager = Drupal::service('google_analytics_counter.manager');
+  /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface $auth_manager */
+  $auth_manager = Drupal::service('google_analytics_counter.auth_manager');
 
-  if ($manager->isAuthenticated() === TRUE) {
+  if ($auth_manager->isAuthenticated() === TRUE) {
     $requirements['google_analytics_counter_authentication'] = [
       'title' => t('Google Analytics Counter'),
       'description' => t('You can revoke authentication on the <a href=:href>@href</a>.', $t_args),

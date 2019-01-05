@@ -8,7 +8,8 @@ use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -48,11 +49,18 @@ class GoogleAnalyticsCounterController extends ControllerBase {
   protected $time;
 
   /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManager definition.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManager definition.
    *
-   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface
    */
-  protected $manager;
+  protected $appManager;
+
+  /**
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface.
+   *
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface
+   */
+  protected $authManager;
 
   /**
    * The Google Analytics Counter message manager.
@@ -70,17 +78,20 @@ class GoogleAnalyticsCounterController extends ControllerBase {
    *   The state keyvalue collection to use.
    * @param \Drupal\Core\Datetime\DateFormatter $date_formatter
    *   The date formatter service.
-   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
-   *   Google Analytics Counter Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface $app_manager
+   *   Google Analytics Counter App Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface $auth_manager
+   *   Google Analytics Counter Auth Manager object.
    * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface $message_manager
    *   Google Analytics Counter Manager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, DateFormatter $date_formatter, GoogleAnalyticsCounterManagerInterface $manager, GoogleAnalyticsCounterMessageManagerInterface $message_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, DateFormatter $date_formatter, GoogleAnalyticsCounterAppManagerInterface $app_manager, GoogleAnalyticsCounterAuthManagerInterface $auth_manager, GoogleAnalyticsCounterMessageManagerInterface $message_manager) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->state = $state;
     $this->dateFormatter = $date_formatter;
     $this->time = \Drupal::service('datetime.time');
-    $this->manager = $manager;
+    $this->appManager = $app_manager;
+    $this->authManager = $auth_manager;
     $this->messageManager = $message_manager;
   }
 
@@ -92,7 +103,8 @@ class GoogleAnalyticsCounterController extends ControllerBase {
       $container->get('config.factory'),
       $container->get('state'),
       $container->get('date.formatter'),
-      $container->get('google_analytics_counter.manager'),
+      $container->get('google_analytics_counter.app_manager'),
+      $container->get('google_analytics_counter.auth_manager'),
       $container->get('google_analytics_counter.message_manager')
     );
   }
@@ -101,9 +113,8 @@ class GoogleAnalyticsCounterController extends ControllerBase {
    * {@inheritdoc}
    */
   public function dashboard() {
-    $config = $this->config;
 
-    if (!$this->manager->isAuthenticated() === TRUE) {
+    if (!$this->authManager->isAuthenticated() === TRUE) {
       $build = [];
       $this->messageManager->notAuthenticatedMessage();
 

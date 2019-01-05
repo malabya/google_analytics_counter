@@ -6,8 +6,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 
@@ -33,11 +32,11 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
   protected $messenger;
 
   /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface.
    *
-   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface
    */
-  protected $manager;
+  protected $appManager;
 
   /**
    * Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface.
@@ -49,11 +48,11 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, MessengerInterface $messenger, GoogleAnalyticsCounterManagerInterface $manager, GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field) {
+  public function __construct(ConfigFactoryInterface $config_factory, MessengerInterface $messenger, GoogleAnalyticsCounterAppManagerInterface $app_manager, GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field) {
     parent::__construct($config_factory);
     $this->configFactory = $config_factory;
     $this->messenger = $messenger;
-    $this->manager = $manager;
+    $this->appManager = $app_manager;
     $this->customField = $custom_field;
   }
 
@@ -64,7 +63,7 @@ class GoogleAnalyticsCounterConfigureTypesForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('messenger'),
-      $container->get('google_analytics_counter.manager'),
+      $container->get('google_analytics_counter.app_manager'),
       $container->get('google_analytics_counter.custom_field_generator')
     );
   }

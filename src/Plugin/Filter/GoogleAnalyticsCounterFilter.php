@@ -8,7 +8,7 @@ use Drupal\Core\Path\CurrentPathStack;
 use Drupal\Core\State\StateInterface;
 use Drupal\filter\FilterProcessResult;
 use Drupal\filter\Plugin\FilterBase;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -47,9 +47,9 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
   /**
    * Drupal\google_analytics_counter\GoogleAnalyticsCounterCommon definition.
    *
-   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface
    */
-  protected $manager;
+  protected $appManager;
 
   /**
    * Constructs a new SiteMaintenanceModeForm.
@@ -66,15 +66,15 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
    *   An alias manager for looking up the system path.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state of the drupal site.
-   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
-   *   Google Analytics Counter Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface $app_manager
+   *   Google Analytics Counter App Manager object.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, CurrentPathStack $current_path, AliasManagerInterface $alias_manager, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, CurrentPathStack $current_path, AliasManagerInterface $alias_manager, StateInterface $state, GoogleAnalyticsCounterAppManagerInterface $app_manager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->currentPath = $current_path;
     $this->aliasManager = $alias_manager;
     $this->state = $state;
-    $this->manager = $manager;
+    $this->appManager = $app_manager;
   }
 
   /**
@@ -88,7 +88,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       $container->get('path.current'),
       $container->get('path.alias_manager'),
       $container->get('state'),
-      $container->get('google_analytics_counter.manager')
+      $container->get('google_analytics_counter.app_manager')
     );
   }
 
@@ -133,7 +133,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       // [gac|path/to/page] displays the pages views for path/to/page. // Currently not working.
       switch ($match) {
         case '[gac]':
-          $matchlink[] = $this->manager->gacDisplayCount($this->currentPath->getPath());
+          $matchlink[] = $this->appManager->gacDisplayCount($this->currentPath->getPath());
           break;
 
         case '[gac|all]':
@@ -146,7 +146,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
 
           // Make sure the path starts with a slash.
           $path = '/' . trim($path, ' /');
-          $matchlink[] = $this->manager->gacDisplayCount($this->aliasManager->getAliasByPath($path));
+          $matchlink[] = $this->appManager->gacDisplayCount($this->aliasManager->getAliasByPath($path));
           break;
       }
     }

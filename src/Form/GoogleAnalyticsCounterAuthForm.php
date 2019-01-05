@@ -6,8 +6,9 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface;
+use Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterHelper;
-use Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface;
 use Drupal\Core\State\StateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -34,11 +35,18 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
   protected $state;
 
   /**
-   * Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface.
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface.
    *
-   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface
    */
-  protected $manager;
+  protected $appManager;
+
+  /**
+   * Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface.
+   *
+   * @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface
+   */
+  protected $authManager;
 
   /**
    * The Google Analytics Counter message manager.
@@ -54,16 +62,19 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
    *   The factory for configuration objects.
    * @param \Drupal\Core\State\StateInterface $state
    *   The state keyvalue collection to use.
-   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterManagerInterface $manager
-   *   Google Analytics Counter Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterAppManagerInterface $app_manager
+   *   Google Analytics Counter App Manager object.
+   * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface $auth_manager
+   *   Google Analytics Counter Auth Manager object.
    * @param \Drupal\google_analytics_counter\GoogleAnalyticsCounterMessageManagerInterface $message_manager
    *   Google Analytics Counter Message Manager object.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, GoogleAnalyticsCounterManagerInterface $manager, GoogleAnalyticsCounterMessageManagerInterface $message_manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, GoogleAnalyticsCounterAppManagerInterface $app_manager, GoogleAnalyticsCounterAuthManagerInterface $auth_manager, GoogleAnalyticsCounterMessageManagerInterface $message_manager) {
     parent::__construct($config_factory);
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->state = $state;
-    $this->manager = $manager;
+    $this->appManager = $app_manager;
+    $this->authManager = $auth_manager;
     $this->messageManager = $message_manager;
   }
 
@@ -74,7 +85,8 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('state'),
-      $container->get('google_analytics_counter.manager'),
+      $container->get('google_analytics_counter.app_manager'),
+      $container->get('google_analytics_counter.auth_manager'),
       $container->get('google_analytics_counter.message_manager')
     );
   }
@@ -103,9 +115,9 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     $form['#tree'] = TRUE;
 
     // Initialize the feed to trigger the fetching of the tokens.
-    $this->manager->newGaFeed();
+    $this->authManager->newGaFeed();
 
-    if ($this->manager->isAuthenticated() === TRUE) {
+    if ($this->authManager->isAuthenticated() === TRUE) {
       $form['revoke'] = [
         '#type' => 'fieldset',
         '#title' => $this->t('Revoke authentication'),
@@ -140,7 +152,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
         ->toString(),
       '@href' => 'Dashboard',
     ];
-    $markup_description = ($this->manager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
+    $markup_description = ($this->authManager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
       '<ol><li>' . $this->t('Now that you are authenticated with Google Analytics, select the') .  '<strong>' . $this->t(' Google Views ') . '</strong>' . $this->t('to collect analytics from and click Save configuration.') .
       '</li><li>' . $this->t('Save configuration.') .
       '</li><li>' . $this->t('On the next cron job, analytics from the Google View field and the Additional Google Views field will be saved to Drupal.') .
@@ -172,7 +184,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.client_id'),
       '#size' => 90,
       '#description' => $this->t('Create the Client ID in the access tab of the <a href=:href target="_blank">@href</a>.', $t_args),
-      '#disabled' => $this->manager->isAuthenticated() === TRUE,
+      '#disabled' => $this->authManager->isAuthenticated() === TRUE,
       '#weight' => 11,
     ];
 
@@ -182,20 +194,20 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.client_secret'),
       '#size' => 90,
       '#description' => $this->t('Create the Client secret in the <a href=:href target="_blank">@href</a>.', $t_args),
-      '#disabled' => $this->manager->isAuthenticated() === TRUE,
+      '#disabled' => $this->authManager->isAuthenticated() === TRUE,
       '#weight' => 12,
     ];
 
     $current_path = \Drupal::service('path.current')->getPath();
     $uri = \Drupal::service('path.alias_manager')->getAliasByPath($current_path);
-    $description = ($this->manager->isAuthenticated() === TRUE) ? $this->t('The path that users are redirected to after they have authenticated with Google.') : $this->t('The path that users are redirected to after they have authenticated with Google.<br /> Default: <strong>@default_uri</strong>', ['@default_uri' => $base_url . $uri]);
+    $description = ($this->authManager->isAuthenticated() === TRUE) ? $this->t('The path that users are redirected to after they have authenticated with Google.') : $this->t('The path that users are redirected to after they have authenticated with Google.<br /> Default: <strong>@default_uri</strong>', ['@default_uri' => $base_url . $uri]);
     $form['redirect_uri'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Authorized Redirect URI'),
       '#default_value' => $config->get('general_settings.redirect_uri'),
       '#size' => 90,
       '#description' => $description,
-      '#disabled' => $this->manager->isAuthenticated() === TRUE,
+      '#disabled' => $this->authManager->isAuthenticated() === TRUE,
       '#weight' => 13,
     ];
 
@@ -212,7 +224,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 14,
     ];
 
-    $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
+    $options = !empty($this->authManager->getWebPropertiesOptions()) ? $this->authManager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
     $form['profile_id'] = [
       '#type' => 'select',
       '#title' => $this->t("Google View"),
@@ -233,7 +245,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
 
     switch ($form_state->getValue('op')) {
       case (string) $this->t('Authenticate'):
-        $this->manager->beginGacAuthentication();
+        $this->authManager->beginGacAuthentication();
         break;
 
       case (string) $this->t('Revoke authentication'):
@@ -241,7 +253,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
         break;
 
       default:
-        $options = !empty($this->manager->getWebPropertiesOptions()) ? $this->manager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
+        $options = !empty($this->authManager->getWebPropertiesOptions()) ? $this->authManager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
         $profile_id = $form_state->getValue('profile_id');
         $profile_name = GoogleAnalyticsCounterHelper::searchArrayValueByKey($options, (int) $profile_id);
 
