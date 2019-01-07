@@ -19,7 +19,7 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['system', 'node'];
+  public static $modules = ['system', 'node', 'block'];
 
   /**
    * Authenticated user.
@@ -53,6 +53,17 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
   protected function setUp() {
     parent::setUp();
     $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page']);
+
+    Node::create([
+      'title' => 'Page 1',
+      'type' => 'page',
+    ])->save();
+
+    Node::create([
+      'title' => 'Page 2',
+      'type' => 'page',
+    ])->save();
+
   }
 
   /**
@@ -61,8 +72,14 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
    * @return \Drupal\Core\Database\StatementInterface|int|null
    * @throws \Exception
    */
+  /**
+   * Add storage items
+   *
+   * @return \Drupal\Core\Database\StatementInterface|int|null
+   * @throws \Exception
+   */
   protected function addStorage() {
-    $sum_of_pageviews = [
+    $sum_pageviews = [
       'node1' => [
         'nid' => 1,
         'pageview_total' => 10000,
@@ -73,13 +90,13 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
       ],
     ];
 
-    // Insert pagepaths into the google_analytics_counter table.
+    // Insert pagepaths into the google_analytics_counter_storage table.
     $connection = Database::getConnection();
     $pageviews = 0;
-    foreach ($sum_of_pageviews as $sum_of_pageview) {
+    foreach ($sum_pageviews as $sum_pageview) {
       $pageviews = $connection->insert('google_analytics_counter_storage')->fields([
-        'nid' => $sum_of_pageview['nid'],
-        'pageview_total' => $sum_of_pageview['pageview_total'],
+        'nid' => $sum_pageview['nid'],
+        'pageview_total' => $sum_pageview['pageview_total'],
       ])->execute();
     }
     return $pageviews;
@@ -92,38 +109,8 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
     $this->container->get('module_installer')->install(['google_analytics_counter']);
     $this->resetAll();
 
-    Node::create([
-      'title' => 'Page 1',
-      'type' => 'page',
-    ])->save();
-
-    Node::create([
-      'title' => 'Page 2',
-      'type' => 'page',
-    ])->save();
-
-    $this->drupalPlaceBlock('webform_block', [
-      'webform_id' => 'contact',
-      'region' => 'footer',
-    ])->save();
-
-
-    //    $node1 = $this->drupalCreateNode([
-//      'type' => 'page',
-//      'title' => 'Page 1',
-//    ]);
-//
-//    $node2 = $this->drupalCreateNode([
-//      'type' => 'page',
-//      'title' => 'Page 2',
-//    ]);
-
-    $this->adminUser = $this->drupalCreateUser([
-      'administer site configuration',
-      'administer google analytics counter',
-    ]);
-
-    $this->drupalLogin($this->adminUser);
+    // Add storage items.
+    $this->addStorage();
 
 
     // Enable the block Google Analytics Counter block.
@@ -131,5 +118,9 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
 
     // Test correct display of the block.
     $this->drupalGet('node/1');
+//    $assert = $this->assertSession();
+//    $assert->pageTextContains(t('100'));
+
+
   }
 }

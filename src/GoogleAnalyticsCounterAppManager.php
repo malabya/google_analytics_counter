@@ -315,12 +315,12 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     // It's the front page
     // Todo: Could be brittle
     if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
-      $sum_of_pageviews = $this->sumPageviews(['/']);
-      $this->updateCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
+      $sum_pageviews = $this->sumPageviews(['/']);
+      $this->updateCounterStorage($nid, $sum_pageviews, $bundle, $vid);
     }
     else {
-      $sum_of_pageviews = $this->sumPageviews(array_unique($aliases));
-      $this->updateCounterStorage($nid, $sum_of_pageviews, $bundle, $vid);
+      $sum_pageviews = $this->sumPageviews(array_unique($aliases));
+      $this->updateCounterStorage($nid, $sum_pageviews, $bundle, $vid);
     }
   }
 
@@ -339,12 +339,12 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
       ->fields('gac', ['pageviews'])
       ->condition('pagepath_hash', $hashes, 'IN')
       ->execute();
-    $sum_of_pageviews = 0;
+    $sum_pageviews = 0;
     foreach ($path_counts as $path_count) {
-      $sum_of_pageviews += $path_count->pageviews;
+      $sum_pageviews += $path_count->pageviews;
     }
 
-    return $sum_of_pageviews;
+    return $sum_pageviews;
   }
 
   /**
@@ -352,7 +352,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
    *
    * @param int $nid
    *   Node id value.
-   * @param int $sum_of_pageviews
+   * @param int $sum_pageviews
    *   Count of page views.
    * @param string $bundle
    *   The content type of the node.
@@ -361,13 +361,13 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
    *
    * @throws \Exception
    */
-  protected function updateCounterStorage($nid, $sum_of_pageviews, $bundle, $vid) {
+  protected function updateCounterStorage($nid, $sum_pageviews, $bundle, $vid) {
     $config = $this->config;
 
     $this->connection->merge('google_analytics_counter_storage')
       ->key('nid', $nid)
       ->fields([
-        'pageview_total' => $sum_of_pageviews,
+        'pageview_total' => $sum_pageviews,
       ])
       ->execute();
 
@@ -387,7 +387,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
         'revision_id' => $vid,
         'langcode' => 'en',
         'delta' => 0,
-        'field_google_analytics_counter_value' => $sum_of_pageviews,
+        'field_google_analytics_counter_value' => $sum_pageviews,
       ])
       ->execute();
   }
@@ -512,14 +512,14 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     // It's the front page.
     if ($this->pathMatcher->isFrontPage()) {
       $aliases = ['/'];
-      $sum_of_pageviews = $this->sumPageviews($aliases);
+      $sum_pageviews = $this->sumPageviews($aliases);
     }
     else {
       $aliases = $this->aliasManager->getAliasByPath($path);
-      $sum_of_pageviews = $this->sumPageviews($aliases);
+      $sum_pageviews = $this->sumPageviews($aliases);
     }
 
-    return number_format($sum_of_pageviews);
+    return number_format($sum_pageviews);
   }
 
 }
