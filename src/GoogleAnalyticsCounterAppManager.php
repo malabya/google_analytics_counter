@@ -515,13 +515,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
       $sum_of_pageviews = $this->sumPageviews($aliases);
     }
     else {
-      // Look up the alias, with, and without trailing slash.
-      $aliases = [
-        $this->aliasManager->getAliasByPath($path),
-        $path,
-        $path . '/',
-      ];
-
+      $aliases = $this->aliasManager->getAliasByPath($path);
       $sum_of_pageviews = $this->sumPageviews($aliases);
     }
 

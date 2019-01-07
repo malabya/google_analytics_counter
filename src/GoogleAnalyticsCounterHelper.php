@@ -2,13 +2,12 @@
 
 namespace Drupal\google_analytics_counter;
 
-use Drupal\Core\Entity\EditorialContentEntityBase;
 use Drupal\node\NodeInterface;
 
 /**
  * Provides Google Analytics Counter helper functions.
  */
-class GoogleAnalyticsCounterHelper extends EditorialContentEntityBase {
+class GoogleAnalyticsCounterHelper {
 
   /**
    * Remove queued items from the database.

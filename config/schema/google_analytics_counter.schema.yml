@@ -50,3 +50,6 @@ google_analytics_counter.settings:
         profile_id:
           type: string
           label: 'The Google Analytics view to use.'
+        gac_type_page:
+          type: string
+          label: 'The page node type.'

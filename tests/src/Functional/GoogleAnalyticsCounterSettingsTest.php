@@ -13,30 +13,42 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
   const ADMIN_SETTINGS_PATH = 'admin/config/system/google-analytics-counter';
 
   /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = ['google_analytics_counter'];
-
-  /**
-   * A test user with administrative privileges.
+   * A user with permission to create and edit books and to administer blocks.
    *
    * @var \Drupal\user\UserInterface
    */
   protected $adminUser;
 
   /**
-   * Verifies that the google analytics counter settings page works.
-   *
-   * @see MediaSourceTest
+   * {@inheritdoc}
    */
-  public function testForm() {
-    $admin_user = $this->drupalCreateUser(array(
+  public static $modules = ['system', 'node'];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+    $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page']);
+  }
+
+  /**
+   * Verifies that the google analytics counter settings page works.
+   */
+  public function testGoogleAnalyticsCounterSettingsForm() {
+    $this->container->get('module_installer')->install(['google_analytics_counter']);
+    $this->resetAll();
+
+    $this->config('google_analytics_counter.settings')
+      ->set('general_settings.gac_type_page', 1)
+      ->save();
+
+    $this->adminUser = $this->drupalCreateUser([
       'administer site configuration',
       'administer google analytics counter',
-    ));
-    $this->drupalLogin($admin_user);
+    ]);
+
+    $this->drupalLogin($this->adminUser);
 
     // Create item(s) in the queue.
     $queue_name = 'google_analytics_counter_worker';
@@ -63,7 +75,7 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
     $edit = [
       'cron_interval' => 0,
       'chunk_to_fetch' => 5000,
-      'api_dayquota' => 10000,
+      'api_dayquota' => 50000,
       'cache_length' => 24,
     ];
 
