@@ -56,7 +56,7 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
 
     // Enqueue an item for processing.
     $queue->createItem([$this->randomMachineName() => $this->randomMachineName()]);
-self::assertArrayHasKey()
+
     $this->drupalGet(self::ADMIN_SETTINGS_PATH);
     $assert = $this->assertSession();
 
