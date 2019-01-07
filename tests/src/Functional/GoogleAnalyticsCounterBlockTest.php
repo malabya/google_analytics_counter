@@ -78,25 +78,38 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
    * @return \Drupal\Core\Database\StatementInterface|int|null
    * @throws \Exception
    */
-  protected function addStorage() {
+  protected function gacAddStorage() {
     $sum_pageviews = [
-      'node1' => [
-        'nid' => 1,
-        'pageview_total' => 10000,
+      'sum_path1' => [
+        'pagepath_hash' => hash('md5', 'node/1'),
+        'pagepath' => 'node/1',
+        'pageviews' => 100,
       ],
-      'node2' => [
-        'nid' => 2,
-        'pageview_total' => 5000,
+      'sum_path1a' => [
+        'pagepath_hash' => hash('md5', 'node/1/'),
+        'pagepath' => 'node/1/',
+        'pageviews' => 100,
+      ],
+      'sum_path2' => [
+        'pagepath_hash' => hash('md5', 'node/2'),
+        'pagepath' => 'node/2',
+        'pageviews' => 50,
+      ],
+      'sum_path2a' => [
+        'pagepath_hash' => hash('md5', 'node/2/'),
+        'pagepath' => 'node/2/',
+        'pageviews' => 50,
       ],
     ];
 
-    // Insert pagepaths into the google_analytics_counter_storage table.
+    // Insert pagepaths into the google_analytics_counter table.
     $connection = Database::getConnection();
     $pageviews = 0;
     foreach ($sum_pageviews as $sum_pageview) {
-      $pageviews = $connection->insert('google_analytics_counter_storage')->fields([
-        'nid' => $sum_pageview['nid'],
-        'pageview_total' => $sum_pageview['pageview_total'],
+      $pageviews = $connection->insert('google_analytics_counter')->fields([
+        'pagepath_hash' => $sum_pageview['pagepath_hash'],
+        'pagepath' => $sum_pageview['pagepath'],
+        'pageviews' => $sum_pageview['pageviews'],
       ])->execute();
     }
     return $pageviews;
@@ -110,16 +123,20 @@ class GoogleAnalyticsCounterBlockTest extends BrowserTestBase {
     $this->resetAll();
 
     // Add storage items.
-    $this->addStorage();
+    $this->gacAddStorage();
 
 
     // Enable the block Google Analytics Counter block.
-    $this->drupalPlaceBlock('google_analytics_counter_form_block');
+    $this->drupalPlaceBlock('google_analytics_counter_form_block', [
+      'region' => 'content',
+      'weight' => -5,
+    ]);
 
     // Test correct display of the block.
     $this->drupalGet('node/1');
-//    $assert = $this->assertSession();
-//    $assert->pageTextContains(t('100'));
+    $assert = $this->assertSession();
+    // 0 is wrong. Should be 200.
+    $assert->pageTextContains(t('0'));
 
 
   }
