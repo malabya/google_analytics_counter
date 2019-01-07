@@ -56,12 +56,13 @@ class GoogleAnalyticsCounterSettingsTest extends BrowserTestBase {
 
     // Enqueue an item for processing.
     $queue->createItem([$this->randomMachineName() => $this->randomMachineName()]);
-
+self::assertArrayHasKey()
     $this->drupalGet(self::ADMIN_SETTINGS_PATH);
-    $this->assertSession()->statusCodeEquals(200);
-
-    // Assert Fields.
     $assert = $this->assertSession();
+
+    // Assert the status code.
+    $assert->statusCodeEquals(200);
+    // Assert Fields.
     $assert->fieldExists('cron_interval');
     $assert->fieldExists('chunk_to_fetch');
     $assert->fieldExists('api_dayquota');
