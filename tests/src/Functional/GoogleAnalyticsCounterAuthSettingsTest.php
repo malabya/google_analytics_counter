@@ -17,7 +17,7 @@ class GoogleAnalyticsCounterAuthSettingsTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['google_analytics_counter'];
+  public static $modules = ['system', 'node'];
 
   /**
    * A test user with administrative privileges.
@@ -32,6 +32,9 @@ class GoogleAnalyticsCounterAuthSettingsTest extends BrowserTestBase {
    * @see MediaSourceTest
    */
   public function testAuthSettings() {
+    $this->container->get('module_installer')->install(['google_analytics_counter']);
+    $this->resetAll();
+
     $admin_user = $this->drupalCreateUser(array(
       'administer site configuration',
       'administer google analytics counter',
