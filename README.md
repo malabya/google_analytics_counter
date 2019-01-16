@@ -179,6 +179,8 @@ To add the custom field to the content type's view
 
 The only caveat to using standard Drupal procedures is the machine name of the field must be field_google_analytics_counter.
 
+Also If you add the custom field with standard Drupal procedures, you'll have to add the field to every content type you would like to see the pageview total on.
+
 1. Go to the custom field tab (/admin/config/system/google-analytics-counter-configure-types)
 
 2. Go to the content type you'd like to add the custom field to (/admin/structure/types/manage/form/fields)
@@ -199,9 +201,6 @@ The only caveat to using standard Drupal procedures is the machine name of the f
 
 10. Check that the sorting is working in the view.
 
-
-
-For this second workaround, you'll have to add the field to every content type you would like to see the pageview total on.
 ### Project Status
 
 - [Google Analytics Counter](https://www.drupal.org/project/google_analytics_counter)
