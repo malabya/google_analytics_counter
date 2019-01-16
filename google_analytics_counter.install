@@ -230,3 +230,57 @@ function google_analytics_counter_update_8008() {
   GoogleAnalyticsCounterHelper::gacSaveTypeConfig();
 }
 
+/**
+ * Issue #3025051: Google Analytics Counter field should be a number
+ */
+function google_analytics_counter_update_8009() {
+  $config_factory = \Drupal::configFactory();
+
+  // Get the content types.
+  $content_types = \Drupal::service('entity.manager')
+    ->getStorage('node_type')
+    ->loadMultiple();
+
+  $gac_types = [];
+  foreach ($content_types as $machine_name => $content_type) {
+
+    // Get the {gac_type).
+    $gac_type = $config_factory->getEditable('google_analytics_counter.settings')
+      ->get("general_settings.gac_type_$machine_name");
+
+    // If the {gac_type} is checked and the field exists, delete it.
+    $field_storage = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
+    if ($gac_type == 1 && !empty($field_storage) && in_array($machine_name, $field_storage->getBundles())) {
+      // Store content types that have the custom field in a lookup table.
+      $gac_types[] = $machine_name;
+      // Delete the field from the content type.
+      FieldConfig::loadByName('node', $machine_name, 'field_google_analytics_counter')
+        ->delete();
+    }
+  }
+
+  // Delete the field storage.
+  $field_storage = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
+  if (isset($field_storage)) {
+    $field_storage->delete();
+  }
+
+  // Add the field storage as an integer this time.
+  $config_path = 'modules/contrib/google_analytics_counter/config/optional';
+  $source      = new FileStorage($config_path);
+  \Drupal::entityTypeManager()->getStorage('field_storage_config')
+    ->create($source->read('field.storage.node.field_google_analytics_counter'))
+    ->save();
+
+  // Add back the custom field from $gac_types.
+  foreach ($content_types as $machine_name => $content_type) {
+    /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field */
+    $custom_field = \Drupal::service('google_analytics_counter.custom_field_generator');
+    $custom_field->gacAddField($content_type);
+
+    // And finally, update the gac_type_{content_type} configuration.
+    $config_factory->getEditable('google_analytics_counter.settings')
+      ->set("general_settings.$machine_name", 1)
+      ->save();
+  }
+}
