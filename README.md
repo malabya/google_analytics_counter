@@ -199,7 +199,7 @@ Also If you add the custom field with standard Drupal procedures, you'll have to
 
 9. Run cron.
 
-10. Check that the sorting is working in the view.
+10. See the pageview total in the edit form, the view of the node, or in a view that you create.
 
 ### Project Status
 
