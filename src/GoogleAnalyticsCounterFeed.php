@@ -153,6 +153,7 @@ class GoogleAnalyticsCounterFeed {
    *   Client secret for Web application from Google API Console.
    * @param string $redirect_uri
    *   Callback uri.
+   * @param null $refresh_token
    */
   protected function fetchToken($client_id, $client_secret, $redirect_uri, $refresh_token = NULL) {
     if ($refresh_token) {
@@ -200,9 +201,9 @@ class GoogleAnalyticsCounterFeed {
         '@details' => strip_tags($this->response->getbody()->__toString()),
       ];
       $this->error = $this->t('Code: @code.  Error: @message.  Message: @details', $error_vars);
+      // Todo: Inject the logger. Inject the messenger. Add this class to the container.
       \Drupal::logger('google_analytics_counter')
         ->error('Code: @code.  Error: @message.  Message: @details', $error_vars);
-      // Todo: Inject the messenger. Add this class to the container.
       drupal_set_message($this->t('Code: @code.  Error: @message.  Message: @details', $error_vars), 'error');
 
       $t_args = [
@@ -398,6 +399,9 @@ class GoogleAnalyticsCounterFeed {
    *   Array of headers.
    * @param string $method
    *   HTTM method.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   protected function request($url, $params = array(), $headers = array(), $method = 'GET') {
     $options = [
@@ -415,7 +419,14 @@ class GoogleAnalyticsCounterFeed {
     }
 
     $client = \Drupal::httpClient();
-    $this->response = $client->request($method, $url, $options);
+    try {
+      $this->response = $client->request($method, $url, $options);
+    }
+    catch (\Exception $e) {
+      if ($e->getCode() == 403) {
+        return new RedirectResponse(Url::fromRoute('google_analytics_counter.admin_auth_form', [], ['absolute' => TRUE])->toString());
+      }
+    }
 
     if ($this->response->getStatusCode() == '200') {
       $this->results = json_decode($this->response->getBody()->__toString());
