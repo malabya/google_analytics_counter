@@ -343,6 +343,15 @@ class GoogleAnalyticsCounterFeed {
 
   /**
    * Public query method for all Core Reporting API features.
+   *
+   * @param $url
+   * @param $params
+   * @param $method
+   * @param $headers
+   * @param array $cache_options
+   *
+   * @return bool
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function query($url, $params, $method, $headers, $cache_options = array()) {
     $params_defaults = [
@@ -457,6 +466,7 @@ class GoogleAnalyticsCounterFeed {
    *   Array of cache options.
    *
    * @return $this
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function queryAccounts($params = array(), $cache_options = array()) {
     $this->setQueryPath('management/accounts');
@@ -473,6 +483,7 @@ class GoogleAnalyticsCounterFeed {
    *   Array of cache options.
    *
    * @return $this
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function queryWebProperties($params = array(), $cache_options = array()) {
     $params += [
@@ -508,6 +519,12 @@ class GoogleAnalyticsCounterFeed {
 
   /**
    * Query Management API - Goals.
+   *
+   * @param array $params
+   * @param array $cache_options
+   *
+   * @return $this
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function queryGoals($params = array(), $cache_options = array()) {
     $params += [
@@ -529,6 +546,7 @@ class GoogleAnalyticsCounterFeed {
    *   Array of cache options.
    *
    * @return $this
+   * @throws \GuzzleHttp\Exception\GuzzleException
    */
   public function queryReportFeed($params = [], $cache_options = []) {
 
