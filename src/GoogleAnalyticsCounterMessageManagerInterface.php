@@ -54,4 +54,13 @@ interface GoogleAnalyticsCounterMessageManagerInterface {
    * @return mixed
    */
   public function getTopTwentyResults($table);
+
+  /**
+   * Voluminous on screen instructions about authentication.
+   *
+   * @param $web_properties
+   *
+   * @return string
+   */
+  public function authenticationInstructions($web_properties);
 }

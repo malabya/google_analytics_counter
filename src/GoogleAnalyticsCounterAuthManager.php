@@ -98,13 +98,8 @@ class GoogleAnalyticsCounterAuthManager implements GoogleAnalyticsCounterAuthMan
    * Begin authentication to Google authentication page with the client_id.
    */
   public function beginGacAuthentication() {
-    global $base_url;
-    $current_path = \Drupal::service('path.current')->getPath();
-    $uri = \Drupal::service('path.alias_manager')->getAliasByPath($current_path);
-    $redirect_uri = $base_url . $uri;
-
     $gafeed = new GoogleAnalyticsCounterFeed();
-    $gafeed->beginAuthentication($this->config->get('general_settings.client_id'), $redirect_uri);
+    $gafeed->beginAuthentication($this->config->get('general_settings.client_id'), $this->config->get('general_settings.redirect_uri'));
   }
 
   /**
@@ -173,46 +168,30 @@ class GoogleAnalyticsCounterAuthManager implements GoogleAnalyticsCounterAuthMan
     // When not authenticated, the only option is 'Unauthenticated'.
     $feed = $this->newGaFeed();
     if (!$feed) {
-      $options = ['unauthenticated' => 'Unauthenticated'];
+      $options = ['unauthenticated' => ''];
       return $options;
     }
 
-    $default_web_properties = (object) [
-      'id' => '1',
-      'webPropertyId' => '1',
-      'name' => 'Unauthenticated'
-    ];
-    $default_profiles = (object) [
-      'id' => '1',
-      'webPropertyId' => '1',
-      'name' => 'Unauthenticated',
-    ];
-
-    $web_properties = !empty($feed->queryWebProperties()->results->items) ? $feed->queryWebProperties()->results->items : [$default_web_properties];
-    $profiles = !empty($feed->queryProfiles()->results->items) ? $feed->queryProfiles()->results->items : [$default_profiles];
-
-    $options = [];
-    foreach ($profiles as $profile) {
-      $webprop = NULL;
-      foreach ($web_properties as $web_property) {
-        if ($web_property->id == $profile->webPropertyId) {
-          $webprop = $web_property;
-          break;
-        }
-      }
-
-      // If not authenticated, use $default_web_properties and $default_profiles.
-      // Todo: This should be taken care of in the response in the feed class.
-      if (empty($feed->queryWebProperties()->results->items)) {
-        $options[$webprop->name][$profile->id] = $profile->name;
-        $this->messenger->addWarning($this->t('You have not been successfully authenticated. Check your Google project, Client ID, and Client Secret.'), FALSE);
-      }
-      else {
-        $options[$webprop->name][$profile->id] = $profile->name . ' (' . $profile->id . ')';
-        $this->messenger->addStatus($this->t('You have been successfully authenticated.'), FALSE);
-      }
+    if (isset($feed->queryWebProperties()->results->items)) {
+      $web_properties = $feed->queryWebProperties()->results->items;
+      $profiles = $feed->queryProfiles()->results->items;
     }
 
+    $options = [];
+    // Add options for each web property.
+    if (!empty($profiles)) {
+      foreach ($profiles as $profile) {
+        $webprop = NULL;
+        foreach ($web_properties as $web_property) {
+          if ($web_property->id == $profile->webPropertyId) {
+            $webprop = $web_property;
+            break;
+          }
+        }
+
+        $options[$webprop->name][$profile->id] = $profile->name . ' (' . $profile->id . ')';
+      }
+    }
     return $options;
   }
 

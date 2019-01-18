@@ -185,7 +185,6 @@ class GoogleAnalyticsCounterFeed {
       $this->response = $e->getResponse();
     }
 
-    dsm($this->response->getStatusCode(), 'status');
     if (substr($this->response->getStatusCode(), 0, 1) == '2') {
       $decoded_response = json_decode($this->response->getBody()
         ->__toString(), TRUE);
@@ -418,11 +417,6 @@ class GoogleAnalyticsCounterFeed {
         return new RedirectResponse(Url::fromRoute('google_analytics_counter.admin_auth_form', [], ['absolute' => TRUE])->toString());
       }
     }
-
-//    echo '<pre>';
-//    print_r($this->response);
-//    echo '</pre>';
-//    exit;
 
     if (isset($this->response) && $this->response->getStatusCode() == '200') {
       $this->results = json_decode($this->response->getBody()->__toString());
