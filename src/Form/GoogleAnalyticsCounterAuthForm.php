@@ -209,7 +209,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#title' => $this->t("Google View"),
       '#options' => $options,
       '#default_value' => $config->get('general_settings.profile_id'),
-      '#description' => $this->t("Choose a Google Analytics view. If you are not authenticated or if the project you are authenticating to does not have Analytics, No options are available."),
+      '#description' => $this->t("Choose a Google Analytics view. If you are not authenticated or if the project you are authenticating to does not have Analytics, no options are available."),
       '#weight' => 15,
     ];
 

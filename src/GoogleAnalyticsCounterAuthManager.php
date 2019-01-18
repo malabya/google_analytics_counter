@@ -165,13 +165,14 @@ class GoogleAnalyticsCounterAuthManager implements GoogleAnalyticsCounterAuthMan
    *   Array of options.
    */
   public function getWebPropertiesOptions() {
-    // When not authenticated, the only option is 'Unauthenticated'.
+    // When not authenticated of if there are no Analytics, no options will be displayed.
     $feed = $this->newGaFeed();
     if (!$feed) {
       $options = ['unauthenticated' => ''];
       return $options;
     }
 
+    // Check for web properties.
     if (isset($feed->queryWebProperties()->results->items)) {
       $web_properties = $feed->queryWebProperties()->results->items;
       $profiles = $feed->queryProfiles()->results->items;

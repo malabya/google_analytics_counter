@@ -196,7 +196,6 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
     return $rows;
   }
 
-
   /**
    * Voluminous on screen instructions about authentication.
    *
@@ -218,7 +217,7 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
       '</li><li>' . $this->t('After setting up Google Analytics, come back to this page and click the Authenticate button above.') .
       '</li></ul><li>' . $this->t('If authentication with Google is successful, the ') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('field will list your analytics profiles.') .
       '</li><li>' . $this->t('Select an analytics profile to collect analytics from and click Save configuration.') .
-      '</li><ul><li>' . $this->t('If you are not authenticated or if the project you are authenticating to does not have Analytics, No options are available.') .
+      '</li><ul><li>' . $this->t('If you are not authenticated or if the project you are authenticating to does not have Analytics, no options are available.') .
       '</strong>.</li></ul></ol></p>' .
       '</li></ul></ol></p>' :
       '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
@@ -233,4 +232,3 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
   }
 
 }
-//       '#description' => $this->t("Choose a Google Analytics view. If you are not authenticated or if the project you are authenticating to does not have Analytics, No options are available."),
