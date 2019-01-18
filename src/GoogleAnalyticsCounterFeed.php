@@ -418,7 +418,7 @@ class GoogleAnalyticsCounterFeed {
       }
     }
 
-    if (isset($this->response) && $this->response->getStatusCode() == '200') {
+    if ($this->response->getStatusCode() == '200') {
       $this->results = json_decode($this->response->getBody()->__toString());
     }
     else {
@@ -428,9 +428,9 @@ class GoogleAnalyticsCounterFeed {
         $this->response->setBody('');
       }
       $error_vars = [
-        '@code' => isset($this->response) && $this->response->getStatusCode(),
-        '@message' => isset($this->response) && $this->response->getReasonPhrase(),
-        '@details' => strip_tags(isset($this->response) && $this->response->getBody()->__toString()),
+        '@code' => $this->response->getStatusCode(),
+        '@message' => $this->response->getReasonPhrase(),
+        '@details' => strip_tags($this->response->getBody()->__toString()),
       ];
       $this->error = $this->t('Code: @code.  Error: @message.  Message: @details', $error_vars);
       \Drupal::logger('google_analytics_counter')
