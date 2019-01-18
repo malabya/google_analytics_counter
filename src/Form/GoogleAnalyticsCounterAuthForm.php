@@ -117,7 +117,9 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
     // Initialize the feed to trigger the fetching of the tokens.
     $this->authManager->newGaFeed();
 
-    if ($this->authManager->isAuthenticated() === TRUE) {
+//    dsm(key($this->authManager->getWebPropertiesOptions()), 'options');
+    $web_properties = key($this->authManager->getWebPropertiesOptions());
+    if ($web_properties !== 'Unauthenticated') {
       $form['revoke'] = [
         '#type' => 'fieldset',
         '#title' => $this->t('Revoke authentication'),
@@ -152,7 +154,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
         ->toString(),
       '@href' => 'Dashboard',
     ];
-    $markup_description = ($this->authManager->isAuthenticated() === TRUE) ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
+    $markup_description = ($web_properties !== 'Unauthenticated') ? '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
       '<ol><li>' . $this->t('Now that you are authenticated with Google Analytics, select the') .  '<strong>' . $this->t(' Google Views ') . '</strong>' . $this->t('to collect analytics from and click Save configuration.') .
       '</li><li>' . $this->t('Save configuration.') .
       '</li><li>' . $this->t('On the next cron job, analytics from the Google View field and the Additional Google Views field will be saved to Drupal.') .
@@ -184,7 +186,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.client_id'),
       '#size' => 90,
       '#description' => $this->t('Create the Client ID in the access tab of the <a href=:href target="_blank">@href</a>.', $t_args),
-      '#disabled' => $this->authManager->isAuthenticated() === TRUE,
+      '#disabled' => $web_properties !== 'Unauthenticated',
       '#weight' => 11,
     ];
 
@@ -194,20 +196,20 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.client_secret'),
       '#size' => 90,
       '#description' => $this->t('Create the Client secret in the <a href=:href target="_blank">@href</a>.', $t_args),
-      '#disabled' => $this->authManager->isAuthenticated() === TRUE,
+      '#disabled' => $web_properties !== 'Unauthenticated',
       '#weight' => 12,
     ];
 
     $current_path = \Drupal::service('path.current')->getPath();
     $uri = \Drupal::service('path.alias_manager')->getAliasByPath($current_path);
-    $description = ($this->authManager->isAuthenticated() === TRUE) ? $this->t('The path that users are redirected to after they have authenticated with Google.') : $this->t('The path that users are redirected to after they have authenticated with Google.<br /> Default: <strong>@default_uri</strong>', ['@default_uri' => $base_url . $uri]);
+    $description = ($web_properties !== 'Unauthenticated') ? $this->t('The path that users are redirected to after they have authenticated with Google.') : $this->t('The path that users are redirected to after they have authenticated with Google.<br /> Default: <strong>@default_uri</strong>', ['@default_uri' => $base_url . $uri]);
     $form['redirect_uri'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Authorized Redirect URI'),
       '#default_value' => $config->get('general_settings.redirect_uri'),
       '#size' => 90,
       '#description' => $description,
-      '#disabled' => $this->authManager->isAuthenticated() === TRUE,
+      '#disabled' => $web_properties !== 'Unauthenticated',
       '#weight' => 13,
     ];
 
@@ -224,7 +226,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
       '#weight' => 14,
     ];
 
-    $options = !empty($this->authManager->getWebPropertiesOptions()) ? $this->authManager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
+    $options = $this->authManager->getWebPropertiesOptions();
     $form['profile_id'] = [
       '#type' => 'select',
       '#title' => $this->t("Google View"),
@@ -253,7 +255,7 @@ class GoogleAnalyticsCounterAuthForm extends ConfigFormBase {
         break;
 
       default:
-        $options = !empty($this->authManager->getWebPropertiesOptions()) ? $this->authManager->getWebPropertiesOptions() : ['unauthenticated' => 'Unauthenticated'];
+        $options = $this->authManager->getWebPropertiesOptions();
         $profile_id = $form_state->getValue('profile_id');
         $profile_name = GoogleAnalyticsCounterHelper::searchArrayValueByKey($options, (int) $profile_id);
 

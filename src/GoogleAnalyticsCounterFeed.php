@@ -185,6 +185,7 @@ class GoogleAnalyticsCounterFeed {
       $this->response = $e->getResponse();
     }
 
+    dsm($this->response->getStatusCode(), 'status');
     if (substr($this->response->getStatusCode(), 0, 1) == '2') {
       $decoded_response = json_decode($this->response->getBody()
         ->__toString(), TRUE);
@@ -193,25 +194,6 @@ class GoogleAnalyticsCounterFeed {
       if (!$this->refreshToken) {
         $this->refreshToken = $decoded_response['refresh_token'];
       }
-    }
-    else {
-      $error_vars = [
-        '@code' => $this->response->getStatusCode(),
-        '@message' => $this->response->getReasonPhrase(),
-        '@details' => strip_tags($this->response->getbody()->__toString()),
-      ];
-      $this->error = $this->t('Code: @code.  Error: @message.  Message: @details', $error_vars);
-      // Todo: Inject the logger. Inject the messenger. Add this class to the container.
-      \Drupal::logger('google_analytics_counter')
-        ->error('Code: @code.  Error: @message.  Message: @details', $error_vars);
-      drupal_set_message($this->t('Code: @code.  Error: @message.  Message: @details', $error_vars), 'error');
-
-      $t_args = [
-        ':href' => Url::fromRoute('google_analytics_counter.admin_auth_revoke', [], ['absolute' => TRUE])
-          ->toString(),
-        '@href' => 'revoking Google authentication',
-      ];
-      drupal_set_message($this->t("If there's a problem with OAUTH authentication, try <a href=:href>@href</a>.", $t_args), 'warning');
     }
   }
 
@@ -437,19 +419,24 @@ class GoogleAnalyticsCounterFeed {
       }
     }
 
-    if ($this->response->getStatusCode() == '200') {
+//    echo '<pre>';
+//    print_r($this->response);
+//    echo '</pre>';
+//    exit;
+
+    if (isset($this->response) && $this->response->getStatusCode() == '200') {
       $this->results = json_decode($this->response->getBody()->__toString());
     }
     else {
       // Data is undefined if the connection failed.
-      if (empty($this->response->getBody()->__toString())) {
+      if (isset($this->response) && empty($this->response->getBody()->__toString())) {
         // @todo check it!!! it's temp code.
         $this->response->setBody('');
       }
       $error_vars = [
-        '@code' => $this->response->getStatusCode(),
-        '@message' => $this->response->getReasonPhrase(),
-        '@details' => strip_tags($this->response->getBody()->__toString()),
+        '@code' => isset($this->response) && $this->response->getStatusCode(),
+        '@message' => isset($this->response) && $this->response->getReasonPhrase(),
+        '@details' => strip_tags(isset($this->response) && $this->response->getBody()->__toString()),
       ];
       $this->error = $this->t('Code: @code.  Error: @message.  Message: @details', $error_vars);
       \Drupal::logger('google_analytics_counter')
@@ -510,6 +497,8 @@ class GoogleAnalyticsCounterFeed {
 
   /**
    * Query Management API - Segments.
+   *
+   * This method is not in use.
    */
   public function querySegments($params = array(), $cache_options = array()) {
     $this->setQueryPath('management/segments');
@@ -519,6 +508,8 @@ class GoogleAnalyticsCounterFeed {
 
   /**
    * Query Management API - Goals.
+   *
+   * This method is not in use.
    *
    * @param array $params
    * @param array $cache_options

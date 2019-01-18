@@ -115,7 +115,6 @@ class GoogleAnalyticsCounterAuthManager implements GoogleAnalyticsCounterAuthMan
    *   from the Google Analytics Core Reporting API.
    */
   public function newGaFeed() {
-    global $base_url;
     $config = $this->config;
 
     // If the access token is still valid, return an authenticated GAFeed.
@@ -123,7 +122,7 @@ class GoogleAnalyticsCounterAuthManager implements GoogleAnalyticsCounterAuthMan
       return new GoogleAnalyticsCounterFeed($this->state->get('google_analytics_counter.access_token'));
     }
     // If the site has an access token and refresh token, but the access
-    // token has expired, authenticate the user with the refresh token.
+    // token has expired, authenticate the client with the refresh token.
     elseif ($this->state->get('google_analytics_counter.refresh_token')) {
       $client_id = $config->get('general_settings.client_id');
       $client_secret = $config->get('general_settings.client_secret');
@@ -143,24 +142,17 @@ class GoogleAnalyticsCounterAuthManager implements GoogleAnalyticsCounterAuthMan
       }
     }
     // If there is no access token or refresh token and client is returned
-    // to the config page with an access code, complete the authentication.
+    // to the config page with an access code completes the authentication.
     elseif (isset($_GET['code'])) {
       try {
-        $current_path = \Drupal::service('path.current')->getPath();
-        $uri = \Drupal::service('path.alias_manager')->getAliasByPath($current_path);
-        $redirect_uri = $base_url . $uri;
-
         $gac_feed = new GoogleAnalyticsCounterFeed();
-        $gac_feed->finishAuthentication($config->get('general_settings.client_id'), $config->get('general_settings.client_secret'), $redirect_uri);
+        $gac_feed->finishAuthentication($config->get('general_settings.client_id'), $config->get('general_settings.client_secret'), $config->get('general_settings.redirect_uri'));
 
         $this->state->setMultiple([
           'google_analytics_counter.access_token' => $gac_feed->accessToken,
           'google_analytics_counter.expires_at' => $gac_feed->expiresAt,
           'google_analytics_counter.refresh_token' => $gac_feed->refreshToken,
         ]);
-
-        $this->messenger->addStatus($this->t('You have been successfully authenticated.'), FALSE);
-
       }
       catch (Exception $e) {
         $this->messenger->addError($this->t('There was an authentication error. Message: %message', ['%message' => $e->getMessage()]));
@@ -180,30 +172,47 @@ class GoogleAnalyticsCounterAuthManager implements GoogleAnalyticsCounterAuthMan
   public function getWebPropertiesOptions() {
     // When not authenticated, the only option is 'Unauthenticated'.
     $feed = $this->newGaFeed();
-    if (empty($feed->response)) {
+    if (!$feed) {
       $options = ['unauthenticated' => 'Unauthenticated'];
       return $options;
     }
 
-    // Get the profiles information from Google.
-    $web_properties = $feed->queryWebProperties()->results->items;
-    $profiles = $feed->queryProfiles()->results->items;
+    $default_web_properties = (object) [
+      'id' => '1',
+      'webPropertyId' => '1',
+      'name' => 'Unauthenticated'
+    ];
+    $default_profiles = (object) [
+      'id' => '1',
+      'webPropertyId' => '1',
+      'name' => 'Unauthenticated',
+    ];
+
+    $web_properties = !empty($feed->queryWebProperties()->results->items) ? $feed->queryWebProperties()->results->items : [$default_web_properties];
+    $profiles = !empty($feed->queryProfiles()->results->items) ? $feed->queryProfiles()->results->items : [$default_profiles];
 
     $options = [];
-    // Add options for each web property.
-    if (!empty($profiles)) {
-      foreach ($profiles as $profile) {
-        $webprop = NULL;
-        foreach ($web_properties as $web_property) {
-          if ($web_property->id == $profile->webPropertyId) {
-            $webprop = $web_property;
-            break;
-          }
+    foreach ($profiles as $profile) {
+      $webprop = NULL;
+      foreach ($web_properties as $web_property) {
+        if ($web_property->id == $profile->webPropertyId) {
+          $webprop = $web_property;
+          break;
         }
+      }
 
+      // If not authenticated, use $default_web_properties and $default_profiles.
+      // Todo: This should be taken care of in the response in the feed class.
+      if (empty($feed->queryWebProperties()->results->items)) {
+        $options[$webprop->name][$profile->id] = $profile->name;
+        $this->messenger->addWarning($this->t('You have not been successfully authenticated. Check your Google project, Client ID, and Client Secret.'), FALSE);
+      }
+      else {
         $options[$webprop->name][$profile->id] = $profile->name . ' (' . $profile->id . ')';
+        $this->messenger->addStatus($this->t('You have been successfully authenticated.'), FALSE);
       }
     }
+
     return $options;
   }
 
