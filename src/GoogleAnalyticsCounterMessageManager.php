@@ -209,23 +209,22 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
         ->toString(),
       '@href' => 'Dashboard',
     ];
-    $markup_description = ($web_properties !== 'Unauthenticated') ?
-      '<ol><li>' . $this->t('Fill in your Client ID, Client Secret, Authorized Redirect URI, and Google Project Name.') .
-      '</li><li>' . $this->t('Save configuration.') .
-      '</li><li>' . $this->t('Click Authenticate in Authenticate with Google Analytics above.') .
-      '</li><ul><li>' . $this->t('If you don\'t already have Google Analytics set up in Google, follow the instructions in the README.md included with this module.') .
-      '</li><li>' . $this->t('After setting up Google Analytics, come back to this page and click the Authenticate button above.') .
-      '</li></ul><li>' . $this->t('If authentication with Google is successful, the ') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('field will list your analytics profiles.') .
+    $markup_description = ($web_properties === 'unauthenticated') ?
+      '<ol><li>' . $this->t('Fill in the Client ID, Client Secret, Authorized Redirect URI, and optionally Google Project Name in the fields below.') .
+      '</li><ul><li>' . $this->t('If you don\'t have a Client ID, a Client Secret, an Authorized Redirect URI, and optionally a Google Project Name, follow the instructions in the README.md included with this module or read the <a href="https://www.drupal.org/docs/8/modules/google-analytics-counter" target="_blank">online documentation</a>.') .
+      '</li></ul><li>' . $this->t('Save configuration.') .
+      '</li><li>' . $this->t('Click Authenticate in "Authenticate with Google Analytics" above.') .
+      '</li><li>' . $this->t('If authentication with Google is successful, the ') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('field will list your analytics profiles.') .
       '</li><li>' . $this->t('Select an analytics profile to collect analytics from and click Save configuration.') .
       '</li><ul><li>' . $this->t('If you are not authenticated or if the project you are authenticating to does not have Analytics, no options are available.') .
-      '</strong></li></ul></ol></p>' .
-      '</li></ul></ol></p>' :
+      '</strong></li></ul></ol></p>' :
       '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
-      '<ol><li>' . $this->t('Now that you are authenticated with Google Analytics, select the') . '<strong>' . $this->t(' Google Views ') . '</strong>' . $this->t('to collect analytics from and click Save configuration.') .
+      '<ol><li>' . $this->t('Now that you are authenticated with Google Analytics, select the') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('to collect analytics from.') .
       '</li><li>' . $this->t('Save configuration.') .
-      '</li><li>' . $this->t('On the next cron job, analytics from the Google View field and the Additional Google Views field will be saved to Drupal.') .
-      '</li><ul><li>' . $this->t('Information on the <a href=:href>@href</a> page is derived from the Google View field, not the Additional Google Views field.', $t_arg) .
-      '</li><li>' . $this->t('After cron runs, check pageviews for all selected Google Views on the <a href=:href>@href</a>  page in the Top Twenty Results section.', $t_arg) .
+      '</li><li>' . $this->t('On the next cron job, analytics from the selected') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('will be saved to Drupal.') .
+      '</li><ul><li>' . $this->t('Information on the <a href=:href>@href</a> page is from the', $t_arg) . '<strong>' . $this->t(' Google View') . '</strong>' . $this->t('.') .
+      '</li><li>' . $this->t('After cron runs, compare pagepaths and pageview totals on the <a href=:href>@href</a> in the Top Twenty Results section with your Google Analytics.', $t_arg) .
+      '</li><li>' . $this->t('The totals in the Top Twenty Results should closely match your Google Analytics allowing for when Google updates their data versus when Cron runs.', $t_arg) .
       '</li></ul></ol></p>';
 
     return $markup_description;
