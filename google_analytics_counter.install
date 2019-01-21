@@ -283,21 +283,19 @@ function google_analytics_counter_update_8009() {
     ->create($source->read('field.storage.node.field_google_analytics_counter'))
     ->save();
 
-  // Add back the custom field from $gac_types.
+  // Finally, if the {gac_type_} was checked, create the field config, and check {gac_type_} again.
   foreach ($content_types as $machine_name => $content_type) {
+    foreach ($gac_types as $key => $gac_type) {
+      if ($gac_type == $content_type->id()) {
 
-    // Finally, if the {gac_type_} was checked, create the field config. and check {gac_type_} again.
-    $gac_type = $config_factory->getEditable('google_analytics_counter.settings')
-      ->get("general_settings.gac_type_$machine_name");
+        /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field */
+        $custom_field = \Drupal::service('google_analytics_counter.custom_field_generator');
+        $custom_field->gacAddField($content_type);
 
-    if ($gac_type == 1) {
-      /* @var \Drupal\google_analytics_counter\GoogleAnalyticsCounterCustomFieldGeneratorInterface $custom_field */
-      $custom_field = \Drupal::service('google_analytics_counter.custom_field_generator');
-      $custom_field->gacAddField($content_type);
-
-      $config_factory->getEditable('google_analytics_counter.settings')
-        ->set("general_settings.$machine_name", 1)
-        ->save();
+        $config_factory->getEditable('google_analytics_counter.settings')
+          ->set("general_settings.$machine_name", 1)
+          ->save();
+      }
     }
   }
 }
