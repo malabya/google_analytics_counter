@@ -243,19 +243,30 @@ function google_analytics_counter_update_8009() {
 
   $gac_types = [];
   foreach ($content_types as $machine_name => $content_type) {
-
     // Get the {gac_type).
     $gac_type = $config_factory->getEditable('google_analytics_counter.settings')
       ->get("general_settings.gac_type_$machine_name");
 
-    // If the {gac_type} is checked and the field exists, delete it.
-    $field_storage = FieldStorageConfig::loadByName('node', 'field_google_analytics_counter');
-    if ($gac_type == 1 && !empty($field_storage) && in_array($machine_name, $field_storage->getBundles())) {
-      // Store content types that have the custom field in a lookup table.
+    // Store content types that have the custom field in a lookup table.
+    if ($gac_type == 1) {
       $gac_types[] = $machine_name;
-      // Delete the field from the content type.
-      FieldConfig::loadByName('node', $machine_name, 'field_google_analytics_counter')
-        ->delete();
+    }
+  }
+
+  // Uninstall the Google Analytics Counter field.
+  $bundles = ['node'];
+
+  $fields['field_google_analytics_counter'] = [
+    'entity_type' => 'node',
+  ];
+
+  // Delete the field config.
+  foreach ($bundles as $bundle) {
+    foreach ($fields as $field_name => $config) {
+      $field = FieldConfig::loadByName($config['entity_type'], $bundle, $field_name);
+      if (!empty($field)) {
+        $field->delete();
+      }
     }
   }
 
