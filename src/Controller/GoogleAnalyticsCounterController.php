@@ -296,7 +296,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $build['drupal_info']['top_twenty_results']['storage']['summary'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->t('A pageview total may be greater than PAGEVIEWS because a pageview total includes page aliases, node/id, and node/id/ URIs.'),
+      '#value' => $this->t('A pageview total may be greater than the PAGEPATH because pageview totals include page aliases, node/id, node/id/, international, and other URIs which are also the node, like redirects.'),
     ];
 
     $rows = $this->messageManager->getTopTwentyResults('google_analytics_counter_storage');
