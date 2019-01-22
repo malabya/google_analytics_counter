@@ -13,7 +13,6 @@ use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Psr\Log\LoggerInterface;
 
-
 /**
  * Class GoogleAnalyticsCounterAppManager.
  *
@@ -333,7 +332,8 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
    */
   protected function sumPageviews($aliases) {
     // $aliases can make pageview_total greater than pageviews
-    // because $aliases can include page aliases, node/id, and node/id/ URIs.
+    // because $aliases can include page aliases, node/id, and node/id/, translations
+    // redirects and other URIs which are all the same node.
     $hashes = array_map('md5', $aliases);
     $path_counts = $this->connection->select('google_analytics_counter', 'gac')
       ->fields('gac', ['pageviews'])

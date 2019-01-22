@@ -224,7 +224,7 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
       '</li><li>' . $this->t('On the next cron job, analytics from the selected') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('will be saved to Drupal.') .
       '</li><ul><li>' . $this->t('Information on the <a href=:href>@href</a> page is from the', $t_arg) . '<strong>' . $this->t(' Google View') . '</strong>' . $this->t('.') .
       '</li><li>' . $this->t('After cron runs, compare pagepaths and pageview totals on the <a href=:href>@href</a> in the Top Twenty Results section with your Google Analytics.', $t_arg) .
-      '</li><li>' . $this->t('The totals in the Top Twenty Results should closely match your Google Analytics allowing for when Google updates their data versus when Cron runs.', $t_arg) .
+      '</li><li>' . $this->t('The totals in the Top Twenty Results should closely match your Google Analytics depending on when Google updates their data versus when Cron runs.', $t_arg) .
       '</li></ul></ol></p>';
 
     return $markup_description;
