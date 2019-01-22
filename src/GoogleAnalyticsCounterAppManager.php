@@ -385,7 +385,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
         'deleted' => 0,
         'entity_id' => $nid,
         'revision_id' => $vid,
-        'langcode' => 'en',
+        'langcode' => \Drupal::languageManager()->getDefaultLanguage()->getId(),
         'delta' => 0,
         'field_google_analytics_counter_value' => $sum_pageviews,
       ])
