@@ -84,13 +84,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
   protected $messenger;
 
   /**
-   * Prefixes.
-   *
-   * @var array
-   */
-  protected $prefixes;
-
-  /**
    * The time service.
    *
    * @var \Drupal\Component\Datetime\TimeInterface
@@ -137,7 +130,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     $this->languageManager = $language;
     $this->logger = $logger;
     $this->messenger = $messenger;
-    $this->prefixes = [];
     $this->authManager = $auth_manager;
   }
 
@@ -298,9 +290,9 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     foreach ($this->languageManager->getLanguages() as $language) {
       $alias = $this->aliasManager->getAliasByPath($path, $language->getId());
       $aliases[] = $alias;
-      if (array_key_exists($language->getId(), $this->prefixes) && $this->prefixes[$language->getId()]) {
-        $aliases[] = '/' . $this->prefixes[$language->getId()] . $path;
-        $aliases[] = '/' . $this->prefixes[$language->getId()] . $alias;
+      if ($language->getId()) {
+        $aliases[] = '/' . $language->getId() . $path;
+        $aliases[] = '/' . $language->getId() . $alias;
       }
     }
 
@@ -309,7 +301,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
       return $path . '/';
     }, $aliases));
 
-    // See scrum_notes/google_analytics_counter/aliases.md
+//    drush_print_r($aliases);
 
     // It's the front page
     // Todo: Could be brittle
@@ -362,8 +354,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
    * @throws \Exception
    */
   protected function updateCounterStorage($nid, $sum_pageviews, $bundle, $vid) {
-    $config = $this->config;
-
     $this->connection->merge('google_analytics_counter_storage')
       ->key('nid', $nid)
       ->fields([
