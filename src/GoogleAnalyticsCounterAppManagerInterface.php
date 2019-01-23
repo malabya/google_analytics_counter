@@ -85,14 +85,14 @@ interface GoogleAnalyticsCounterAppManagerInterface {
    */
   public function setCacheOptions(array $parameters);
 
-  /**
-   * Get the count of pageviews for a path.
-   *
-   * @param string $path
-   *   The path to look up.
-   *
-   * @return string
-   *   Count of page views.
-   */
-  public function gacDisplayCount($path);
+//  /**
+//   * Get the count of pageviews for a path.
+//   *
+//   * @param string $path
+//   *   The path to look up.
+//   *
+//   * @return string
+//   *   Count of page views.
+//   */
+//  public function gacDisplayCount($path);
 }

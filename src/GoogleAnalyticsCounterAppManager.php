@@ -367,6 +367,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     }
 
     // Todo: This can be more performant by adding only the bundles that have been selected.
+    // drush_print(\Drupal::languageManager()->getDefaultLanguage()->getId());
     $this->connection->upsert('node__field_google_analytics_counter')
       ->key('revision_id')
       ->fields(['bundle', 'deleted', 'entity_id', 'revision_id', 'langcode', 'delta', 'field_google_analytics_counter_value'])
@@ -489,29 +490,44 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
   /**
    * Get the count of pageviews for a path.
    *
-   * @param string $path
-   *   The path to look up.
-   *
    * @return string
    *   Count of page views.
    */
-  public function gacDisplayCount($path) {
+  public function gacDisplayCount() {
     // Make sure the path starts with a slash.
+    $path = \Drupal::service('path.current')->getPath();
     $path = '/' . trim($path, ' /');
+    // dsm($path);
 
+    $sum_pageviews = 0;
     // It's the front page.
     if ($this->pathMatcher->isFrontPage()) {
       $aliases = ['/'];
       $sum_pageviews = $this->sumPageviews($aliases);
     }
+
+    // It's a node.
+    else if ($node = \Drupal::routeMatch()->getParameter('node')) {
+      if ($node instanceof \Drupal\node\NodeInterface) {
+        $query = $this->connection->select('google_analytics_counter_storage', 'gacs');
+        $query->fields('gacs', ['pageview_total']);
+        $query->condition('nid', $node->id());
+        $sum_pageviews = $query->execute()->fetchField();
+      }
+    }
+
+    //It's a path.
     else {
       // Look up the alias, with, and without trailing slash.
       // todo: The array is an accommodation to sumPageViews()
       $aliases = [$this->aliasManager->getAliasByPath($path)];
-
+      // dsm($aliases, '$aliases');
       $sum_pageviews = $this->sumPageviews($aliases);
+      // dsm($sum_pageviews, '$sum_pageviews');
+
     }
 
+    // dsm($sum_pageviews);
     return number_format($sum_pageviews);
   }
 
