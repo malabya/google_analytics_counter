@@ -417,10 +417,8 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
       'sort_metric' => NULL,
       'filters' => NULL,
       'segment' => NULL,
-      'start_date' => !empty($config->get('general_settings.fixed_start_date')) ? strtotime($config->get('general_settings.fixed_start_date')) : strtotime($config->get('general_settings.start_date')),
-      // If fixed dates are not in use, use 'tomorrow' to offset any timezone
-      // shift between the hosting and Google servers.
-      'end_date' => !empty($config->get('general_settings.fixed_end_date')) ? strtotime($config->get('general_settings.fixed_end_date')) : strtotime('tomorrow'),
+      'start_date' => !empty($config->get('general_settings.custom_start_date')) ? strtotime($config->get('general_settings.custom_start_date')) : strtotime($config->get('general_settings.start_date')),
+      'end_date' => !empty($config->get('general_settings.custom_end_date')) ? strtotime($config->get('general_settings.custom_end_date')) : strtotime('tomorrow'),
       'start_index' => $pointer,
       'max_results' => $chunk,
     ];
@@ -497,7 +495,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     // Make sure the path starts with a slash.
     $path = \Drupal::service('path.current')->getPath();
     $path = '/' . trim($path, ' /');
-    // dsm($path);
 
     $sum_pageviews = 0;
     // It's the front page.

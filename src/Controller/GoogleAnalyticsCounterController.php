@@ -140,6 +140,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
 
     // Get and format total pageviews.
     $t_args = $this->getStartDateEndDate();
+    // dsm($t_args);
     $t_args += ['%total_pageviews' => number_format($this->state->get('google_analytics_counter.total_pageviews'))];
     $build['google_info']['total_pageviews'] = [
       '#type' => 'html_tag',
@@ -348,7 +349,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
   }
 
   /**
-   * Calculates total pageviews for fixed start and end date or for time ago.
+   * Calculates total pageviews for based on start and end dates.
    *
    * @return array
    *   Start & end dates.
@@ -356,21 +357,21 @@ class GoogleAnalyticsCounterController extends ControllerBase {
   protected function getStartDateEndDate() {
     $config = $this->config;
 
-    if (!empty($config->get('general_settings.fixed_start_date'))) {
+    if (!empty($config->get('general_settings.custom_start_date'))) {
       $t_args = [
         '%start_date' => $this->dateFormatter
-          ->format(strtotime($config->get('general_settings.fixed_start_date')), 'custom', 'M j, Y'),
+          ->format(strtotime($config->get('general_settings.custom_start_date')), 'custom', 'M j, Y'),
         '%end_date' => $this->dateFormatter
-          ->format(strtotime($config->get('general_settings.fixed_end_date')), 'custom', 'M j, Y'),
+          ->format(strtotime($config->get('general_settings.custom_end_date')), 'custom', 'M j, Y'),
       ];
       return $t_args;
     }
     else {
       $t_args = [
         '%start_date' => $config->get('general_settings.start_date') ? $this->dateFormatter
-          ->format(strtotime('yesterday') - strtotime(ltrim($config->get('general_settings.start_date'), '-'), 0), 'custom', 'M j, Y') : 'N/A',
+          ->format(strtotime('last week') - strtotime(ltrim($config->get('general_settings.start_date'), '-'), 0), 'custom', 'M j, Y') : 'N/A',
         '%end_date' => $config->get('general_settings.start_date') ? $this->dateFormatter
-          ->format(strtotime('yesterday'), 'custom', 'M j, Y') : 'N/A',
+          ->format(strtotime('today'), 'custom', 'M j, Y') : 'N/A',
       ];
 
       return $t_args;
