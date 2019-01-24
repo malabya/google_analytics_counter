@@ -180,13 +180,13 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       'custom' => $this->t('Custom'),
       'today' => $this->t('Today'),
       'yesterday' => $this->t('Yesterday'),
-      'last week' => $this->t('Last week'),
-      'last month' => $this->t('Last month'),
+      '-1 week +1 day last sunday midnight' => $this->t('Last week'),
+      'first day of previous month' => $this->t('Last month'),
       '7 days ago' => $this->t('Last 7 days'),
       '30 days ago' => $this->t('Last 30 days'),
       '3 months ago' => $this->t('Last 3 months'),
       '6 months ago' => $this->t('Last 6 months'),
-      'last year' => $this->t('Last year'),
+      'first day of last year' => $this->t('Last year'),
     ];
 
     $form['start_date_details']['start_date'] = [
@@ -257,31 +257,37 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       $end_date = 'yesterday';
     }
 
-    if ($values['start_date'] == 'last week') {
-      $end_date = 'last sunday midnight -1 week +1 day +next saturday';
+//    $previous_week = strtotime('-1 week +1 day');
+//
+//    $start_week = strtotime('-1 week +1 day last sunday midnight', $previous_week);
+//    $end_week = strtotime('next saturday', $start_week);
+
+
+    if ($values['start_date'] == '-1 week +1 day last sunday midnight') {
+      $end_date = '-1 week +1 day +next saturday';
     }
 
-    if ($values['start_date'] == 'last month') {
+    if ($values['start_date'] == 'first day of previous month') {
       $end_date = 'last day of previous month';
     }
 
     if ($values['start_date'] == '7 days ago') {
-      $end_date = '7 days ago -1 day';
+      $end_date = '7 days ago +6 days';
     }
 
     if ($values['start_date'] == '30 days ago') {
-      $end_date = '30 days ago -1 day';
+      $end_date = '30 days ago +29 days';
     }
 
     if ($values['start_date'] == '3 months ago') {
-      $end_date = '3 months ago -1 day';
+      $end_date = '3 months ago +3 months';
     }
 
     if ($values['start_date'] == '6 months ago') {
-      $end_date = '6 months ago -1 day' ;
+      $end_date = '6 months ago +6 months' ;
     }
 
-    if ($values['start_date'] == 'last year') {
+    if ($values['start_date'] == 'first day of last year') {
       $end_date = 'last day of last year';
     }
 

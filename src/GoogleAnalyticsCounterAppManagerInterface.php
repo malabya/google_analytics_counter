@@ -46,7 +46,7 @@ interface GoogleAnalyticsCounterAppManagerInterface {
   /**
    * Update the path counts.
    *
-   * @param string $index
+   * @param integer $index
    *   The index of the chunk to fetch and update.
    *
    * This function is triggered by hook_cron().

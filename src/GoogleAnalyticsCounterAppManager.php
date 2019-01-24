@@ -417,9 +417,8 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
       'sort_metric' => NULL,
       'filters' => NULL,
       'segment' => NULL,
-//      'start_date' => !empty($config->get('general_settings.custom_start_date')) ? strtotime($config->get('general_settings.custom_start_date')) : strtotime($config->get('general_settings.start_date')),
-      'start_date' => !empty($config->get('general_settings.start_date')) ? strtotime($config->get('general_settings.custom_start_date')) : strtotime($config->get('general_settings.custom_start_date')),
-      'end_date' => !empty($config->get('general_settings.custom_end_date')) ? strtotime($config->get('general_settings.custom_end_date')) : strtotime('today'),
+      'start_date' => !empty($config->get('general_settings.start_date')) ? strtotime($config->get('general_settings.start_date')) : strtotime($config->get('general_settings.custom_start_date')),
+      'end_date' => !empty($config->get('general_settings.end_date')) ? strtotime($config->get('general_settings.end_date')) : strtotime($config->get('general_settings.custom_end_date')),
       'start_index' => $pointer,
       'max_results' => $chunk,
     ];
