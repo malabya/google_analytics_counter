@@ -247,6 +247,44 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     $current_queue_time = $config->get('general_settings.queue_time');
 
     $values = $form_state->getValues();
+
+    $end_date = '';
+    if ($values['start_date'] == 'today') {
+      $end_date = 'today';
+    }
+
+    if ($values['start_date'] == 'yesterday') {
+      $end_date = 'yesterday';
+    }
+
+    if ($values['start_date'] == 'last week') {
+      $end_date = 'last sunday midnight -1 week +1 day +next saturday';
+    }
+
+    if ($values['start_date'] == 'last month') {
+      $end_date = 'last day of previous month';
+    }
+
+    if ($values['start_date'] == '7 days ago') {
+      $end_date = '7 days ago -1 day';
+    }
+
+    if ($values['start_date'] == '30 days ago') {
+      $end_date = '30 days ago -1 day';
+    }
+
+    if ($values['start_date'] == '3 months ago') {
+      $end_date = '3 months ago -1 day';
+    }
+
+    if ($values['start_date'] == '6 months ago') {
+      $end_date = '6 months ago -1 day' ;
+    }
+
+    if ($values['start_date'] == 'last year') {
+      $end_date = 'last day of last year';
+    }
+
     $config
       ->set('general_settings.cron_interval', $values['cron_interval'])
       ->set('general_settings.chunk_to_fetch', $values['chunk_to_fetch'])
@@ -254,6 +292,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       ->set('general_settings.cache_length', $values['cache_length'] * 3600)
       ->set('general_settings.queue_time', $values['queue_time'])
       ->set('general_settings.start_date', $values['start_date'] == 'custom' ? '' : $values['start_date'])
+      ->set('general_settings.end_date', $values['end_date'] == 'custom' ? '' : $end_date)
       ->set('general_settings.custom_start_date', $values['start_date'] == 'custom' ? $values['custom_start_date'] : '')
       ->set('general_settings.custom_end_date', $values['start_date'] == 'custom' ? $values['custom_end_date'] : '')
       ->save();
