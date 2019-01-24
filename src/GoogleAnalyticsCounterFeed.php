@@ -576,8 +576,8 @@ class GoogleAnalyticsCounterFeed {
     }
     $start_date = '';
     if (empty($params['start_date']) || !is_int($params['start_date'])) {
-      // Use the day that Google Analytics was released 2005-01-01.
-      $start_date = '2005-01-01';
+      // Todo: Don't use string literal.
+      $start_date = '2019-01-01';
     }
     elseif (is_int($params['start_date'])) {
       // Assume a Unix timestamp.

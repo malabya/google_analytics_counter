@@ -79,8 +79,7 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
    */
-  public function __construct(
-    ConfigFactoryInterface $config_factory, Connection $connection, StateInterface $state, DateFormatter $date_formatter, LoggerInterface $logger, MessengerInterface $messenger) {
+  public function __construct(ConfigFactoryInterface $config_factory, Connection $connection, StateInterface $state, DateFormatter $date_formatter, LoggerInterface $logger, MessengerInterface $messenger) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->connection = $connection;
     $this->dateFormatter = $date_formatter;
@@ -261,24 +260,29 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
     }
     else {
       $t_args = [];
+
       switch ($config->get('general_settings.start_date')) {
         case 'today':
           $t_args = [
             '%start_date' => date('M j, Y'),
             '%end_date' => date('M j, Y'),
           ];
+          $this->updateEndDate($t_args);
           break;
+
         case 'yesterday':
           $t_args = [
             '%start_date' => date('M j, Y', time() - 60 * 60 * 24),
             '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
           ];
+          $this->updateEndDate($t_args);
           break;
-        case 'last week':
-          $previous_week = strtotime("-1 week +1 day");
 
-          $start_week = strtotime("last sunday midnight", $previous_week);
-          $end_week = strtotime("next saturday", $start_week);
+        case 'last week':
+          $previous_week = strtotime('-1 week +1 day');
+
+          $start_week = strtotime('last sunday midnight', $previous_week);
+          $end_week = strtotime('next saturday', $start_week);
 
           $start_week = date('M j, Y', $start_week);
           $end_week = date('M j, Y', $end_week);
@@ -287,43 +291,57 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
             '%start_date' => $start_week,
             '%end_date' => $end_week,
           ];
+          $this->updateEndDate($t_args);
           break;
+
         case 'last month':
           $t_args = [
-            '%start_date' => date('M j, Y', strtotime("first day of previous month")),
-            '%end_date' => date('M j, Y', strtotime("last day of previous month")),
+            '%start_date' => date('M j, Y', strtotime('first day of previous month')),
+            '%end_date' => date('M j, Y', strtotime('last day of previous month')),
           ];
+          $this->updateEndDate($t_args);
           break;
+
         case '7 days ago':
           $t_args = [
-            '%start_date' => date('M j, Y', strtotime("7 days ago")),
+            '%start_date' => date('M j, Y', strtotime('7 days ago')),
             '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
           ];
+          $this->updateEndDate($t_args);
           break;
+
         case '30 days ago':
           $t_args = [
-            '%start_date' => date('M j, Y', strtotime("30 days ago")),
+            '%start_date' => date('M j, Y', strtotime('30 days ago')),
             '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
           ];
+          $this->updateEndDate($t_args);
           break;
+
         case '3 months ago':
           $t_args = [
-            '%start_date' => date('M j, Y', strtotime("3 months ago")),
+            '%start_date' => date('M j, Y', strtotime('3 months ago')),
             '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
           ];
+          $this->updateEndDate($t_args);
           break;
+
         case '6 months ago':
           $t_args = [
-            '%start_date' => date('M j, Y', strtotime("6 months ago")),
+            '%start_date' => date('M j, Y', strtotime('6 months ago')),
             '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
           ];
+          $this->updateEndDate($t_args);
           break;
+
         case 'last year':
           $t_args = [
             '%start_date' => date('M j, Y', strtotime('first day of last year')),
-            '%end_date' => date('M j, Y', strtotime("last day of last year")),
+            '%end_date' => date('M j, Y', strtotime('last day of last year')),
           ];
+          $this->updateEndDate($t_args);
           break;
+
         default:
           break;
       }
@@ -332,5 +350,18 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
     }
   }
 
+  /**
+   * Update end_date configuration.
+   *
+   * @param array $t_args
+   */
+  protected function updateEndDate(array $t_args) {
+    // Todo: Inject this.
+    $config_factory = \Drupal::configFactory();
+
+    $config_factory->getEditable('google_analytics_counter.settings')
+      ->set('general_settings.end_date', $t_args['%end_date'])
+      ->save();
+  }
 
 }

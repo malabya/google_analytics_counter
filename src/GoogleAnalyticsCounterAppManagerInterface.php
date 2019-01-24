@@ -27,7 +27,7 @@ interface GoogleAnalyticsCounterAppManagerInterface {
    *   - metrics: required [ga:pageviews]
    *   - sort: optional [ga:pageviews]
    *   - start-date: [default=-1 week]
-   *   - end_date: optional [default=tomorrow]
+   *   - end_date: optional [default=today]
    *   - start_index: [default=1]
    *   - max_results: optional [default=10,000].
    *   - filters: optional [default=none]

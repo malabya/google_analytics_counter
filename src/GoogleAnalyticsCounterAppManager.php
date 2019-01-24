@@ -164,7 +164,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
    *   - metrics: required [ga:pageviews]
    *   - sort: optional [ga:pageviews]
    *   - start-date: [default=-1 week]
-   *   - end_date: optional [default=tomorrow]
+   *   - end_date: optional [default=today]
    *   - start_index: [default=1]
    *   - max_results: optional [default=10,000].
    *   - filters: optional [default=none]
@@ -404,7 +404,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     - metrics: required [ga:pageviews]
     - sort: optional [ga:pageviews]
     - start-date: [default=-1 week]
-    - end_date: optional [default=tomorrow]
+    - end_date: optional [default=today]
     - start_index: [default=1]
     - max_results: optional [default=10,000].
     - filters: optional [default=none]
@@ -417,8 +417,9 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
       'sort_metric' => NULL,
       'filters' => NULL,
       'segment' => NULL,
-      'start_date' => !empty($config->get('general_settings.custom_start_date')) ? strtotime($config->get('general_settings.custom_start_date')) : strtotime($config->get('general_settings.start_date')),
-      'end_date' => !empty($config->get('general_settings.custom_end_date')) ? strtotime($config->get('general_settings.custom_end_date')) : strtotime('tomorrow'),
+//      'start_date' => !empty($config->get('general_settings.custom_start_date')) ? strtotime($config->get('general_settings.custom_start_date')) : strtotime($config->get('general_settings.start_date')),
+      'start_date' => !empty($config->get('general_settings.start_date')) ? strtotime($config->get('general_settings.custom_start_date')) : strtotime($config->get('general_settings.custom_start_date')),
+      'end_date' => !empty($config->get('general_settings.custom_end_date')) ? strtotime($config->get('general_settings.custom_end_date')) : strtotime('today'),
       'start_index' => $pointer,
       'max_results' => $chunk,
     ];
@@ -457,10 +458,11 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
    * @return object
    */
   protected function gacGetFeed(array $parameters, array $cache_options) {
+    drush_print_r($parameters);
     //Instantiate a new GoogleAnalyticsCounterFeed object.
     $feed = $this->authManager->newGaFeed();
     if (!$feed) {
-      throw new \RuntimeException($this->t('The GoogleAnalyticsCounterFeed could not be initialized is Google Analytics Counter authenticated?'));
+      throw new \RuntimeException($this->t('The GoogleAnalyticsCounterFeed could not be initialized. Is Google Analytics Counter authenticated?'));
     }
 
     // Make the query to Google.
