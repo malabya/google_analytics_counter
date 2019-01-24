@@ -172,7 +172,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     // Google Analytics start date settings.
     $form['start_date_details'] = [
       '#type' => 'details',
-      '#title' => $this->t('Query Dates for Google Analytics'),
+      '#title' => $this->t('Date range'),
       '#open' => TRUE,
     ];
 
@@ -182,17 +182,17 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       'yesterday' => $this->t('Yesterday'),
       'last week' => $this->t('Last week'),
       'last month' => $this->t('Last month'),
-      'last seven days' => $this->t('Last 7 days'),
-      'last thirty days' => $this->t('Last 30 days'),
-      'last three months' => $this->t('Last 3 months'),
-      'last six months' => $this->t('Last 6 months'),
+      '7 days ago' => $this->t('Last 7 days'),
+      '30 days ago' => $this->t('Last 30 days'),
+      '3 months ago' => $this->t('Last 3 months'),
+      '6 months ago' => $this->t('Last 6 months'),
       'last year' => $this->t('Last year'),
       '2005-01-01' => $this->t('Since 2005-01-01'),
     ];
 
     $form['start_date_details']['start_date'] = [
       '#type' => 'select',
-      '#title' => $this->t('Start date for Google Analytics queries'),
+      '#title' => $this->t('Date range'),
       '#default_value' => $config->get('general_settings.start_date'),
       '#description' => $this->t('The earliest valid start date for Google Analytics is 2005-01-01.'),
       '#options' => $start_date,
@@ -221,15 +221,15 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
 
     $form['start_date_details']['advanced_date']['custom_start_date'] = [
       '#type' => 'date',
-      '#title' => $this->t('Fixed start date'),
-      '#description' => $this->t('Set a custom start date for Google Analytics queries. Disabled if FIXED DATES is <strong>unchecked</strong>.'),
+      '#title' => $this->t('Custom start date'),
+      '#description' => $this->t('Set a custom start date for Google Analytics queries.'),
       '#default_value' => $config->get('general_settings.custom_start_date'),
     ];
 
     $form['start_date_details']['advanced_date']['custom_end_date'] = [
       '#type' => 'date',
-      '#title' => $this->t('Fixed end date'),
-      '#description' => $this->t('Set a custom end date for Google Analytics queries. Disabled if FIXED DATES is <strong>unchecked</strong>.'),
+      '#title' => $this->t('Custom end date'),
+      '#description' => $this->t('Set a custom end date for Google Analytics queries.'),
       '#default_value' => $config->get('general_settings.custom_end_date'),
     ];
 
