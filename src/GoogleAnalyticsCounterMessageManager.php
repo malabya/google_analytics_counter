@@ -4,6 +4,7 @@ namespace Drupal\google_analytics_counter;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DateFormatter;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
@@ -41,6 +42,13 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
   protected $state;
 
   /**
+   * The date formatter service.
+   *
+   * @var \Drupal\Core\Datetime\DateFormatter
+   */
+  protected $dateFormatter;
+
+  /**
    * A logger instance.
    *
    * @var \Psr\Log\LoggerInterface
@@ -63,16 +71,19 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
    * @param \Drupal\Core\Database\Connection $connection
    *   A database connection.
    * @param \Drupal\Core\State\StateInterface $state
-   *   The state of the drupal site.
+   *   The state keyvalue collection to use.
+   * @param \Drupal\Core\Datetime\DateFormatter $date_formatter
+   *   The date formatter service.
    * @param \Psr\Log\LoggerInterface $logger
    *   A logger instance.
    * @param \Drupal\Core\Messenger\MessengerInterface $messenger
    *   The messenger service.
    */
   public function __construct(
-    ConfigFactoryInterface $config_factory, Connection $connection, StateInterface $state, LoggerInterface $logger, MessengerInterface $messenger) {
+    ConfigFactoryInterface $config_factory, Connection $connection, StateInterface $state, DateFormatter $date_formatter, LoggerInterface $logger, MessengerInterface $messenger) {
     $this->config = $config_factory->get('google_analytics_counter.settings');
     $this->connection = $connection;
+    $this->dateFormatter = $date_formatter;
     $this->state = $state;
     $this->logger = $logger;
     $this->messenger = $messenger;
