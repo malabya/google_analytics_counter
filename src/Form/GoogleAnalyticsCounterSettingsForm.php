@@ -211,6 +211,11 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Custom start date'),
       '#description' => $this->t('Set a custom start date for Google Analytics queries.'),
       '#default_value' => $config->get('general_settings.custom_start_date'),
+      '#states' => [
+        'required' => [
+          ':input[name="start_date"]' => ['value' => 'custom'],
+        ],
+      ],
     ];
 
     $form['start_date_details']['advanced_date']['custom_end_date'] = [
@@ -218,6 +223,11 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Custom end date'),
       '#description' => $this->t('Set a custom end date for Google Analytics queries.'),
       '#default_value' => $config->get('general_settings.custom_end_date'),
+      '#states' => [
+        'required' => [
+          ':input[name="start_date"]' => ['value' => 'custom'],
+        ],
+      ],
     ];
 
     $web_properties = key($this->authManager->getWebPropertiesOptions());
