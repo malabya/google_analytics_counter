@@ -63,4 +63,12 @@ interface GoogleAnalyticsCounterMessageManagerInterface {
    * @return string
    */
   public function authenticationInstructions($web_properties);
+
+  /**
+   * Sets the start and end dates in configuration.
+   *
+   * @return array
+   *   Start and end dates.
+   */
+  public function setStartDateEndDate();
 }

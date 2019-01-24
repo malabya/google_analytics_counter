@@ -230,4 +230,96 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
     return $markup_description;
   }
 
+  /**
+   * Sets the start and end dates in configuration.
+   *
+   * @return array
+   *   Start and end dates.
+   */
+  public function setStartDateEndDate() {
+    $config = $this->config;
+
+    if (!empty($config->get('general_settings.custom_start_date') & !empty($config->get('general_settings.custom_start_date')))) {
+      $t_args = [
+        '%start_date' => $this->dateFormatter
+          ->format(strtotime($config->get('general_settings.custom_start_date')), 'custom', 'M j, Y'),
+        '%end_date' => $this->dateFormatter
+          ->format(strtotime($config->get('general_settings.custom_end_date')), 'custom', 'M j, Y'),
+      ];
+      return $t_args;
+    }
+    else {
+      $t_args = [];
+      switch ($config->get('general_settings.start_date')) {
+        case 'today':
+          $t_args = [
+            '%start_date' => date('M j, Y'),
+            '%end_date' => date('M j, Y'),
+          ];
+          break;
+        case 'yesterday':
+          $t_args = [
+            '%start_date' => date('M j, Y', time() - 60 * 60 * 24),
+            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+          ];
+          break;
+        case 'last week':
+          $previous_week = strtotime("-1 week +1 day");
+
+          $start_week = strtotime("last sunday midnight", $previous_week);
+          $end_week = strtotime("next saturday", $start_week);
+
+          $start_week = date('M j, Y', $start_week);
+          $end_week = date('M j, Y', $end_week);
+
+          $t_args = [
+            '%start_date' => $start_week,
+            '%end_date' => $end_week,
+          ];
+          break;
+        case 'last month':
+          $t_args = [
+            '%start_date' => date('M j, Y', strtotime("first day of previous month")),
+            '%end_date' => date('M j, Y', strtotime("last day of previous month")),
+          ];
+          break;
+        case '7 days ago':
+          $t_args = [
+            '%start_date' => date('M j, Y', strtotime("7 days ago")),
+            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+          ];
+          break;
+        case '30 days ago':
+          $t_args = [
+            '%start_date' => date('M j, Y', strtotime("30 days ago")),
+            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+          ];
+          break;
+        case '3 months ago':
+          $t_args = [
+            '%start_date' => date('M j, Y', strtotime("3 months ago")),
+            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+          ];
+          break;
+        case '6 months ago':
+          $t_args = [
+            '%start_date' => date('M j, Y', strtotime("6 months ago")),
+            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+          ];
+          break;
+        case 'last year':
+          $t_args = [
+            '%start_date' => date('M j, Y', strtotime('first day of last year')),
+            '%end_date' => date('M j, Y', strtotime("last day of last year")),
+          ];
+          break;
+        default:
+          break;
+      }
+
+      return $t_args;
+    }
+  }
+
+
 }
