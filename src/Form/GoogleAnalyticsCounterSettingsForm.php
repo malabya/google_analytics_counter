@@ -187,26 +187,13 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '3 months ago' => $this->t('Last 3 months'),
       '6 months ago' => $this->t('Last 6 months'),
       'last year' => $this->t('Last year'),
-      '2005-01-01' => $this->t('Since 2005-01-01'),
     ];
 
     $form['start_date_details']['start_date'] = [
       '#type' => 'select',
       '#title' => $this->t('Date range'),
       '#default_value' => $config->get('general_settings.start_date'),
-      '#description' => $this->t('The earliest valid start date for Google Analytics is 2005-01-01.'),
       '#options' => $start_date,
-      '#states' => [
-        'disabled' => [
-          ':input[name="advanced_date_checkbox"]' => ['checked' => TRUE],
-        ],
-        'required' => [
-          ':input[name="advanced_date_checkbox"]' => ['checked' => FALSE],
-        ],
-        'visible' => [
-          ':input[name="advanced_date_checkbox"]' => ['checked' => FALSE],
-        ],
-      ],
     ];
 
     $form['start_date_details']['advanced_date'] = [
@@ -214,7 +201,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#title' => $this->t('Custom dates'),
       '#states' => [
         'open' => [
-          ':input[name="advanced_date_checkbox"]' => ['checked' => TRUE],
+          ':input[name="start_date"]' => ['value' => 'custom'],
         ],
       ],
     ];
@@ -233,7 +220,8 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('general_settings.custom_end_date'),
     ];
 
-    if ($this->authManager->isAuthenticated() !== TRUE) {
+    $web_properties = key($this->authManager->getWebPropertiesOptions());
+    if ($web_properties === 'unauthenticated') {
       $this->messageManager->notAuthenticatedMessage();
     }
 
@@ -255,10 +243,9 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       ->set('general_settings.api_dayquota', $values['api_dayquota'])
       ->set('general_settings.cache_length', $values['cache_length'] * 3600)
       ->set('general_settings.queue_time', $values['queue_time'])
-      ->set('general_settings.start_date', $values['start_date'])
-      ->set('general_settings.advanced_date_checkbox', $values['advanced_date_checkbox'])
-      ->set('general_settings.custom_start_date', $values['advanced_date_checkbox'] == 1 ? $values['custom_start_date'] : '')
-      ->set('general_settings.custom_end_date', $values['advanced_date_checkbox'] == 1 ? $values['custom_end_date'] : '')
+      ->set('general_settings.start_date', $values['start_date'] == 'custom' ? '' : $values['start_date'])
+      ->set('general_settings.custom_start_date', $values['start_date'] == 'custom' ? $values['custom_start_date'] : '')
+      ->set('general_settings.custom_end_date', $values['start_date'] == 'custom' ? $values['custom_end_date'] : '')
       ->save();
 
     // If the queue time has change the cache needs to be cleared.
