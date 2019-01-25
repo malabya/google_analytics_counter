@@ -262,7 +262,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       ->set('general_settings.cache_length', $values['cache_length'] * 3600)
       ->set('general_settings.queue_time', $values['queue_time'])
       ->set('general_settings.start_date', $values['start_date'] == 'custom' ? '' : $values['start_date'])
-      ->set('general_settings.end_date', $values['end_date'] == 'custom' ? '' : $end_date)
+      ->set('general_settings.end_date', $values['start_date'] == 'custom' ? '' : $end_date)
       ->set('general_settings.custom_start_date', $values['start_date'] == 'custom' ? $values['custom_start_date'] : '')
       ->set('general_settings.custom_end_date', $values['start_date'] == 'custom' ? $values['custom_end_date'] : '')
       ->save();
@@ -325,6 +325,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       default:
         break;
     }
+
     return $end_date;
   }
 
