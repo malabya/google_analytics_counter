@@ -253,42 +253,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
 
     $values = $form_state->getValues();
 
-    $end_date = '';
-    if ($values['start_date'] == 'today') {
-      $end_date = 'today';
-    }
-
-    if ($values['start_date'] == 'yesterday') {
-      $end_date = 'yesterday';
-    }
-
-    if ($values['start_date'] == '-1 week last sunday midnight') {
-      $end_date = '-1 week next saturday';
-    }
-
-    if ($values['start_date'] == 'first day of previous month') {
-      $end_date = 'last day of previous month';
-    }
-
-    if ($values['start_date'] == '7 days ago') {
-      $end_date = '7 days ago +6 days';
-    }
-
-    if ($values['start_date'] == '30 days ago') {
-      $end_date = '30 days ago +29 days';
-    }
-
-    if ($values['start_date'] == '3 months ago') {
-      $end_date = '3 months ago +3 months';
-    }
-
-    if ($values['start_date'] == '6 months ago') {
-      $end_date = '6 months ago +6 months' ;
-    }
-
-    if ($values['start_date'] == 'first day of last year') {
-      $end_date = 'last day of last year';
-    }
+    $end_date = $this->setEndDate($values);
 
     $config
       ->set('general_settings.cron_interval', $values['cron_interval'])
@@ -309,6 +274,58 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     }
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Sets the end date into configuration.
+   * @param array $values
+   *
+   * @return string
+   */
+  protected function setEndDate(array $values) {
+
+    $end_date = '';
+    switch ($values['start_date']) {
+      case 'today':
+        $end_date = 'today';
+        break;
+
+      case 'yesterday':
+        $end_date = 'yesterday';
+        break;
+
+      case '-1 week last sunday midnight':
+        $end_date = '-1 week next saturday';
+        break;
+
+      case 'first day of previous month':
+        $end_date = 'last day of previous month';
+        break;
+
+      case '7 days ago':
+        $end_date = '7 days ago +6 days';
+        break;
+
+      case '30 days ago':
+        $end_date = '30 days ago';
+        break;
+
+      case '3 months ago':
+        $end_date = '3 months ago';
+        break;
+
+      case '6 months ago':
+        $end_date = '6 months ago';
+        break;
+
+      case 'first day of last year':
+        $end_date = 'last day of last year';
+        break;
+
+      default:
+        break;
+    }
+    return $end_date;
   }
 
 }

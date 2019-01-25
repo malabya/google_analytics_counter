@@ -301,32 +301,32 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
         case '7 days ago':
           $t_args = [
             '%start_date' => date('M j, Y', strtotime('7 days ago')),
-            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+            '%end_date' => date('M j, Y', time()),
           ];
           break;
 
         case '30 days ago':
           $t_args = [
             '%start_date' => date('M j, Y', strtotime('30 days ago')),
-            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+            '%end_date' => date('M j, Y', time()),
           ];
           break;
 
         case '3 months ago':
           $t_args = [
             '%start_date' => date('M j, Y', strtotime('3 months ago')),
-            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+            '%end_date' => date('M j, Y', time()),
           ];
           break;
 
         case '6 months ago':
           $t_args = [
             '%start_date' => date('M j, Y', strtotime('6 months ago')),
-            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+            '%end_date' => date('M j, Y', time()),
           ];
           break;
 
-        case 'last year':
+        case 'first day of last year':
           $t_args = [
             '%start_date' => date('M j, Y', strtotime('first day of last year')),
             '%end_date' => date('M j, Y', strtotime('last day of last year')),
