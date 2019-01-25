@@ -301,8 +301,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
       return $path . '/';
     }, $aliases));
 
-//    drush_print_r($aliases);
-
     // It's the front page
     // Todo: Could be brittle
     if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
@@ -367,7 +365,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     }
 
     // Todo: This can be more performant by adding only the bundles that have been selected.
-    // drush_print(\Drupal::languageManager()->getDefaultLanguage()->getId());
     $this->connection->upsert('node__field_google_analytics_counter')
       ->key('revision_id')
       ->fields(['bundle', 'deleted', 'entity_id', 'revision_id', 'langcode', 'delta', 'field_google_analytics_counter_value'])
@@ -457,7 +454,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
    * @return object
    */
   protected function gacGetFeed(array $parameters, array $cache_options) {
-    drush_print_r($parameters);
     //Instantiate a new GoogleAnalyticsCounterFeed object.
     $feed = $this->authManager->newGaFeed();
     if (!$feed) {

@@ -180,7 +180,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       'custom' => $this->t('Custom'),
       'today' => $this->t('Today'),
       'yesterday' => $this->t('Yesterday'),
-      '-1 week +1 day last sunday midnight' => $this->t('Last week'),
+      '-1 week last sunday midnight' => $this->t('Last week'),
       'first day of previous month' => $this->t('Last month'),
       '7 days ago' => $this->t('Last 7 days'),
       '30 days ago' => $this->t('Last 30 days'),
@@ -257,14 +257,8 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       $end_date = 'yesterday';
     }
 
-//    $previous_week = strtotime('-1 week +1 day');
-//
-//    $start_week = strtotime('-1 week +1 day last sunday midnight', $previous_week);
-//    $end_week = strtotime('next saturday', $start_week);
-
-
-    if ($values['start_date'] == '-1 week +1 day last sunday midnight') {
-      $end_date = '-1 week +1 day +next saturday';
+    if ($values['start_date'] == '-1 week last sunday midnight') {
+      $end_date = '-1 week next saturday';
     }
 
     if ($values['start_date'] == 'first day of previous month') {
