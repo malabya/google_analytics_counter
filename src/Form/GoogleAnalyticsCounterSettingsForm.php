@@ -193,14 +193,19 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '#type' => 'select',
       '#title' => $this->t('Date range'),
       '#default_value' => $config->get('general_settings.start_date'),
+      '#required' => TRUE,
       '#options' => $start_date,
     ];
 
     $form['start_date_details']['advanced_date'] = [
       '#type' => 'details',
       '#title' => $this->t('Custom dates'),
+      '#description' => $this->t('Fields are enabled if Date range is Custom.'),
       '#states' => [
         'open' => [
+          ':input[name="start_date"]' => ['value' => 'custom'],
+        ],
+        'enabled' => [
           ':input[name="start_date"]' => ['value' => 'custom'],
         ],
       ],

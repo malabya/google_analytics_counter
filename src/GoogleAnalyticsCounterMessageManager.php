@@ -291,7 +291,7 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
           ];
           break;
 
-        case 'last month':
+        case 'first day of previous month':
           $t_args = [
             '%start_date' => date('M j, Y', strtotime('first day of previous month')),
             '%end_date' => date('M j, Y', strtotime('last day of previous month')),
