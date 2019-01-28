@@ -307,15 +307,15 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
         break;
 
       case '30 days ago':
-        $end_date = '30 days ago +30 days';
+        $end_date = '30 days ago +30 days -1 day';
         break;
 
       case '3 months ago':
-        $end_date = '3 months ago +3 months';
+        $end_date = '3 months ago +3 months -1 day';
         break;
 
       case '6 months ago':
-        $end_date = '6 months ago +6 months';
+        $end_date = '6 months ago +6 months - 1 day';
         break;
 
       case 'first day of last year':
