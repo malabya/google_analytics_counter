@@ -253,13 +253,13 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $build['drupal_info']['top_twenty_results'] = [
       '#type' => 'details',
       '#title' => $this->t('Top Twenty Results'),
-      '#open' => FALSE,
+      '#open' => TRUE,
     ];
 
     // Top Twenty Results for Google Analytics Counter table.
     $build['drupal_info']['top_twenty_results']['counter'] = [
       '#type' => 'details',
-      '#title' => $this->t('Pagepaths'),
+      '#title' => $this->t('The pages visited'),
       '#open' => FALSE,
       '#attributes' => [
         'class' => ['google-analytics-counter-counter'],
@@ -269,7 +269,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $build['drupal_info']['top_twenty_results']['counter']['summary'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->t("A pagepath can include paths that don't have an NID, like /search."),
+      '#value' => $this->t("The pages visited, listed by URI. The URI is the portion of a page's URL following the domain name; for example, the URI portion of www.example.com/contact.html is /contact.html."),
     ];
 
     $rows = $this->messageManager->getTopTwentyResults('google_analytics_counter');
@@ -286,7 +286,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     // Top Twenty Results for Google Analytics Counter Storage table.
     $build['drupal_info']['top_twenty_results']['storage'] = [
       '#type' => 'details',
-      '#title' => $this->t('Pageview Totals'),
+      '#title' => $this->t('Pageviews'),
       '#open' => FALSE,
       '#attributes' => [
         'class' => ['google-analytics-counter-storage'],
@@ -296,7 +296,7 @@ class GoogleAnalyticsCounterController extends ControllerBase {
     $build['drupal_info']['top_twenty_results']['storage']['summary'] = [
       '#type' => 'html_tag',
       '#tag' => 'p',
-      '#value' => $this->t('A pageview total is the sum of PAGEPATHS that are a part of Google\'s Pageview. Pageview totals can include page aliases, node/id, node/id/, international and or redirects, to list a few possibilities. The pageview total includes any path that Google identifies as being a part of Pageviews.'),
+      '#value' => $this->t('Pageviews is the total number of pages viewed. Pageviews include node/id, aliases, international, and redirects, amongst other pages Google has determined belong to the pageview.'),
     ];
 
     $rows = $this->messageManager->getTopTwentyResults('google_analytics_counter_storage');

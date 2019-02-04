@@ -192,7 +192,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     $form['start_date_details']['start_date'] = [
       '#type' => 'select',
       '#title' => $this->t('Date range'),
-      '#default_value' => $config->get('general_settings.start_date'),
+      '#default_value' => !empty($config->get('general_settings.start_date')) ? $config->get('general_settings.start_date') : '30 days ago',
       '#required' => TRUE,
       '#options' => $start_date,
     ];
