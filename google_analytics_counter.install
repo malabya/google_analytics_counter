@@ -352,7 +352,7 @@ function google_analytics_counter_update_8010() {
         ->set('general_settings.start_date', '30 days ago')
         ->save();
       $config_factory->getEditable('google_analytics_counter.settings')
-        ->set('general_settings.end_date', '30 days ago +30 days -1 day')
+        ->set('general_settings.end_date', '30 days ago')
         ->save();
       break;
 
@@ -361,7 +361,7 @@ function google_analytics_counter_update_8010() {
         ->set('general_settings.start_date', '3 months ago')
         ->save();
       $config_factory->getEditable('google_analytics_counter.settings')
-        ->set('general_settings.end_date', '3 months ago +3 months -1 day')
+        ->set('general_settings.end_date', '3 months ago')
         ->save();
       break;
 
@@ -370,7 +370,7 @@ function google_analytics_counter_update_8010() {
         ->set('general_settings.start_date', '6 months ago')
         ->save();
       $config_factory->getEditable('google_analytics_counter.settings')
-        ->set('general_settings.end_date', '6 months ago +6 months - 1 day')
+        ->set('general_settings.end_date', '6 months ago')
         ->save();
       break;
 
@@ -421,7 +421,7 @@ function google_analytics_counter_update_8011() {
     ->get('general_settings.start_date');
 
   switch ($start_date) {
-    case '-1 month':
+    case '30 days ago':
       $config_factory->getEditable('google_analytics_counter.settings')
         ->set('general_settings.start_date', '30 days ago')
         ->save();
@@ -430,7 +430,7 @@ function google_analytics_counter_update_8011() {
         ->save();
       break;
 
-    case '-3 months':
+    case '3 months ago':
       $config_factory->getEditable('google_analytics_counter.settings')
         ->set('general_settings.start_date', '3 months ago')
         ->save();
@@ -439,7 +439,7 @@ function google_analytics_counter_update_8011() {
         ->save();
       break;
 
-    case '-6 months':
+    case '6 months ago':
       $config_factory->getEditable('google_analytics_counter.settings')
         ->set('general_settings.start_date', '6 months ago')
         ->save();
