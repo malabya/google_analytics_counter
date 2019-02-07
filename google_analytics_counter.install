@@ -352,7 +352,7 @@ function google_analytics_counter_update_8010() {
         ->set('general_settings.start_date', '30 days ago')
         ->save();
       $config_factory->getEditable('google_analytics_counter.settings')
-        ->set('general_settings.end_date', '30 days ago')
+        ->set('general_settings.end_date', '30 days ago +30 days -1 day')
         ->save();
       break;
 
@@ -361,7 +361,7 @@ function google_analytics_counter_update_8010() {
         ->set('general_settings.start_date', '3 months ago')
         ->save();
       $config_factory->getEditable('google_analytics_counter.settings')
-        ->set('general_settings.end_date', '3 months ago')
+        ->set('general_settings.end_date', '3 months ago +3 months -1 day')
         ->save();
       break;
 
@@ -370,7 +370,7 @@ function google_analytics_counter_update_8010() {
         ->set('general_settings.start_date', '6 months ago')
         ->save();
       $config_factory->getEditable('google_analytics_counter.settings')
-        ->set('general_settings.end_date', '6 months ago')
+        ->set('general_settings.end_date', '6 months ago +6 months - 1 day')
         ->save();
       break;
 
@@ -408,4 +408,47 @@ function google_analytics_counter_update_8010() {
   $config_factory->getEditable('google_analytics_counter.settings')
     ->clear('general_settings.fixed_end_date')
     ->save();
+}
+
+/**
+ * Issue #3031429: Dashboard not reporting correctly.
+ */
+function google_analytics_counter_update_8011() {
+  $config_factory = \Drupal::configFactory();
+
+  // Get the existing start date.
+  $start_date = $config_factory->getEditable('google_analytics_counter.settings')
+    ->get('general_settings.start_date');
+
+  switch ($start_date) {
+    case '-1 month':
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.start_date', '30 days ago')
+        ->save();
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.end_date', '30 days ago +30 days -1 day')
+        ->save();
+      break;
+
+    case '-3 months':
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.start_date', '3 months ago')
+        ->save();
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.end_date', '3 months ago +3 months -1 day')
+        ->save();
+      break;
+
+    case '-6 months':
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.start_date', '6 months ago')
+        ->save();
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.end_date', '6 months ago +6 months - 1 day')
+        ->save();
+      break;
+
+    default:
+      break;
+  }
 }
