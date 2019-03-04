@@ -192,7 +192,7 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
     ];
 
     $url = Url::fromUri('https://en.wikipedia.org/wiki/Google_Analytics', ['attributes' => ['target' => '_blank']]);
-    $link = Link::fromTextAndUrl(t('Wikipedia'), $url)->toString();
+    $link = Link::fromTextAndUrl($this->t('Wikipedia'), $url)->toString();
 
     $form['start_date_details']['start_date'] = [
       '#type' => 'select',
