@@ -5,6 +5,7 @@ namespace Drupal\google_analytics_counter\Form;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 use Drupal\Core\State\StateInterface;
 use Drupal\Core\Url;
 use Drupal\google_analytics_counter\GoogleAnalyticsCounterAuthManagerInterface;
@@ -187,11 +188,16 @@ class GoogleAnalyticsCounterSettingsForm extends ConfigFormBase {
       '3 months ago' => $this->t('Last 3 months'),
       '6 months ago' => $this->t('Last 6 months'),
       'first day of last year' => $this->t('Last year'),
+      '14 November 2005' => $this->t('Since Launch'),
     ];
+
+    $url = Url::fromUri('https://en.wikipedia.org/wiki/Google_Analytics', ['attributes' => ['target' => '_blank']]);
+    $link = Link::fromTextAndUrl(t('Wikipedia'), $url)->toString();
 
     $form['start_date_details']['start_date'] = [
       '#type' => 'select',
       '#title' => $this->t('Date range'),
+      '#description' => $this->t('Google launched the service in November 2005  after acquiring developer Urchin. ') . $link,
       '#default_value' => !empty($config->get('general_settings.start_date')) ? $config->get('general_settings.start_date') : '30 days ago',
       '#required' => TRUE,
       '#options' => $start_date,

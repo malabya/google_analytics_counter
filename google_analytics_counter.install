@@ -452,3 +452,28 @@ function google_analytics_counter_update_8011() {
       break;
   }
 }
+
+/**
+ * Issue #3036157: Date Range.
+ */
+function google_analytics_counter_update_8012() {
+  $config_factory = \Drupal::configFactory();
+
+  // Get the existing start date.
+  $start_date = $config_factory->getEditable('google_analytics_counter.settings')
+    ->get('general_settings.start_date');
+
+  switch ($start_date) {
+    case '2005-01-01':
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.start_date', '14 November 2005')
+        ->save();
+      $config_factory->getEditable('google_analytics_counter.settings')
+        ->set('general_settings.end_date', 'yesterday')
+        ->save();
+      break;
+
+    default:
+      break;
+  }
+}

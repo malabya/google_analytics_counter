@@ -333,6 +333,13 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
           ];
           break;
 
+        case '14 November 2005':
+          $t_args = [
+            '%start_date' => date('M j, Y', strtotime('14 November 2005')),
+            '%end_date' => date('M j, Y', time() - 60 * 60 * 24),
+          ];
+          break;
+
         default:
           $t_args = [
             '%start_date' => 'N/A',
