@@ -418,7 +418,7 @@ class GoogleAnalyticsCounterFeed {
       }
     }
 
-    if ($this->response->getStatusCode() == '200') {
+    if (!empty($this->response->getStatusCode()) && $this->response->getStatusCode() == '200') {
       $this->results = json_decode($this->response->getBody()->__toString());
     }
     else {
