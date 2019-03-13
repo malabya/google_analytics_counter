@@ -226,7 +226,7 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
       '</li><li>' . $this->t('Click Authenticate in "Authenticate with Google Analytics" above.') .
       '</li><li>' . $this->t('If authentication with Google is successful, the ') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('field will list your analytics profiles.') .
       '</li><li>' . $this->t('Select an analytics profile to collect analytics from and click Save configuration.') .
-      '</li><ul><li>' . $this->t('If you are not authenticated or if the project you are authenticating to does not have Analytics, no options are available.') .
+      '</li><ul><li>' . $this->t('If you are not authenticated or if the project you are authenticating to does not have Analytics, no options are available in the') . '<strong>' . $this->t(' Google View.') . '</strong>' .
       '</strong></li></ul></ol></p>' :
       '<p>' . $this->t('Client ID, Client Secret, and Authorized redirect URI can only be changed when not authenticated.') .
       '<ol><li>' . $this->t('Now that you are authenticated with Google Analytics, select the') . '<strong>' . $this->t(' Google View ') . '</strong>' . $this->t('to collect analytics from.') .
