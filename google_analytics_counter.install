@@ -477,3 +477,10 @@ function google_analytics_counter_update_8012() {
       break;
   }
 }
+
+/**
+ * Issue #3003875: Delete cron_next_execution state.
+ */
+function google_analytics_counter_update_8013() {
+  \Drupal::state()->delete('google_analytics_counter.cron_next_execution');
+}

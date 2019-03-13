@@ -120,7 +120,6 @@ class GoogleAnalyticsCounterHelper {
   public static function gacDeleteState() {
     \Drupal::state()->deleteMultiple([
       'google_analytics_counter.access_token',
-      'google_analytics_counter.cron_next_execution',
       'google_analytics_counter.expires_at',
       'google_analytics_counter.refresh_token',
       'google_analytics_counter.total_nodes',

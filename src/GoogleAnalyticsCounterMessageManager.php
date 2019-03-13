@@ -118,10 +118,10 @@ class GoogleAnalyticsCounterMessageManager implements GoogleAnalyticsCounterMess
         ->toString(),
       '@href' => 'revoking Google authentication',
     ];
-    $build['cron_information']['revoke_authentication'] = [
-      '#markup' => t("If there's a problem with OAUTH authentication, try <a href=:href>@href</a>.", $t_args),
-      '#prefix' => '<p>',
-      '#suffix' => '</p>',
+    $build['revoke_authentication'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => $this->t("If there's a problem with OAUTH authentication, try <a href=:href>@href</a>.", $t_args),
     ];
     return $build;
   }

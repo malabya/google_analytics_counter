@@ -31,10 +31,6 @@ function google_analytics_counter_cron() {
   // $interval must be a value in seconds.
   $interval = 60 * $config->get('general_settings.cron_interval');
 
-  // Important to set it before the job because if they take long
-  // and there is another cron triggered...
-  $state->set('google_analytics_counter.cron_next_execution', \Drupal::time()->getRequestTime());
-
   // Set the total number of published nodes.
   $query = $database->select('node_field_data', 'nfd');
   $query->fields('nfd', ['nid']);
