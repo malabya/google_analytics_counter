@@ -2,7 +2,7 @@
 
 namespace Drupal\google_analytics_counter;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -253,14 +253,14 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     foreach ($feed->results->rows as $value) {
       // Use only the first 2047 characters of the pagepath. This is extremely long
       // but Google does store everything and bots can make URIs that exceed that length.
-      $page_path = substr(htmlspecialchars($value['pagePath'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), 0, 2047);
-      $page_path = SafeMarkup::checkPlain($page_path);
+      $page_path = Html::escape($value['pagePath']);
+      $string = (strlen($value['pagePath']) > 2047) ? substr($value['pagePath'],0,2047) : $value['pagePath'];
 
       // Update the Google Analytics Counter.
       $this->connection->merge('google_analytics_counter')
         ->key('pagepath_hash', md5($page_path))
         ->fields([
-          'pagepath' => $page_path,
+          'pagepath' => $string,
           'pageviews' => $value['pageviews'],
         ])
         ->execute();
