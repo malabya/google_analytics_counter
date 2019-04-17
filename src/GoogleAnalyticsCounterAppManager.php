@@ -240,7 +240,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
   /**
    * Update the path counts.
    *
-   * @param string $index
+   * @param int $index
    *   The index of the chunk to fetch and update.
    *
    * This function is triggered by hook_cron().
