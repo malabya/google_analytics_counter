@@ -418,6 +418,9 @@ class GoogleAnalyticsCounterFeed {
       }
     }
 
+    // If there is no response because the profile_id is unauthenticated,
+    // drush cron will fail with 'Call to a member function getBody() on null.'
+    // Todo: In that case, make drush fail more elegantly.
     if (!empty($this->response->getBody()) && $this->response->getStatusCode() == '200') {
       $this->results = json_decode($this->response->getBody()->__toString());
     }
