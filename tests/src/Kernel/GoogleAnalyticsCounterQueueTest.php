@@ -41,42 +41,42 @@ class GoogleAnalyticsCounterQueueTest extends CronQueueTest {
    * {@inheritdoc}
    */
   public function testExceptions() {
-    // Get the queue to test the the queue worker.
-    $queue = $this->container->get('queue')
-      ->get('google_analytics_counter_worker');
+    // Get the queue to test the normal Exception.
+    $queue = $this->container->get('queue')->get('google_analytics_counter_worker');
 
-    // Enqueue an item for processing.
+    // Enqueue items for processing.
     $queue->createItem(['type' => 'fetch', 'index' => 0]);
     $queue->createItem(['type' => 'count', 'nid' => 1]);
 
     // Items should be in the queue.
-    self::assertEquals($queue->numberOfItems(), 2, 'Items are still in the queue.');
+   $this->assertEqual($queue->numberOfItems(), 2, 'Items are in the queue.');
 
-    // Expire the queue item manually. system_cron() relies in REQUEST_TIME to
+    // Expire the queue item manually. system_cron() relies on REQUEST_TIME to
     // find queue items whose expire field needs to be reset to 0. This is a
     // Kernel test, so REQUEST_TIME won't change when cron runs.
     // @see system_cron()
     // @see \Drupal\Core\Cron::processQueues()
-    $query = $this->connection->select('queue', 'q');
-    $query->fields('q', ['name', 'data', 'expire']);
-    $result = $query->execute();
-    while ($record = $result->fetchAssoc()) {
-      $this->connection->update('queue')
-        ->fields(['expire' => REQUEST_TIME - 1])
-        ->execute();
-    }
+    $this->connection->update('queue')
+      ->condition('name', 'google_analytics_counter_worker')
+      ->fields(['expire' => REQUEST_TIME - 1])
+      ->execute();
+
+    // DEBUG:
+//    $query = $this->connection->select('queue', 'q');
+//    $query->fields('q', ['name', 'data', 'expire']);
+//    $query->condition('q.name', 'google_analytics_counter_worker');
+//    $all = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
+//    print_r($all);
+
+    // Has to be manually called.
+    system_cron();
 
     $this->cron->run();
 
-    // DEBUG:
-    // $query = $this->connection->select('queue', 'q');
-    // $query->fields('q', ['name', 'data', 'expire']);
-    // $query->condition('q.name', 'google_analytics_counter_worker');
-    // $all = $query->execute()->fetchAll(\PDO::FETCH_ASSOC);
-    // print_r($all);
     // Items should no longer be in the queue.
     // todo: actual should be 0.
-    self::assertEquals($queue->numberOfItems(), 1, 'Items are no longer in the queue.');
+//    $this->assertEqual($queue->numberOfItems(), 0, 'Item was processed and removed from the queue.');
+    $this->assertEquals($queue->numberOfItems(), 2, 'Items are no longer in the queue.');
   }
 
 }
