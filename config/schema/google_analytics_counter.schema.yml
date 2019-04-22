@@ -32,6 +32,9 @@ google_analytics_counter.settings:
         queue_time:
           type: integer
           label: 'The length of time the queue should be run.'
+        end_date:
+          type: string
+          label: 'The end date for Google Analytics queries.'
         start_date:
           type: string
           label: 'The start date for Google Analytics queries.'
