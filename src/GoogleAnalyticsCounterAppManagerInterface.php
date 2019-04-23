@@ -63,13 +63,6 @@ interface GoogleAnalyticsCounterAppManagerInterface {
   public function gacUpdateStorage($nid, $bundle, $vid);
 
   /**
-   * Set the parameters for the google query.
-   *
-   * @return array
-   */
-  public function setParameters();
-
-  /**
    * Get the count of pageviews for a path.
    *
    * @return string

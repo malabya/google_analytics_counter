@@ -382,16 +382,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
   }
 
   /**
-   * Set the parameters for the google query.
-   *
-   * @return array
-   */
-  public function setParameters() {
-    $config = $this->config;
-
-  }
-
-  /**
    * Instantiate a new GoogleAnalyticsCounterFeed object and query Google.
    *
    * @param array $parameters
