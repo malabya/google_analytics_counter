@@ -61,7 +61,7 @@ function google_analytics_counter_cron() {
 
   try {
     // Fetch the total results from Google first.
-    $app_manager->getTotalResults();
+    $app_manager->reportData();
     $total_results = $state->get('google_analytics_counter.total_paths');
 
     // Create queue fetch items from the total results divided into chunks.

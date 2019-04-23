@@ -134,27 +134,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
   }
 
   /**
-   * Get total results from Google.
-   *
-   * @return mixed
-   */
-  public function getTotalResults() {
-    //Set Parameters for the Query to Google
-    $parameters = $this->setParameters();
-
-    // Set cache options in Drupal.
-    $cache_options = $this->setCacheOptions($parameters);
-
-    //Instantiate a new GoogleAnalyticsCounterFeed object.
-    $feed = $this->gacGetFeed($parameters, $cache_options);
-
-    // Set the total number of pagePaths for this profile from start_date to end_date.
-    $total_results = $this->state->set('google_analytics_counter.total_paths', $feed->results->totalResults);
-
-    return $total_results;
-  }
-
-  /**
    * Request report data.
    *
    * @param array $parameters
@@ -181,14 +160,36 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
   public function reportData($parameters = [], $cache_options = []) {
     $config = $this->config;
 
-    //Set Parameters for the Query to Google
-    $parameters = $this->setParameters();
+    $step = $this->state->get('google_analytics_counter.data_step');
+    $chunk = $config->get('general_settings.chunk_to_fetch');
 
-    // Set cache options in Drupal.
-    $cache_options = $this->setCacheOptions($parameters);
+    // Initialize the pointer.
+    $pointer = $step * $chunk + 1;
+
+    $parameters = [
+      'profile_id' => 'ga:' . $config->get('general_settings.profile_id'),
+      'dimensions' => ['ga:pagePath'],
+      'metrics' => ['ga:pageviews'],
+      'sort_metric' => NULL,
+      'filters' => NULL,
+      'segment' => NULL,
+      'start_date' => !empty($config->get('general_settings.start_date')) ? strtotime($config->get('general_settings.start_date')) : strtotime($config->get('general_settings.custom_start_date')),
+      'end_date' => !empty($config->get('general_settings.end_date')) ? strtotime($config->get('general_settings.end_date')) : strtotime($config->get('general_settings.custom_end_date')),
+      'start_index' => $pointer,
+      'max_results' => $chunk,
+    ];
+
+    $cache_options = [
+      'cid' => 'google_analytics_counter_' . md5(serialize($parameters)),
+      'expire' => GoogleAnalyticsCounterHelper::cacheTime(),
+      'refresh' => FALSE,
+    ];
 
     //Instantiate a new GoogleAnalyticsCounterFeed object.
     $feed = $this->gacGetFeed($parameters, $cache_options);
+
+    // Set the total number of pagePaths for this profile from start_date to end_date.
+    $this->state->set('google_analytics_counter.total_paths', $feed->results->totalResults);
 
     // The last time the Data was refreshed by Google. Not always available from Google.
     if (!empty($feed->results->dataLastRefreshed)) {
@@ -388,61 +389,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
   public function setParameters() {
     $config = $this->config;
 
-    $step = $this->state->get('google_analytics_counter.data_step');
-    $chunk = $config->get('general_settings.chunk_to_fetch');
-
-    // Initialize the pointer.
-    $pointer = $step * $chunk + 1;
-
-    /**
-    $parameters is an associative array containing:
-    - profile_id: required [default='ga:profile_id']
-    - dimensions: optional [ga:pagePath]
-    - metrics: required [ga:pageviews]
-    - sort: optional [ga:pageviews]
-    - start-date: [default=-1 week]
-    - end_date: optional [default=today]
-    - start_index: [default=1]
-    - max_results: optional [default=10,000].
-    - filters: optional [default=none]
-    - segment: optional [default=none]
-     */
-    $parameters = [
-      'profile_id' => 'ga:' . $config->get('general_settings.profile_id'),
-      'dimensions' => ['ga:pagePath'],
-      'metrics' => ['ga:pageviews'],
-      'sort_metric' => NULL,
-      'filters' => NULL,
-      'segment' => NULL,
-      'start_date' => !empty($config->get('general_settings.start_date')) ? strtotime($config->get('general_settings.start_date')) : strtotime($config->get('general_settings.custom_start_date')),
-      'end_date' => !empty($config->get('general_settings.end_date')) ? strtotime($config->get('general_settings.end_date')) : strtotime($config->get('general_settings.custom_end_date')),
-      'start_index' => $pointer,
-      'max_results' => $chunk,
-    ];
-
-    return $parameters;
-  }
-
-  /**
-   * Set cache options
-   * @param array $parameters
-   *
-   * @return array
-   */
-  public function setCacheOptions(array $parameters) {
-
-    /**
-    $cache_options is an optional associative array containing:
-    - cid: optional [default=md5 hash]
-    - expire: optional [default=CACHE_TEMPORARY]
-    - refresh: optional [default=FALSE].
-     */
-    $cache_options = [
-      'cid' => 'google_analytics_counter_' . md5(serialize($parameters)),
-      'expire' => GoogleAnalyticsCounterHelper::cacheTime(),
-      'refresh' => FALSE,
-    ];
-    return $cache_options;
   }
 
   /**

@@ -11,13 +11,6 @@ namespace Drupal\google_analytics_counter;
 interface GoogleAnalyticsCounterAppManagerInterface {
 
   /**
-   * Get total results from Google.
-   *
-   * @return mixed
-   */
-  public function getTotalResults();
-
-  /**
    * Request report data.
    *
    * @param array $parameters
@@ -46,7 +39,7 @@ interface GoogleAnalyticsCounterAppManagerInterface {
   /**
    * Update the path counts.
    *
-   * @param integer $index
+   * @param int $index
    *   The index of the chunk to fetch and update.
    *
    * This function is triggered by hook_cron().
@@ -77,22 +70,10 @@ interface GoogleAnalyticsCounterAppManagerInterface {
   public function setParameters();
 
   /**
-   * Set cache options
+   * Get the count of pageviews for a path.
    *
-   * @param array $parameters
-   *
-   * @return array
+   * @return string
+   *   Count of page views.
    */
-  public function setCacheOptions(array $parameters);
-
-//  /**
-//   * Get the count of pageviews for a path.
-//   *
-//   * @param string $path
-//   *   The path to look up.
-//   *
-//   * @return string
-//   *   Count of page views.
-//   */
-//  public function gacDisplayCount($path);
+  public function gacDisplayCount();
 }
