@@ -303,8 +303,7 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
     }, $aliases));
 
     // It's the front page
-    // Todo: Could be brittle
-    if ($nid == substr(\Drupal::configFactory()->get('system.site')->get('page.front'), 6)) {
+    if ($this->pathMatcher->isFrontPage()) {
       $sum_pageviews = $this->sumPageviews(['/']);
       $this->updateCounterStorage($nid, $sum_pageviews, $bundle, $vid);
     }
