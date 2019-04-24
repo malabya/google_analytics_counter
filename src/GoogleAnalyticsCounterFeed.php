@@ -126,6 +126,8 @@ class GoogleAnalyticsCounterFeed {
    *
    * @param string $client_id
    *   Client ID for Web application from Google API Console.
+   * @param string $redirect_uri
+   *   Callback url.
    *
    * @return string
    *   The url to authorize.
@@ -152,7 +154,7 @@ class GoogleAnalyticsCounterFeed {
    * @param string $client_secret
    *   Client secret for Web application from Google API Console.
    * @param string $redirect_uri
-   *   Callback uri.
+   *   Callback url.
    * @param null $refresh_token
    */
   protected function fetchToken($client_id, $client_secret, $redirect_uri, $refresh_token = NULL) {
@@ -579,8 +581,7 @@ class GoogleAnalyticsCounterFeed {
     }
     $start_date = '';
     if (empty($params['start_date']) || !is_int($params['start_date'])) {
-      // Todo: Don't use string literal.
-      $start_date = '2019-01-01';
+      $start_date = date('Y-m-d');
     }
     elseif (is_int($params['start_date'])) {
       // Assume a Unix timestamp.

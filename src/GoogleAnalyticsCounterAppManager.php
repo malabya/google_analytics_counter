@@ -456,7 +456,6 @@ class GoogleAnalyticsCounterAppManager implements GoogleAnalyticsCounterAppManag
 
     }
 
-    // dsm($sum_pageviews);
     return number_format($sum_pageviews);
   }
 
