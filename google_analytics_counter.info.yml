@@ -5,3 +5,6 @@ core: 8.x
 core_version_requirement: ^8 || ^9
 package: Statistics
 configure: google_analytics_counter.admin_settings_form
+dependencies:
+  - drupal:node
+
