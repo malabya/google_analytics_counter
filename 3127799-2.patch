@@ -1,0 +1,11 @@
+diff --git a/google_analytics_counter.info.yml b/google_analytics_counter.info.yml
+index c6fa03c..de083d8 100755
+--- a/google_analytics_counter.info.yml
++++ b/google_analytics_counter.info.yml
+@@ -2,5 +2,6 @@ name: 'Google Analytics Counter'
+ type: module
+ description: 'Lightweight page view counter drawing on data collected by Google Analytics.'
+ core: 8.x
++core_version_requirement: ^8 || ^9
+ package: Statistics
+ configure: google_analytics_counter.admin_settings_form
