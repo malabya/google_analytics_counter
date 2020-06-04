@@ -86,7 +86,7 @@ class GoogleAnalyticsCounterFilter extends FilterBase implements ContainerFactor
       $plugin_id,
       $plugin_definition,
       $container->get('path.current'),
-      $container->get('path.alias_manager'),
+      $container->get('path_alias.manager'),
       $container->get('state'),
       $container->get('google_analytics_counter.app_manager')
     );
